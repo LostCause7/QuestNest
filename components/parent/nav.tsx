@@ -1,0 +1,94 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboardIcon,
+  SwordsIcon,
+  GiftIcon,
+  UsersIcon,
+  HistoryIcon,
+  SettingsIcon,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const NAV_ITEMS: { href: string; label: string; icon: LucideIcon; badgeKey?: "approvals" }[] = [
+  { href: "/app", label: "Dashboard", icon: LayoutDashboardIcon, badgeKey: "approvals" },
+  { href: "/app/chores", label: "Quests", icon: SwordsIcon },
+  { href: "/app/rewards", label: "Rewards", icon: GiftIcon },
+  { href: "/app/kids", label: "Kids", icon: UsersIcon },
+  { href: "/app/activity", label: "Activity", icon: HistoryIcon },
+  { href: "/app/settings", label: "Settings", icon: SettingsIcon },
+];
+
+export function isActivePath(pathname: string, href: string) {
+  if (href === "/app") return pathname === "/app";
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
+export function SidebarNav({ pendingCount }: { pendingCount: number }) {
+  const pathname = usePathname();
+  return (
+    <nav className="flex flex-col gap-1">
+      {NAV_ITEMS.map((item) => {
+        const active = isActivePath(pathname, item.href);
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+            )}
+          >
+            <Icon className={cn("size-4.5", active ? "text-sidebar-primary" : "")} />
+            <span className="flex-1">{item.label}</span>
+            {item.badgeKey === "approvals" && pendingCount > 0 ? (
+              <span className="rounded-full bg-sidebar-primary px-2 py-0.5 text-xs font-semibold text-sidebar-primary-foreground">
+                {pendingCount}
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function MobileNav({ pendingCount }: { pendingCount: number }) {
+  const pathname = usePathname();
+  const items = NAV_ITEMS.filter((i) => i.href !== "/app/settings");
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
+      <ul className="grid grid-cols-5" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {items.map((item) => {
+          const active = isActivePath(pathname, item.href);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
+                  active ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <Icon className="size-5" />
+                {item.label}
+                {item.badgeKey === "approvals" && pendingCount > 0 ? (
+                  <span className="absolute top-1.5 right-1/2 translate-x-4 rounded-full bg-sun-500 px-1.5 text-[10px] font-bold text-white">
+                    {pendingCount}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}

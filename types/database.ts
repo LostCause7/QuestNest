@@ -1,0 +1,303 @@
+/**
+ * Hand-maintained Supabase types that mirror supabase/migrations/0001_questnest_init.sql.
+ * Regenerate with `supabase gen types typescript` once the CLI is linked, if preferred.
+ */
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export type Recurrence = "once" | "daily" | "weekly" | "custom";
+export type CompletionStatus = "pending" | "approved" | "rejected";
+export type RedemptionStatus = "pending" | "approved" | "rejected" | "fulfilled";
+export type TxKind = "chore" | "reward" | "refund" | "bonus" | "penalty" | "adjustment";
+export type MemberRole = "owner" | "parent";
+
+type Row<T> = T;
+type Insert<T, Optional extends keyof T = never, Omitted extends keyof T = never> = Omit<
+  Partial<Pick<T, Optional>> & Omit<T, Optional | Omitted>,
+  never
+>;
+
+export type Profile = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+export type Family = {
+  id: string;
+  name: string;
+  owner_id: string;
+  currency_name: string;
+  currency_emoji: string;
+  timezone: string;
+  created_at: string;
+}
+
+export type FamilyMember = {
+  family_id: string;
+  user_id: string;
+  role: MemberRole;
+  created_at: string;
+}
+
+export type Child = {
+  id: string;
+  family_id: string;
+  name: string;
+  avatar: string;
+  color: string;
+  points_balance: number;
+  lifetime_points: number;
+  current_streak: number;
+  longest_streak: number;
+  last_streak_date: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export type Chore = {
+  id: string;
+  family_id: string;
+  title: string;
+  description: string | null;
+  icon: string;
+  points: number;
+  recurrence: Recurrence;
+  days_of_week: number[];
+  requires_approval: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ChoreAssignment = {
+  chore_id: string;
+  child_id: string;
+}
+
+export type ChoreCompletion = {
+  id: string;
+  family_id: string;
+  chore_id: string;
+  child_id: string;
+  for_date: string;
+  status: CompletionStatus;
+  points_awarded: number | null;
+  note: string | null;
+  completed_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+}
+
+export type Reward = {
+  id: string;
+  family_id: string;
+  title: string;
+  description: string | null;
+  icon: string;
+  cost: number;
+  stock: number | null;
+  category: string;
+  requires_approval: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RewardRedemption = {
+  id: string;
+  family_id: string;
+  reward_id: string;
+  child_id: string;
+  status: RedemptionStatus;
+  cost_at_time: number;
+  requested_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+}
+
+export type PointTransaction = {
+  id: string;
+  family_id: string;
+  child_id: string;
+  amount: number;
+  kind: TxKind;
+  ref_id: string | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export type ChildBadge = {
+  child_id: string;
+  badge_key: string;
+  earned_at: string;
+}
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Row<Profile>;
+        Insert: Insert<Profile, "display_name" | "avatar_url" | "created_at">;
+        Update: Partial<Profile>;
+        Relationships: [];
+      };
+      families: {
+        Row: Row<Family>;
+        Insert: Insert<Family, "id" | "currency_name" | "currency_emoji" | "timezone" | "created_at">;
+        Update: Partial<Family>;
+        Relationships: [];
+      };
+      family_members: {
+        Row: Row<FamilyMember>;
+        Insert: Insert<FamilyMember, "role" | "created_at">;
+        Update: Partial<FamilyMember>;
+        Relationships: [];
+      };
+      children: {
+        Row: Row<Child>;
+        Insert: Insert<
+          Child,
+          | "id"
+          | "avatar"
+          | "color"
+          | "points_balance"
+          | "lifetime_points"
+          | "current_streak"
+          | "longest_streak"
+          | "last_streak_date"
+          | "sort_order"
+          | "is_active"
+          | "created_at"
+        >;
+        Update: Partial<Child>;
+        Relationships: [];
+      };
+      chores: {
+        Row: Row<Chore>;
+        Insert: Insert<
+          Chore,
+          | "id"
+          | "description"
+          | "icon"
+          | "recurrence"
+          | "days_of_week"
+          | "requires_approval"
+          | "is_active"
+          | "created_at"
+          | "updated_at"
+        >;
+        Update: Partial<Chore>;
+        Relationships: [];
+      };
+      chore_assignments: {
+        Row: Row<ChoreAssignment>;
+        Insert: ChoreAssignment;
+        Update: Partial<ChoreAssignment>;
+        Relationships: [];
+      };
+      chore_completions: {
+        Row: Row<ChoreCompletion>;
+        Insert: Insert<
+          ChoreCompletion,
+          | "id"
+          | "for_date"
+          | "status"
+          | "points_awarded"
+          | "note"
+          | "completed_at"
+          | "reviewed_at"
+          | "reviewed_by"
+        >;
+        Update: Partial<ChoreCompletion>;
+        Relationships: [];
+      };
+      rewards: {
+        Row: Row<Reward>;
+        Insert: Insert<
+          Reward,
+          | "id"
+          | "description"
+          | "icon"
+          | "stock"
+          | "category"
+          | "requires_approval"
+          | "is_active"
+          | "created_at"
+          | "updated_at"
+        >;
+        Update: Partial<Reward>;
+        Relationships: [];
+      };
+      reward_redemptions: {
+        Row: Row<RewardRedemption>;
+        Insert: Insert<
+          RewardRedemption,
+          "id" | "status" | "requested_at" | "resolved_at" | "resolved_by"
+        >;
+        Update: Partial<RewardRedemption>;
+        Relationships: [];
+      };
+      point_transactions: {
+        Row: Row<PointTransaction>;
+        Insert: Insert<
+          PointTransaction,
+          "id" | "ref_id" | "note" | "created_by" | "created_at"
+        >;
+        Update: Partial<PointTransaction>;
+        Relationships: [];
+      };
+      child_badges: {
+        Row: Row<ChildBadge>;
+        Insert: Insert<ChildBadge, "earned_at">;
+        Update: Partial<ChildBadge>;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      set_child_pin: { Args: { p_child: string; p_pin: string }; Returns: undefined };
+      verify_child_pin: { Args: { p_child: string; p_pin: string }; Returns: boolean };
+      set_parent_pin: { Args: { p_family: string; p_pin: string }; Returns: undefined };
+      verify_parent_pin: { Args: { p_family: string; p_pin: string }; Returns: boolean };
+      has_parent_pin: { Args: { p_family: string }; Returns: boolean };
+      complete_chore: {
+        Args: { p_chore: string; p_child: string; p_date?: string };
+        Returns: ChoreCompletion;
+      };
+      review_completion: {
+        Args: { p_completion: string; p_approve: boolean; p_points?: number | null };
+        Returns: ChoreCompletion;
+      };
+      redeem_reward: {
+        Args: { p_reward: string; p_child: string };
+        Returns: RewardRedemption;
+      };
+      resolve_redemption: {
+        Args: { p_redemption: string; p_action: "approve" | "reject" | "fulfill" };
+        Returns: RewardRedemption;
+      };
+      adjust_points: {
+        Args: { p_child: string; p_amount: number; p_note?: string | null };
+        Returns: PointTransaction;
+      };
+    };
+    Enums: {
+      recurrence: Recurrence;
+      completion_status: CompletionStatus;
+      redemption_status: RedemptionStatus;
+      tx_kind: TxKind;
+      member_role: MemberRole;
+    };
+    CompositeTypes: Record<string, never>;
+  };
+};

@@ -1,0 +1,42 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { SwordsIcon, ShoppingBagIcon, TrophyIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export function KidTabs({ childId }: { childId: string }) {
+  const pathname = usePathname();
+  const base = `/kids/${childId}`;
+  const tabs = [
+    { href: base, label: "Quests", icon: SwordsIcon, exact: true },
+    { href: `${base}/shop`, label: "Shop", icon: ShoppingBagIcon },
+    { href: `${base}/trophies`, label: "Trophies", icon: TrophyIcon },
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/90 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:backdrop-blur-none">
+      <ul className="mx-auto flex max-w-3xl justify-around gap-2 px-2 sm:justify-center sm:px-0" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {tabs.map((t) => {
+          const active = t.exact ? pathname === t.href : pathname.startsWith(t.href);
+          const Icon = t.icon;
+          return (
+            <li key={t.href} className="flex-1 sm:flex-none">
+              <Link
+                href={t.href}
+                className={cn(
+                  "flex flex-col items-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all sm:flex-row sm:gap-2 sm:px-5 sm:text-sm",
+                  active
+                    ? "text-primary sm:bg-card sm:shadow-md"
+                    : "text-muted-foreground hover:text-foreground sm:hover:bg-card/60"
+                )}
+              >
+                <Icon className={cn("size-6 sm:size-5", active && "animate-pop")} />
+                {t.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}

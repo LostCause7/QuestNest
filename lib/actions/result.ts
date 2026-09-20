@@ -1,0 +1,23 @@
+export type ActionResult<T = undefined> =
+  | { ok: true; data?: T; message?: string }
+  | { ok: false; error: string };
+
+export function ok<T>(data?: T, message?: string): ActionResult<T> {
+  return { ok: true, data, message };
+}
+
+export function fail<T = undefined>(error: string): ActionResult<T> {
+  return { ok: false, error };
+}
+
+/** Translate raw Postgres/PostgREST errors into friendly copy. */
+export function friendlyError(message: string) {
+  if (/duplicate key.*chore_completions/i.test(message)) return "That quest is already checked off for today.";
+  if (/not enough points/i.test(message)) return "Not enough points for that reward yet.";
+  if (/out of stock/i.test(message)) return "That reward is sold out.";
+  if (/already reviewed/i.test(message)) return "That one was already reviewed.";
+  if (/PIN must be/i.test(message)) return message.replace(/^.*?PIN/, "PIN");
+  if (/not allowed/i.test(message)) return "You don't have permission to do that.";
+  if (/row-level security/i.test(message)) return "You don't have permission to do that.";
+  return message;
+}
