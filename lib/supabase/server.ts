@@ -42,6 +42,8 @@ export async function createClient() {
 
 /** Returns the verified auth claims for the current request, or null. */
 export async function getClaims() {
+  // Touch cookies first so Next never statically prerenders auth-gated pages.
+  await cookies();
   if (!getSupabaseEnv()) return null;
   try {
     const supabase = await createClient();

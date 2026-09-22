@@ -1,21 +1,21 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getClaims } from "@/lib/supabase/server";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { Family } from "@/types/database";
 
 export type CurrentUser = { id: string; email: string | null };
 
 /** Verified user for the current request, or redirect to /login. */
 export const requireUser = cache(async (): Promise<CurrentUser> => {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
+  const claims = await getClaims();
   if (!claims?.sub) redirect("/login");
   return { id: claims.sub, email: (claims.email as string | undefined) ?? null };
 });
 
 /** The family the signed-in user belongs to, or null. */
 export const getFamily = cache(async (): Promise<Family | null> => {
+  if (!getSupabaseEnv()) return null;
   const supabase = await createClient();
   const { data } = await supabase
     .from("families")

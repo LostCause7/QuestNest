@@ -9,6 +9,8 @@ import { requireFamily, requireUser } from "@/lib/data/family";
 import { getPendingCompletions, getRedemptions } from "@/lib/data/parent";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function ParentLayout({ children }: LayoutProps<"/app">) {
   const user = await requireUser();
   const family = await requireFamily();

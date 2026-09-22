@@ -7,6 +7,7 @@ import { getFamily, requireUser } from "@/lib/data/family";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Set up your nest" };
+export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage() {
   const user = await requireUser();

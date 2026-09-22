@@ -1,5 +1,7 @@
 import { requireFamily } from "@/lib/data/family";
 
+export const dynamic = "force-dynamic";
+
 export default async function KidLayout({ children }: LayoutProps<"/kids">) {
   await requireFamily();
   return (
