@@ -1,3 +1,5 @@
+import { isNextRedirect } from "@/lib/errors";
+
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T; message?: string }
   | { ok: false; error: string };
@@ -20,4 +22,15 @@ export function friendlyError(message: string) {
   if (/not allowed/i.test(message)) return "You don't have permission to do that.";
   if (/row-level security/i.test(message)) return "You don't have permission to do that.";
   return message;
+}
+
+/** Keep server actions from throwing raw errors (those become a broken Next response). */
+export async function guardAction<T>(fn: () => Promise<ActionResult<T>>): Promise<ActionResult<T>> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    const message = error instanceof Error ? error.message : "Something went wrong.";
+    return fail(friendlyError(message));
+  }
 }

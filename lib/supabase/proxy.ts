@@ -42,6 +42,13 @@ export async function updateSession(request: NextRequest) {
   }
   const { pathname } = request.nextUrl;
 
+  // Server Actions POST to the current page. A login/kid-mode redirect here
+  // returns HTML and the UI shows "An unexpected response was received from the server."
+  const isServerAction =
+    request.method !== "GET" &&
+    (request.headers.has("next-action") || request.headers.has("Next-Action"));
+  if (isServerAction) return supabaseResponse;
+
   const wantsProtected = PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );

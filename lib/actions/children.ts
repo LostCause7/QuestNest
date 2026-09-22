@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
-import { ok, fail, friendlyError, type ActionResult } from "./result";
+import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Child } from "@/types/database";
 
 const childSchema = z.object({
@@ -24,6 +24,7 @@ function revalidate() {
 }
 
 export async function createChild(input: ChildInput): Promise<ActionResult<Child>> {
+  return guardAction(async () => {
   const parsed = childSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
   const pin = pinSchema.safeParse(input.pin);
@@ -49,9 +50,11 @@ export async function createChild(input: ChildInput): Promise<ActionResult<Child
 
   revalidate();
   return ok(data, `${data.name} joined the nest!`);
+  });
 }
 
 export async function updateChild(id: string, input: ChildInput): Promise<ActionResult<Child>> {
+  return guardAction(async () => {
   const parsed = childSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
 
@@ -69,6 +72,7 @@ export async function updateChild(id: string, input: ChildInput): Promise<Action
 
   revalidate();
   return ok(data, "Saved.");
+  });
 }
 
 export async function setChildActive(id: string, active: boolean): Promise<ActionResult> {

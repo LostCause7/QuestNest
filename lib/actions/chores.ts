@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
-import { ok, fail, friendlyError, type ActionResult } from "./result";
+import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Chore } from "@/types/database";
 
 const choreSchema = z.object({
@@ -31,6 +31,7 @@ function normalizeDays(input: ChoreInput) {
 }
 
 export async function createChore(input: ChoreInput): Promise<ActionResult<Chore>> {
+  return guardAction(async () => {
   const parsed = choreSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
   const family = await requireFamily();
@@ -51,9 +52,11 @@ export async function createChore(input: ChoreInput): Promise<ActionResult<Chore
 
   revalidate();
   return ok(data, "Quest created.");
+  });
 }
 
 export async function updateChore(id: string, input: ChoreInput): Promise<ActionResult<Chore>> {
+  return guardAction(async () => {
   const parsed = choreSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
   await requireFamily();
@@ -88,6 +91,7 @@ export async function updateChore(id: string, input: ChoreInput): Promise<Action
 
   revalidate();
   return ok(data, "Quest saved.");
+  });
 }
 
 export async function setChoreActive(id: string, active: boolean): Promise<ActionResult> {
@@ -118,15 +122,57 @@ export async function completeChoreAsParent(choreId: string, childId: string, fo
   return ok(undefined, "Marked as done.");
 }
 
-export async function reviewCompletion(completionId: string, approve: boolean, points?: number): Promise<ActionResult> {
-  await requireFamily();
+export async function reviewCompletion(
+  completionId: string,
+  approve: boolean,
+  points?: number,
+  note?: string
+): Promise<ActionResult> {
+  const family = await requireFamily();
   const supabase = await createClient();
-  const { error } = await supabase.rpc("review_completion", {
-    p_completion: completionId,
-    p_approve: approve,
-    p_points: typeof points === "number" ? points : null,
-  });
-  if (error) return fail(friendlyError(error.message));
+  const { data: claims } = await supabase.auth.getClaims();
+  const userId = claims?.claims.sub ?? null;
+  const parentNote = note?.trim() ? note.trim().slice(0, 280) : null;
+
+  const { data: row, error: fetchErr } = await supabase
+    .from("chore_completions")
+    .select("id, family_id, chore_id, child_id, status")
+    .eq("id", completionId)
+    .eq("family_id", family.id)
+    .maybeSingle();
+  if (fetchErr) return fail(friendlyError(fetchErr.message));
+  if (!row) return fail("That quest wasn't found.");
+  if (row.status !== "pending") return fail("That one was already reviewed.");
+
+  const { data: chore } = await supabase.from("chores").select("title, points").eq("id", row.chore_id).maybeSingle();
+  const awarded = approve ? (typeof points === "number" ? points : (chore?.points ?? 0)) : 0;
+
+  const { error: updErr } = await supabase
+    .from("chore_completions")
+    .update({
+      status: approve ? "approved" : "rejected",
+      points_awarded: awarded,
+      note: approve ? null : parentNote,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: userId,
+    })
+    .eq("id", completionId)
+    .eq("status", "pending");
+  if (updErr) return fail(friendlyError(updErr.message));
+
+  if (approve) {
+    const { error: txErr } = await supabase.from("point_transactions").insert({
+      family_id: row.family_id,
+      child_id: row.child_id,
+      amount: awarded,
+      kind: "chore",
+      ref_id: row.id,
+      note: chore?.title ?? "Quest",
+      created_by: userId,
+    });
+    if (txErr) return fail(friendlyError(txErr.message));
+  }
+
   revalidate();
   return ok(undefined, approve ? "Approved! Points awarded." : "Sent back.");
 }
