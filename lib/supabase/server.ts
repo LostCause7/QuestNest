@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 /**
  * Server-side Supabase client for Server Components, Server Actions and
@@ -8,11 +9,17 @@ import type { Database } from "@/types/database";
  * the request cookies.
  */
 export async function createClient() {
+  const env = getSupabaseEnv();
+  if (!env) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Add them in Vercel → Settings → Environment Variables (Production)."
+    );
+  }
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    env.url,
+    env.key,
     {
       cookies: {
         getAll() {
@@ -35,7 +42,12 @@ export async function createClient() {
 
 /** Returns the verified auth claims for the current request, or null. */
 export async function getClaims() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  return data?.claims ?? null;
+  if (!getSupabaseEnv()) return null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getClaims();
+    return data?.claims ?? null;
+  } catch {
+    return null;
+  }
 }

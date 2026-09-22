@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 const PROTECTED_PREFIXES = ["/app", "/kids", "/onboarding"];
 const AUTH_PAGES = ["/login", "/signup"];
@@ -16,34 +17,29 @@ export const ACTIVE_CHILD_COOKIE = "qn_active_child";
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  const env = getSupabaseEnv();
+  if (!env) return supabaseResponse;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
+  let isAuthed = false;
+  try {
+    const supabase = createServerClient(env.url, env.key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet, headers) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-          Object.entries(headers ?? {}).forEach(([key, value]) =>
-            supabaseResponse.headers.set(key, value)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options));
+          Object.entries(headers ?? {}).forEach(([key, value]) => supabaseResponse.headers.set(key, value));
         },
       },
-    }
-  );
-
-  // IMPORTANT: do not run code between createServerClient and getClaims().
-  const { data } = await supabase.auth.getClaims();
-  const isAuthed = Boolean(data?.claims);
+    });
+    const { data } = await supabase.auth.getClaims();
+    isAuthed = Boolean(data?.claims);
+  } catch {
+    return supabaseResponse;
+  }
   const { pathname } = request.nextUrl;
 
   const wantsProtected = PROTECTED_PREFIXES.some(
