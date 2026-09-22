@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { GoogleButton } from "@/components/auth/google-button";
 import type { AuthState } from "@/lib/actions/auth";
 import {
   signInWithPassword,
@@ -15,19 +14,6 @@ import {
   requestPasswordReset,
   updatePassword,
 } from "@/lib/actions/auth";
-
-function Divider() {
-  return (
-    <div className="relative my-6">
-      <div className="absolute inset-0 flex items-center">
-        <span className="w-full border-t" />
-      </div>
-      <div className="relative flex justify-center text-xs uppercase">
-        <span className="bg-background px-3 text-muted-foreground">or with email</span>
-      </div>
-    </div>
-  );
-}
 
 function Feedback({ state, initialError }: { state: AuthState; initialError?: string }) {
   const error = state?.error ?? initialError;
@@ -58,8 +44,6 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
         <h1 className="font-display text-3xl font-semibold">Welcome back</h1>
         <p className="text-muted-foreground">Sign in to your family&apos;s nest.</p>
       </div>
-      <GoogleButton next={next} />
-      <Divider />
       <form action={action} className="space-y-4">
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <Feedback state={state} initialError={initialError} />
@@ -98,8 +82,6 @@ export function SignupForm() {
         <h1 className="font-display text-3xl font-semibold">Create your nest</h1>
         <p className="text-muted-foreground">Free for families. Takes about two minutes.</p>
       </div>
-      <GoogleButton next="/onboarding" label="Sign up with Google" />
-      <Divider />
       <form action={action} className="space-y-4">
         <Feedback state={state} />
         {!state?.message ? (

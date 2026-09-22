@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { getFamily, requireUser } from "@/lib/data/family";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export const metadata: Metadata = { title: "Set up your nest" };
 export const dynamic = "force-dynamic";
@@ -14,9 +15,16 @@ export default async function OnboardingPage() {
   const family = await getFamily();
   if (family) redirect("/app");
 
-  const supabase = await createClient();
-  const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
-  const first = (profile?.display_name ?? "").split(" ")[0] ?? "";
+  let first = "";
+  if (getSupabaseEnv()) {
+    try {
+      const supabase = await createClient();
+      const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+      first = (profile?.display_name ?? "").split(" ")[0] ?? "";
+    } catch {
+      first = "";
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">

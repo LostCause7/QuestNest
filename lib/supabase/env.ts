@@ -1,18 +1,31 @@
-function readPublic(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") {
-  // Static access can be inlined at build; dynamic access still sees Vercel runtime env
-  // if the Secret was missing during `next build`.
-  const fromStatic =
-    name === "NEXT_PUBLIC_SUPABASE_URL"
-      ? process.env.NEXT_PUBLIC_SUPABASE_URL
-      : process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  const fromDynamic = process.env[name];
-  return (fromStatic?.trim() || fromDynamic?.trim() || "");
+function firstEnv(...names: string[]) {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) return value;
+  }
+  // Static NEXT_PUBLIC_ reads so a successful Vercel build can still inline them.
+  if (names.includes("NEXT_PUBLIC_SUPABASE_URL")) {
+    const inline = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    if (inline) return inline;
+  }
+  if (names.includes("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") || names.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY")) {
+    const inline =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+    if (inline) return inline;
+  }
+  return "";
 }
 
 /** Public Supabase env. Empty strings count as missing (Vercel often sets that). */
 export function getSupabaseEnv() {
-  const url = readPublic("NEXT_PUBLIC_SUPABASE_URL");
-  const key = readPublic("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  const url = firstEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const key = firstEnv(
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_ANON_KEY"
+  );
   if (!url || !key) return null;
   try {
     new URL(url);
