@@ -20,6 +20,7 @@ export function KidRealtime({ childId, familyId }: { childId: string; familyId: 
 
   useEffect(() => {
     const supabase = createClient();
+    if (!supabase) return;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     const refresh = () => {
       if (refreshTimer) clearTimeout(refreshTimer);

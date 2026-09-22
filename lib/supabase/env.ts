@@ -17,8 +17,28 @@ function firstEnv(...names: string[]) {
   return "";
 }
 
+export type SupabasePublicEnv = { url: string; key: string };
+
+declare global {
+  interface Window {
+    __QN_SUPABASE__?: SupabasePublicEnv;
+  }
+}
+
 /** Public Supabase env. Empty strings count as missing (Vercel often sets that). */
-export function getSupabaseEnv() {
+export function getSupabaseEnv(): SupabasePublicEnv | null {
+  if (typeof window !== "undefined") {
+    const injected = window.__QN_SUPABASE__;
+    if (injected?.url && injected?.key) {
+      try {
+        new URL(injected.url);
+        return injected;
+      } catch {
+        // fall through to process.env
+      }
+    }
+  }
+
   const url = firstEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
   const key = firstEnv(
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -33,4 +53,9 @@ export function getSupabaseEnv() {
     return null;
   }
   return { url, key };
+}
+
+/** Inline script so the browser still gets keys if they were missing at `next build`. */
+export function supabaseEnvBootstrapScript(env: SupabasePublicEnv) {
+  return `window.__QN_SUPABASE__=${JSON.stringify({ url: env.url, key: env.key })};`;
 }

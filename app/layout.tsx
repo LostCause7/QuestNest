@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Fredoka, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { getSiteUrl } from "@/lib/site-url";
+import { getSupabaseEnv, supabaseEnvBootstrapScript } from "@/lib/supabase/env";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,6 +68,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const supabaseEnv = getSupabaseEnv();
   return (
     <html
       lang="en"
@@ -74,6 +76,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        {supabaseEnv ? (
+          <script
+            dangerouslySetInnerHTML={{ __html: supabaseEnvBootstrapScript(supabaseEnv) }}
+          />
+        ) : null}
         {children}
         <Toaster position="top-center" richColors closeButton />
       </body>

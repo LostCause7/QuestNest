@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PlayIcon } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,21 @@ import { ParentRealtime } from "@/components/parent/parent-realtime";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { getPendingCompletions, getRedemptions } from "@/lib/data/parent";
 import { createClient } from "@/lib/supabase/server";
+import { isNextRedirect } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
 export default async function ParentLayout({ children }: LayoutProps<"/app">) {
+  try {
+    return await ParentLayoutInner({ children });
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    console.error(error);
+    redirect("/login?error=" + encodeURIComponent("We couldn't open Parent HQ. Please sign in again."));
+  }
+}
+
+async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
   const user = await requireUser();
   const family = await requireFamily();
   const supabase = await createClient();
@@ -67,12 +79,7 @@ export default async function ParentLayout({ children }: LayoutProps<"/app">) {
             </Link>
           </div>
           <div className="hidden text-sm text-muted-foreground md:block">
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              timeZone: family.timezone,
-            })}
+            {formatHeaderDate(family.timezone)}
           </div>
           <div className="flex items-center gap-2">
             <Button asChild size="sm" className="md:hidden">
@@ -91,4 +98,13 @@ export default async function ParentLayout({ children }: LayoutProps<"/app">) {
       </div>
     </div>
   );
+}
+
+function formatHeaderDate(timeZone: string) {
+  const opts: Intl.DateTimeFormatOptions = { weekday: "long", month: "long", day: "numeric" };
+  try {
+    return new Date().toLocaleDateString(undefined, { ...opts, timeZone });
+  } catch {
+    return new Date().toLocaleDateString(undefined, opts);
+  }
 }

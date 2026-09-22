@@ -16,14 +16,18 @@ export const requireUser = cache(async (): Promise<CurrentUser> => {
 /** The family the signed-in user belongs to, or null. */
 export const getFamily = cache(async (): Promise<Family | null> => {
   if (!getSupabaseEnv()) return null;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("families")
-    .select("*")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  return data ?? null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("families")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return data ?? null;
+  } catch {
+    return null;
+  }
 });
 
 /** Family or redirect to onboarding. */

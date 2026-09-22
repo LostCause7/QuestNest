@@ -5,21 +5,12 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { getOrigin, safeNext } from "@/lib/origin";
+import { isNextRedirect } from "@/lib/errors";
 
 export type AuthState = { error?: string; message?: string } | undefined;
 
 const CONFIG_ERROR =
   "QuestNest could not reach the nest. Check that Supabase is connected, then try again.";
-
-function isNextRedirect(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest: unknown }).digest === "string" &&
-    (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
-  );
-}
 
 async function supabaseForAuth() {
   if (!getSupabaseEnv()) return null;

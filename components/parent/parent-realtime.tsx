@@ -15,6 +15,7 @@ export function ParentRealtime({ familyId }: { familyId: string }) {
 
   useEffect(() => {
     const supabase = createClient();
+    if (!supabase) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const refresh = () => {
       if (timer) clearTimeout(timer);
