@@ -13,9 +13,9 @@ import { isNextRedirect } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-export default async function ParentLayout({ children }: LayoutProps<"/app">) {
+export default async function ParentLayout(props: LayoutProps<"/app">) {
   try {
-    return await ParentLayoutInner({ children });
+    return await ParentLayoutInner(props);
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     console.error(error);
