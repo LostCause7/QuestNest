@@ -42,8 +42,8 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 800, lineHeight: 1.02, letterSpacing: -2 }}>
-            <span>Chores become quests.</span>
-            <span style={{ color: "#ffd166" }}>Kids actually want to do them.</span>
+            <span>Chores become quests</span>
+            <span style={{ color: "#ffd166" }}>Kids actually want to do.</span>
           </div>
           <div style={{ fontSize: 30, opacity: 0.8 }}>Points · reward shop · streaks · trophies. Parents set every rule.</div>
         </div>

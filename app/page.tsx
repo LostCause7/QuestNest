@@ -87,9 +87,9 @@ export default function HomePage() {
               Chores, gamified for real families
             </span>
             <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] text-balance sm:text-6xl">
-              Chores become quests.
+              Chores become quests
               <br />
-              <span className="bg-gradient-to-r from-sun-300 to-sun-500 bg-clip-text text-transparent">Kids actually want to do them.</span>
+              <span className="bg-gradient-to-r from-sun-300 to-sun-500 bg-clip-text text-transparent">Kids actually want to do.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-white/70">
               QuestNest turns your family&apos;s to-do list into a game: points, streaks, a reward shop and trophies. You stay in control
