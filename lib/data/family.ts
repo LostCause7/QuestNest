@@ -24,7 +24,15 @@ export const getFamily = cache(async (): Promise<Family | null> => {
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    return data ?? null;
+    if (!data) return null;
+    return {
+      ...data,
+      location_city: data.location_city ?? null,
+      location_state: data.location_state ?? null,
+      location_lat: data.location_lat ?? null,
+      location_lng: data.location_lng ?? null,
+      location_radius_miles: data.location_radius_miles ?? 30,
+    };
   } catch {
     return null;
   }

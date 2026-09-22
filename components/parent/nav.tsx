@@ -61,10 +61,10 @@ export function SidebarNav({ pendingCount }: { pendingCount: number }) {
 
 export function MobileNav({ pendingCount }: { pendingCount: number }) {
   const pathname = usePathname();
-  const items = NAV_ITEMS.filter((i) => i.href !== "/app/settings");
+  const items = NAV_ITEMS;
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
-      <ul className="grid grid-cols-5" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <ul className="grid grid-cols-6" style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}>
         {items.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
@@ -73,7 +73,7 @@ export function MobileNav({ pendingCount }: { pendingCount: number }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
+                  "relative flex min-h-11 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium",
                   active ? "text-primary" : "text-muted-foreground"
                 )}
               >

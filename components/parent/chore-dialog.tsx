@@ -21,6 +21,7 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { useAction } from "@/hooks/use-action";
 import { createChore, updateChore, type ChoreInput } from "@/lib/actions/chores";
 import { CHORE_ICONS } from "@/lib/templates";
+import { suggestQuestPoints } from "@/lib/suggested-points";
 import { WEEKDAYS } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import type { Child, Family, Recurrence } from "@/types/database";
@@ -117,7 +118,17 @@ function ChoreForm({
             <IconPicker value={icon} onChange={setIcon} options={CHORE_ICONS} />
             <div className="flex-1 space-y-2">
               <Label htmlFor="q-title">Quest name</Label>
-              <Input id="q-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Make your bed" autoFocus />
+              <Input
+                id="q-title"
+                value={title}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setTitle(next);
+                  if (!editing && (!points || points === "10")) setPoints(String(suggestQuestPoints(next)));
+                }}
+                placeholder="Make your bed"
+                autoFocus
+              />
             </div>
           </div>
 
@@ -133,6 +144,7 @@ function ChoreForm({
                 <Input id="q-points" type="number" min={0} value={points} onChange={(e) => setPoints(e.target.value)} className="pr-9" />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">{family.currency_emoji}</span>
               </div>
+              <p className="text-[11px] text-muted-foreground">Suggested from the title — change it anytime.</p>
             </div>
             <div className="space-y-2">
               <Label>Repeats</Label>

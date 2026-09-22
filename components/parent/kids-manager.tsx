@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteChild, setChildActive } from "@/lib/actions/children";
 import { levelInfo } from "@/lib/levels";
+import { childLook, frameClass } from "@/lib/milestones";
 import { colorTheme } from "@/lib/avatars";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
@@ -49,7 +50,10 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end gap-2">
+        <Button variant="outline" onClick={() => window.print()}>
+          Print PIN card
+        </Button>
         <Button onClick={openNew}>
           <PlusIcon />
           Add a kid
@@ -105,6 +109,19 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
         </div>
       ) : null}
 
+      <div className="hidden print:block">
+        <h2 className="font-display text-2xl font-semibold">QuestNest PIN reminder</h2>
+        <p className="mt-1 text-sm">Write each kid&apos;s PIN in the box. Keep this on the fridge, not in a kid&apos;s backpack.</p>
+        <ul className="mt-6 grid gap-4">
+          {active.map((kid) => (
+            <li key={kid.id} className="flex items-center gap-4 rounded-xl border p-4">
+              <span className="font-display text-xl font-semibold">{kid.name}</span>
+              <span className="ml-auto h-10 w-32 rounded-lg border-2 border-dashed" />
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <KidDialog open={dialogOpen} onOpenChange={setDialogOpen} child={editing} />
       <AdjustPointsDialog open={Boolean(adjusting)} onOpenChange={(o) => !o && setAdjusting(null)} child={adjusting} family={family} />
       <ConfirmDialog
@@ -140,20 +157,27 @@ function KidCard({
   onDelete: () => void;
 }) {
   const lvl = levelInfo(kid.lifetime_points);
+  const look = childLook(kid.style);
   const theme = colorTheme(kid.color);
   return (
     <div className={cn("relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
       <div className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", theme.gradient)} />
       <div className="flex items-start gap-3">
         <Link href={`/app/kids/${kid.id}`}>
-          <KidAvatar avatar={kid.avatar} color={kid.color} size="md" />
+          <KidAvatar
+            avatar={kid.avatar}
+            color={kid.color}
+            size="md"
+            sticker={look.sticker}
+            frameClassName={frameClass(look.frame)}
+          />
         </Link>
         <div className="min-w-0 flex-1">
           <Link href={`/app/kids/${kid.id}`} className="block truncate font-display text-lg font-semibold hover:underline">
-            {kid.name}
+            {kid.nickname?.trim() || kid.name}
           </Link>
           <div className="text-sm text-muted-foreground">
-            Level {lvl.level} · {lvl.title}
+            Level {lvl.level} · {look.title || lvl.title}
           </div>
         </div>
         <DropdownMenu>

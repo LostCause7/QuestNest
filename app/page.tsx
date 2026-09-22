@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRightIcon,
@@ -17,6 +18,8 @@ import { Logo } from "@/components/brand/logo";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { HeroPreview } from "@/components/marketing/hero-preview";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { getClaims } from "@/lib/supabase/server";
+import { getFamily } from "@/lib/data/family";
 
 const steps = [
   {
@@ -69,13 +72,19 @@ const faqs = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const claims = await getClaims();
+  if (claims) {
+    const family = await getFamily();
+    redirect(family ? "/kids" : "/onboarding");
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-nest-950 text-white">
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section id="main" className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -top-40 left-1/2 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-nest-600/40 blur-3xl" />
           <div className="absolute top-40 -right-40 size-[30rem] rounded-full bg-sun-500/20 blur-3xl" />
@@ -212,14 +221,16 @@ export default function HomePage() {
       <section id="faq" className="bg-background text-foreground">
         <div className="mx-auto max-w-3xl px-6 py-24">
           <h2 className="font-display text-3xl font-semibold sm:text-4xl">Questions parents ask</h2>
-          <dl className="mt-10 divide-y rounded-3xl border bg-card">
+          <div className="mt-10 divide-y rounded-3xl border bg-card">
             {faqs.map((f) => (
-              <div key={f.q} className="p-6">
-                <dt className="font-display text-lg font-semibold">{f.q}</dt>
-                <dd className="mt-2 text-muted-foreground">{f.a}</dd>
-              </div>
+              <details key={f.q} className="group p-6">
+                <summary className="cursor-pointer font-display text-lg font-semibold list-none [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                </summary>
+                <p className="mt-2 text-muted-foreground">{f.a}</p>
+              </details>
             ))}
-          </dl>
+          </div>
         </div>
       </section>
 
@@ -243,12 +254,18 @@ export default function HomePage() {
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-white/50 sm:flex-row">
           <Logo tone="light" size="sm" />
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             <Link href="/login" className="hover:text-white">
               Sign in
             </Link>
             <Link href="/signup" className="hover:text-white">
               Create account
+            </Link>
+            <Link href="/privacy" className="hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-white">
+              Terms
             </Link>
           </div>
           <div>© {new Date().getFullYear()} QuestNest</div>

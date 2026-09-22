@@ -1,6 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PlayIcon } from "lucide-react";
+import { ParentShellFallback } from "@/components/parent/manager-fallback";
+import { PrefsApplier } from "@/components/parent/nest-extras";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { SidebarNav, MobileNav } from "@/components/parent/nav";
@@ -13,7 +16,15 @@ import { isNextRedirect } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-export default async function ParentLayout(props: LayoutProps<"/app">) {
+export default function ParentLayout(props: LayoutProps<"/app">) {
+  return (
+    <Suspense fallback={<ParentShellFallback />}>
+      <ParentLayoutGuarded {...props} />
+    </Suspense>
+  );
+}
+
+async function ParentLayoutGuarded(props: LayoutProps<"/app">) {
   try {
     return await ParentLayoutInner(props);
   } catch (error) {
@@ -38,6 +49,7 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
 
   return (
     <div className="flex min-h-screen">
+      <PrefsApplier />
       <ParentRealtime familyId={family.id} />
       {/* Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
@@ -60,7 +72,7 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
           <Button asChild className="w-full bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" size="lg">
             <Link href="/kids">
               <PlayIcon />
-              Enter Kid Mode
+              Switch profile
             </Link>
           </Button>
           <div className="flex items-center gap-2 text-xs text-sidebar-foreground/50">
@@ -85,13 +97,13 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
             <Button asChild size="sm" className="md:hidden">
               <Link href="/kids">
                 <PlayIcon />
-                Kid Mode
+                Profiles
               </Link>
             </Button>
             <UserMenu name={displayName} email={user.email} avatarUrl={profile?.avatar_url ?? null} />
           </div>
         </header>
-        <main className="flex-1 px-4 py-6 pb-24 sm:px-6 md:pb-8 lg:px-8">
+        <main id="main" className="flex-1 px-4 py-6 pb-24 sm:px-6 md:pb-8 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
         <MobileNav pendingCount={pendingCount} />

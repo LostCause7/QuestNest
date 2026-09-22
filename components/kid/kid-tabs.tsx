@@ -15,7 +15,7 @@ export function KidTabs({ childId }: { childId: string }) {
   ];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/90 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:backdrop-blur-none">
-      <ul className="mx-auto flex max-w-3xl justify-around gap-2 px-2 sm:justify-center sm:px-0" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <ul className="mx-auto flex max-w-3xl justify-around gap-2 px-2 sm:justify-center sm:px-0" style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}>
         {tabs.map((t) => {
           const active = t.exact ? pathname === t.href : pathname.startsWith(t.href);
           const Icon = t.icon;
@@ -24,7 +24,7 @@ export function KidTabs({ childId }: { childId: string }) {
               <Link
                 href={t.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all sm:flex-row sm:gap-2 sm:px-5 sm:text-sm",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all sm:min-h-0 sm:flex-row sm:gap-2 sm:px-5 sm:text-sm",
                   active
                     ? "text-primary sm:bg-card sm:shadow-md"
                     : "text-muted-foreground hover:text-foreground sm:hover:bg-card/60"

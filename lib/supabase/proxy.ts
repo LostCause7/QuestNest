@@ -65,30 +65,20 @@ export async function updateSession(request: NextRequest) {
 
   if (isAuthed && isAuthPage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/app";
+    url.pathname = "/kids";
     url.search = "";
     return withCookies(NextResponse.redirect(url), supabaseResponse);
   }
 
-  // Kid Mode lock: once a device is in Kid Mode, parent-only routes bounce to the exit PIN pad.
+  // Kid Mode lock: only after a kid unlocks with their PIN.
+  // Visiting the profile picker must not lock Parent HQ behind the parent PIN.
   const inKidMode = request.cookies.get(KID_MODE_COOKIE)?.value === "1";
   const wantsParentOnly = PARENT_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (isAuthed && inKidMode && wantsParentOnly) {
     const url = request.nextUrl.clone();
-    url.pathname = "/kids/exit";
+    url.pathname = "/kids/parent";
     url.search = `?next=${encodeURIComponent(pathname)}`;
     return withCookies(NextResponse.redirect(url), supabaseResponse);
-  }
-
-  // Entering any /kids route turns Kid Mode on for this device.
-  if (isAuthed && pathname.startsWith("/kids") && pathname !== "/kids/exit" && !inKidMode) {
-    supabaseResponse.cookies.set(KID_MODE_COOKIE, "1", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-    });
   }
 
   return supabaseResponse;

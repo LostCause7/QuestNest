@@ -46,7 +46,7 @@ export async function signInWithPassword(_prev: AuthState, formData: FormData): 
             : "Incorrect email or password.",
       };
     }
-    redirect(safeNext(formData.get("next")?.toString()));
+    redirect(safeNext(formData.get("next")?.toString(), "/kids"));
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return { error: CONFIG_ERROR };

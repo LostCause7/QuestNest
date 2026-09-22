@@ -25,8 +25,13 @@ create table public.families (
   owner_id       uuid not null references auth.users(id) on delete cascade,
   currency_name  text not null default 'Stars',
   currency_emoji text not null default '⭐',
-  timezone       text not null default 'America/Chicago',
-  created_at     timestamptz not null default now()
+  timezone              text not null default 'America/Chicago',
+  location_city         text,
+  location_state        text,
+  location_lat          double precision,
+  location_lng          double precision,
+  location_radius_miles integer not null default 30 check (location_radius_miles between 5 and 100),
+  created_at            timestamptz not null default now()
 );
 
 create table public.family_members (
@@ -110,8 +115,18 @@ create table public.rewards (
   category          text not null default 'privilege',            -- privilege | item | experience
   requires_approval boolean not null default true,
   is_active         boolean not null default true,
+  source_key        text,
   created_at        timestamptz not null default now(),
   updated_at        timestamptz not null default now()
+);
+create unique index if not exists rewards_family_source_key
+  on public.rewards (family_id, source_key)
+  where source_key is not null;
+
+create table public.reward_assignments (
+  reward_id uuid not null references public.rewards(id) on delete cascade,
+  child_id  uuid not null references public.children(id) on delete cascade,
+  primary key (reward_id, child_id)
 );
 
 create table public.reward_redemptions (
@@ -155,7 +170,7 @@ create index on public.point_transactions (child_id, created_at desc);
 -- Private helpers (not exposed via API) ---------------------
 create or replace function private.my_family_ids()
 returns setof uuid
-language sql stable security definer set search_path = ''
+language sql volatile security definer set search_path = ''
 as $$
   select family_id from public.family_members where user_id = (select auth.uid());
 $$;
@@ -271,6 +286,7 @@ alter table public.chores             enable row level security;
 alter table public.chore_assignments  enable row level security;
 alter table public.chore_completions  enable row level security;
 alter table public.rewards            enable row level security;
+alter table public.reward_assignments enable row level security;
 alter table public.reward_redemptions enable row level security;
 alter table public.point_transactions enable row level security;
 alter table public.child_badges       enable row level security;
@@ -279,7 +295,7 @@ create policy "own profile"        on public.profiles for all to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
 create policy "members read family" on public.families for select to authenticated
-  using (id in (select private.my_family_ids()));
+  using (owner_id = (select auth.uid()) or id in (select private.my_family_ids()));
 create policy "create own family"   on public.families for insert to authenticated
   with check (owner_id = (select auth.uid()));
 create policy "members update family" on public.families for update to authenticated
@@ -289,6 +305,11 @@ create policy "owner deletes family" on public.families for delete to authentica
 
 create policy "see co-members" on public.family_members for select to authenticated
   using (family_id in (select private.my_family_ids()));
+create policy "owner adds members" on public.family_members for insert to authenticated
+  with check (
+    user_id = (select auth.uid())
+    and family_id in (select id from public.families where owner_id = (select auth.uid()))
+  );
 
 create policy "family children"     on public.children for all to authenticated
   using (family_id in (select private.my_family_ids())) with check (family_id in (select private.my_family_ids()));
@@ -301,6 +322,9 @@ create policy "family completions"  on public.chore_completions for all to authe
   using (family_id in (select private.my_family_ids())) with check (family_id in (select private.my_family_ids()));
 create policy "family rewards"      on public.rewards for all to authenticated
   using (family_id in (select private.my_family_ids())) with check (family_id in (select private.my_family_ids()));
+create policy "family reward assignments" on public.reward_assignments for all to authenticated
+  using (reward_id in (select id from public.rewards where family_id in (select private.my_family_ids())))
+  with check (reward_id in (select id from public.rewards where family_id in (select private.my_family_ids())));
 create policy "family redemptions"  on public.reward_redemptions for all to authenticated
   using (family_id in (select private.my_family_ids())) with check (family_id in (select private.my_family_ids()));
 create policy "family ledger read"  on public.point_transactions for select to authenticated
@@ -376,9 +400,27 @@ begin
   if not exists (select 1 from public.chore_assignments where chore_id = p_chore and child_id = p_child)
     then raise exception 'chore not assigned to this child'; end if;
 
-  insert into public.chore_completions (family_id, chore_id, child_id, for_date, status)
-  values (ch.family_id, p_chore, p_child, p_date, 'pending')
-  returning * into row;
+  select * into row from public.chore_completions
+   where chore_id = p_chore and child_id = p_child and for_date = p_date;
+
+  if found then
+    if row.status = 'rejected' then
+      update public.chore_completions
+         set status = 'pending'::public.completion_status,
+             points_awarded = null,
+             note = null,
+             completed_at = now(),
+             reviewed_at = null,
+             reviewed_by = null
+       where id = row.id returning * into row;
+    else
+      raise exception 'duplicate key value violates unique constraint chore_completions';
+    end if;
+  else
+    insert into public.chore_completions (family_id, chore_id, child_id, for_date, status)
+    values (ch.family_id, p_chore, p_child, p_date, 'pending'::public.completion_status)
+    returning * into row;
+  end if;
 
   if not ch.requires_approval then
     -- auto-approve: the UPDATE fires the streak/badge trigger
@@ -403,7 +445,7 @@ begin
   select * into ch from public.chores where id = row.chore_id;
 
   update public.chore_completions
-     set status = case when p_approve then 'approved' else 'rejected' end,
+     set status = case when p_approve then 'approved'::public.completion_status else 'rejected'::public.completion_status end,
          points_awarded = case when p_approve then coalesce(p_points, ch.points) else 0 end,
          reviewed_at = now(), reviewed_by = (select auth.uid())
    where id = p_completion returning * into row;
@@ -430,7 +472,7 @@ begin
 
   insert into public.reward_redemptions (family_id, reward_id, child_id, status, cost_at_time, resolved_at)
   values (r.family_id, p_reward, p_child,
-          case when r.requires_approval then 'pending' else 'approved' end, r.cost,
+          case when r.requires_approval then 'pending'::public.redemption_status else 'approved'::public.redemption_status end, r.cost,
           case when r.requires_approval then null else now() end)
   returning * into red;
 
@@ -476,7 +518,14 @@ begin
   if c.id is null then raise exception 'child not found'; end if;
   if p_amount = 0 then raise exception 'amount must be non-zero'; end if;
   insert into public.point_transactions (family_id, child_id, amount, kind, note, created_by)
-  values (c.family_id, p_child, p_amount, case when p_amount > 0 then 'bonus' else 'penalty' end, p_note, (select auth.uid()))
+  values (
+    c.family_id,
+    p_child,
+    p_amount,
+    case when p_amount > 0 then 'bonus'::public.tx_kind else 'penalty'::public.tx_kind end,
+    p_note,
+    (select auth.uid())
+  )
   returning * into tx;
   return tx;
 end;

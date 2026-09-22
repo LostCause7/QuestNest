@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ACTIVE_CHILD_COOKIE } from "@/lib/supabase/proxy";
-import { getChildren, getChores, getCompletionsBetween, familyToday } from "@/lib/data/parent";
+import { getChildren, getChores, getCompletionsBetween, familyToday, shiftDate } from "@/lib/data/parent";
 import { isChoreDueOn, type QuestStatus } from "@/lib/schedule";
 import type { Child, Chore, ChoreCompletion, Family } from "@/types/database";
 
@@ -61,7 +61,13 @@ export const getQuestBoard = cache(async (family: Family, child: Child) => {
     })
     .sort((a, b) => order(a.status) - order(b.status) || b.chore.points - a.chore.points);
 
-  return { today, cards };
+  const tomorrow = shiftDate(today, 1);
+  const tomorrowPeek = mine
+    .filter((c) => c.recurrence !== "once" && isChoreDueOn(c, tomorrow) && !cards.some((card) => card.chore.id === c.id && card.status === "todo"))
+    .map((c) => ({ title: c.title, icon: c.icon }))
+    .slice(0, 4);
+
+  return { today, cards, tomorrowPeek };
 });
 
 function order(s: QuestStatus) {

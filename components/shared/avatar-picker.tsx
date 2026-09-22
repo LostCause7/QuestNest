@@ -8,11 +8,15 @@ export function KidAvatar({
   color,
   size = "md",
   className,
+  frameClassName,
+  sticker,
 }: {
   avatar: string;
   color: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
+  frameClassName?: string;
+  sticker?: string | null;
 }) {
   const theme = colorTheme(color);
   const sizes = {
@@ -25,14 +29,18 @@ export function KidAvatar({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-inner",
+        "relative inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-inner",
         theme.gradient,
         sizes,
+        frameClassName,
         className
       )}
       aria-hidden="true"
     >
       <span className="drop-shadow-sm">{avatarEmoji(avatar)}</span>
+      {sticker ? (
+        <span className="absolute -top-1 -right-1 text-base drop-shadow-sm sm:text-lg">{sticker}</span>
+      ) : null}
     </span>
   );
 }
@@ -55,6 +63,7 @@ export function AvatarPicker({
             key={key}
             type="button"
             title={AVATARS[key].label}
+            aria-label={AVATARS[key].label}
             onClick={() => onChange(key)}
             className={cn(
               "flex aspect-square items-center justify-center rounded-2xl border-2 text-2xl transition-all hover:scale-105",
@@ -84,7 +93,7 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (v: 
             title={COLORS[key].label}
             onClick={() => onChange(key)}
             className={cn(
-              "size-9 rounded-full bg-gradient-to-br transition-all hover:scale-110",
+              "size-11 rounded-full bg-gradient-to-br transition-all hover:scale-110",
               COLORS[key].gradient,
               selected ? "ring-3 ring-offset-2 ring-offset-background ring-foreground/60" : ""
             )}

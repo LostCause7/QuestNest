@@ -19,7 +19,7 @@ export default async function ExitKidModePage(props: PageProps<"/kids/exit">) {
       <header className="flex items-center px-6 py-5">
         <Link href="/kids" className="inline-flex items-center gap-1.5 rounded-full bg-card/70 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground">
           <ArrowLeftIcon className="size-4" />
-          Back to Kid Mode
+          Back to profiles
         </Link>
       </header>
       <main className="flex flex-1 flex-col items-center justify-center px-6 pb-16">

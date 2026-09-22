@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckIcon, FlameIcon } from "lucide-react";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 
-const quests = [
+const STARTER = [
   { icon: "🛏️", title: "Make your bed", pts: 5, done: true },
   { icon: "🐾", title: "Feed Biscuit", pts: 10, done: true },
   { icon: "📖", title: "Read 20 minutes", pts: 10, done: false },
@@ -13,6 +14,7 @@ const quests = [
 
 /** Animated mock of Kid Mode used in the landing hero. */
 export function HeroPreview() {
+  const [quests, setQuests] = useState(STARTER);
   return (
     <div className="relative mx-auto w-full max-w-md">
       <motion.div
@@ -59,7 +61,13 @@ export function HeroPreview() {
                   <CheckIcon className="size-4" strokeWidth={3} />
                 </span>
               ) : (
-                <span className="rounded-full bg-primary px-3 py-1.5 font-display text-xs font-bold text-primary-foreground">Done!</span>
+                <button
+                  type="button"
+                  onClick={() => setQuests((list) => list.map((item) => (item.title === q.title ? { ...item, done: true } : item)))}
+                  className="rounded-full bg-primary px-3 py-1.5 font-display text-xs font-bold text-primary-foreground"
+                >
+                  Done!
+                </button>
               )}
             </motion.li>
           ))}

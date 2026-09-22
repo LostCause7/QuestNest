@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Celebration, type CelebrationData } from "@/components/kid/celebration";
 import { redeemRewardAsKid } from "@/lib/actions/kid-mode";
+import { playSuccess, playTap } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import type { Child, Family, Reward, RewardRedemption } from "@/types/database";
 
@@ -40,12 +41,14 @@ export function Shop({
   const buy = async () => {
     if (!selected) return;
     setBusy(true);
+    playTap();
+    try {
     const res = await redeemRewardAsKid(selected.id);
-    setBusy(false);
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
+    playSuccess();
     const instant = res.data?.status === "approved";
     setSelected(null);
     setCelebration({
@@ -56,6 +59,11 @@ export function Shop({
       currencyEmoji: family.currency_emoji,
       tone: "shop",
     });
+    } catch {
+      toast.error("Could not buy that. Try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -98,7 +106,7 @@ export function Shop({
         </div>
       ) : null}
 
-      {nextGoal && affordable.length === 0 ? (
+      {nextGoal ? (
         <div className="mb-5 rounded-3xl bg-card/80 p-4 shadow-sm">
           <div className="text-sm font-semibold text-muted-foreground">Saving up for</div>
           <div className="mt-1 flex items-center gap-3">
@@ -154,7 +162,7 @@ export function Shop({
       </ul>
 
       <Dialog open={Boolean(selected)} onOpenChange={(o) => !o && !busy && setSelected(null)}>
-        <DialogContent className="rounded-3xl sm:max-w-sm">
+        <DialogContent className="max-h-[92vh] overflow-y-auto rounded-3xl sm:max-w-sm">
           {selected ? (
             <>
               <DialogHeader className="items-center text-center">

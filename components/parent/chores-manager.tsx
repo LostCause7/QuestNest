@@ -12,6 +12,7 @@ import {
   LibraryIcon,
   SwordsIcon,
   CheckIcon,
+  CopyIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteChore, setChoreActive, type ChoreInput } from "@/lib/actions/chores";
 import { describeSchedule } from "@/lib/schedule";
-import { AGE_BANDS, CHORE_PACKS, type AgeBand } from "@/lib/templates";
+import { AGE_BANDS, CHORE_PACKS, EXTRA_CHORE_PACKS, type AgeBand } from "@/lib/templates";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 import type { ChoreWithKids } from "@/lib/data/parent";
@@ -95,7 +96,11 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
       </div>
 
       {active.length === 0 && paused.length === 0 ? (
-        <EmptyState icon={<SwordsIcon className="size-7 text-primary" />} title="No quests yet" description="Create your first quest or grab a few from the library.">
+        <EmptyState
+          icon={<SwordsIcon className="size-7 text-primary" />}
+          title={kidFilter === "all" ? "No quests yet" : `No quests for ${kids.find((k) => k.id === kidFilter)?.name ?? "this kid"}`}
+          description={kidFilter === "all" ? "Create your first quest or grab a few from the library." : "Assign an existing quest or create a new one for them."}
+        >
           <Button variant="outline" onClick={() => setLibraryOpen(true)}>
             <LibraryIcon />
             Browse library
@@ -120,6 +125,17 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
                 setDialogOpen(true);
               }}
               onToggle={() => run(() => setChoreActive(c.id, false), { key: c.id })}
+              onDuplicate={() =>
+                openNew({
+                  title: `${c.title} (copy)`,
+                  icon: c.icon,
+                  points: c.points,
+                  recurrence: c.recurrence,
+                  days_of_week: c.days_of_week,
+                  requires_approval: c.requires_approval,
+                  child_ids: c.child_ids,
+                })
+              }
               onDelete={() => setDeleting(c)}
             />
           ))}
@@ -144,6 +160,17 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
                   setDialogOpen(true);
                 }}
                 onToggle={() => run(() => setChoreActive(c.id, true), { key: c.id })}
+                onDuplicate={() =>
+                  openNew({
+                    title: `${c.title} (copy)`,
+                    icon: c.icon,
+                    points: c.points,
+                    recurrence: c.recurrence,
+                    days_of_week: c.days_of_week,
+                    requires_approval: c.requires_approval,
+                    child_ids: c.child_ids,
+                  })
+                }
                 onDelete={() => setDeleting(c)}
               />
             ))}
@@ -184,6 +211,7 @@ function ChoreCard({
   busy,
   onEdit,
   onToggle,
+  onDuplicate,
   onDelete,
 }: {
   chore: ChoreWithKids;
@@ -193,6 +221,7 @@ function ChoreCard({
   busy: boolean;
   onEdit: () => void;
   onToggle: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }) {
   const assigned = chore.child_ids.map((id) => kidMap.get(id)).filter(Boolean) as Child[];
@@ -215,6 +244,9 @@ function ChoreCard({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEdit}>
               <PencilIcon /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDuplicate}>
+              <CopyIcon /> Duplicate
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onToggle}>
               {paused ? (
@@ -270,7 +302,9 @@ function QuestLibrary({
   existingTitles: Set<string>;
   onPick: (p: Partial<ChoreInput>) => void;
 }) {
-  const [band, setBand] = useState<AgeBand>("middle");
+  const [band, setBand] = useState<string>("middle");
+  const extra = EXTRA_CHORE_PACKS.find((p) => p.key === band);
+  const items = extra ? extra.items : CHORE_PACKS[(band as AgeBand) in CHORE_PACKS ? (band as AgeBand) : "middle"];
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
@@ -278,17 +312,22 @@ function QuestLibrary({
           <DialogTitle className="font-display text-xl">Quest library</DialogTitle>
           <DialogDescription>Pick a starting point, then tweak points, schedule and who it&apos;s for.</DialogDescription>
         </DialogHeader>
-        <Tabs value={band} onValueChange={(v) => setBand(v as AgeBand)}>
-          <TabsList className="w-full">
+        <Tabs value={band} onValueChange={setBand}>
+          <TabsList className="flex h-auto w-full flex-wrap">
             {AGE_BANDS.map((b) => (
               <TabsTrigger key={b.key} value={b.key} className="flex-1">
                 {b.label}
               </TabsTrigger>
             ))}
+            {EXTRA_CHORE_PACKS.map((p) => (
+              <TabsTrigger key={p.key} value={p.key} className="flex-1">
+                {p.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
         <ul className="grid gap-2 sm:grid-cols-2">
-          {CHORE_PACKS[band].map((t) => {
+          {items.map((t) => {
             const exists = existingTitles.has(t.title.toLowerCase());
             return (
               <li key={t.title}>

@@ -7,13 +7,16 @@ import type {
   ChoreAssignment,
   ChoreCompletion,
   Reward,
+  RewardAssignment,
   RewardRedemption,
   PointTransaction,
   ChildBadge,
   Family,
+  FamilyMilestone,
 } from "@/types/database";
 
 export type ChoreWithKids = Chore & { child_ids: string[] };
+export type RewardWithKids = Reward & { child_ids: string[] };
 
 export const getChildren = cache(async (familyId: string, includeInactive = false): Promise<Child[]> => {
   const supabase = await createClient();
@@ -36,10 +39,17 @@ export const getChores = cache(async (familyId: string): Promise<ChoreWithKids[]
   return (chores ?? []).map((c) => ({ ...c, child_ids: byChore.get(c.id) ?? [] }));
 });
 
-export const getRewards = cache(async (familyId: string): Promise<Reward[]> => {
+export const getRewards = cache(async (familyId: string): Promise<RewardWithKids[]> => {
   const supabase = await createClient();
-  const { data } = await supabase.from("rewards").select("*").eq("family_id", familyId).order("cost");
-  return data ?? [];
+  const rewardsRes = await supabase.from("rewards").select("*").eq("family_id", familyId).order("cost");
+  const assignRes = await supabase.from("reward_assignments").select("*");
+  const rewards = rewardsRes.data;
+  const assignments = assignRes.error ? [] : assignRes.data;
+  const byReward = new Map<string, string[]>();
+  for (const a of (assignments ?? []) as RewardAssignment[]) {
+    byReward.set(a.reward_id, [...(byReward.get(a.reward_id) ?? []), a.child_id]);
+  }
+  return (rewards ?? []).map((r) => ({ ...r, child_ids: byReward.get(r.id) ?? [] }));
 });
 
 export const getCompletionsBetween = cache(
@@ -102,6 +112,17 @@ export const getBadges = cache(async (childIds: string[]): Promise<ChildBadge[]>
   const supabase = await createClient();
   const { data } = await supabase.from("child_badges").select("*").in("child_id", childIds);
   return data ?? [];
+});
+
+export const getFamilyMilestones = cache(async (familyId: string): Promise<FamilyMilestone[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("family_milestones")
+    .select("*")
+    .eq("family_id", familyId)
+    .order("lifetime_points");
+  if (error) return [];
+  return (data ?? []) as FamilyMilestone[];
 });
 
 export const hasParentPin = cache(async (familyId: string): Promise<boolean> => {

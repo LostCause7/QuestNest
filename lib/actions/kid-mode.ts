@@ -38,6 +38,7 @@ export async function unlockChild(childId: string, pin: string): Promise<ActionR
 
   const store = await cookies();
   store.set(ACTIVE_CHILD_COOKIE, childId, cookieOpts);
+  store.set(KID_MODE_COOKIE, "1", { ...cookieOpts, maxAge: 60 * 60 * 24 * 365 });
   redirect(`/kids/${childId}`);
 }
 
@@ -54,10 +55,64 @@ export async function completeQuest(choreId: string): Promise<ActionResult<Chore
   if (!childId) return fail("Pick your profile first.");
   const family = await requireFamily();
   const supabase = await createClient();
+  const today = familyToday(family);
+
+  const { data: existing } = await supabase
+    .from("chore_completions")
+    .select("id, status")
+    .eq("chore_id", choreId)
+    .eq("child_id", childId)
+    .eq("for_date", today)
+    .maybeSingle();
+
+  // Parent said "Not yet" — reuse today's row instead of inserting a duplicate.
+  if (existing?.status === "rejected") {
+    const { data: chore } = await supabase
+      .from("chores")
+      .select("title, points, requires_approval, family_id")
+      .eq("id", choreId)
+      .maybeSingle();
+    const { data: claims } = await supabase.auth.getClaims();
+    const userId = claims?.claims.sub ?? null;
+    const autoApprove = chore ? !chore.requires_approval : false;
+
+    const { data, error } = await supabase
+      .from("chore_completions")
+      .update({
+        status: autoApprove ? "approved" : "pending",
+        points_awarded: autoApprove ? (chore?.points ?? 0) : null,
+        note: null,
+        completed_at: new Date().toISOString(),
+        reviewed_at: autoApprove ? new Date().toISOString() : null,
+        reviewed_by: autoApprove ? userId : null,
+      })
+      .eq("id", existing.id)
+      .select()
+      .single();
+    if (error || !data) return fail(friendlyError(error?.message ?? "Could not resubmit that quest."));
+
+    if (autoApprove && chore) {
+      const { error: txErr } = await supabase.from("point_transactions").insert({
+        family_id: chore.family_id,
+        child_id: childId,
+        amount: chore.points,
+        kind: "chore",
+        ref_id: data.id,
+        note: chore.title,
+        created_by: userId,
+      });
+      if (txErr) return fail(friendlyError(txErr.message));
+    }
+
+    revalidatePath("/kids", "layout");
+    revalidatePath("/app", "layout");
+    return ok(data);
+  }
+
   const { data, error } = await supabase.rpc("complete_chore", {
     p_chore: choreId,
     p_child: childId,
-    p_date: familyToday(family),
+    p_date: today,
   });
   if (error) return fail(friendlyError(error.message));
   revalidatePath("/kids", "layout");
@@ -71,6 +126,10 @@ export async function redeemRewardAsKid(rewardId: string): Promise<ActionResult<
   if (!childId) return fail("Pick your profile first.");
   await requireFamily();
   const supabase = await createClient();
+  const assigned = await supabase.from("reward_assignments").select("child_id").eq("reward_id", rewardId);
+  if (!assigned.error && assigned.data?.length && !assigned.data.some((a) => a.child_id === childId)) {
+    return fail("That reward isn't in your shop.");
+  }
   const { data, error } = await supabase.rpc("redeem_reward", { p_reward: rewardId, p_child: childId });
   if (error) return fail(friendlyError(error.message));
   revalidatePath("/kids", "layout");

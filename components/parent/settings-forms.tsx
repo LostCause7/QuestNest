@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PinInput } from "@/components/shared/pin-input";
 import { useAction } from "@/hooks/use-action";
-import { updateFamilySettings, setParentPin, updateProfileName } from "@/lib/actions/family";
+import { updateFamilySettings, setParentPin } from "@/lib/actions/family";
+import { saveParentLook } from "@/lib/actions/style";
+import { AvatarPicker, ColorPicker } from "@/components/shared/avatar-picker";
 import { CURRENCY_PRESETS } from "@/lib/templates";
+import { US_STATES } from "@/lib/places";
 import { cn } from "@/lib/utils";
 import type { Family } from "@/types/database";
 
@@ -55,14 +58,28 @@ export function FamilySettingsForm({ family }: { family: Family }) {
   const [currencyName, setCurrencyName] = useState(family.currency_name);
   const [emoji, setEmoji] = useState(family.currency_emoji);
   const [timezone, setTimezone] = useState(family.timezone);
+  const [city, setCity] = useState(family.location_city ?? "");
+  const [state, setState] = useState(family.location_state ?? "");
+  const [radius, setRadius] = useState(family.location_radius_miles ?? 30);
   const tzOptions = TIMEZONES.includes(timezone) ? TIMEZONES : [timezone, ...TIMEZONES];
+  const stateOptions = state && !US_STATES.includes(state) ? [state, ...US_STATES] : US_STATES;
 
   return (
     <form
       className="space-y-5"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => updateFamilySettings({ name, currency_name: currencyName, currency_emoji: emoji, timezone }));
+        run(() =>
+          updateFamilySettings({
+            name,
+            currency_name: currencyName,
+            currency_emoji: emoji,
+            timezone,
+            location_city: city || null,
+            location_state: state || null,
+            location_radius_miles: radius,
+          })
+        );
       }}
     >
       <div className="space-y-2">
@@ -126,6 +143,55 @@ export function FamilySettingsForm({ family }: { family: Family }) {
         <p className="text-xs text-muted-foreground">Decides when “today” rolls over for quests and streaks.</p>
       </div>
 
+      <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+        <div>
+          <Label>Home area for the shop</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Nearby ice cream, parks, movies and more are suggested for kids from this city. Same for every device on this nest.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
+          <div className="space-y-1">
+            <Label htmlFor="loc-city" className="text-xs">
+              City
+            </Label>
+            <Input id="loc-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" maxLength={80} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">State</Label>
+            <Select value={state || "__none"} onValueChange={(v) => setState(v === "__none" ? "" : v)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="TX" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="__none">—</SelectItem>
+                {stateOptions.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <Label htmlFor="loc-radius">Search radius</Label>
+            <span className="tabular-nums text-muted-foreground">{radius} miles</span>
+          </div>
+          <input
+            id="loc-radius"
+            type="range"
+            min={5}
+            max={50}
+            step={5}
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+            className="w-full accent-primary"
+          />
+        </div>
+      </div>
+
       <Button type="submit" disabled={pending}>
         {pending ? <Loader2Icon className="animate-spin" /> : null}
         Save settings
@@ -147,7 +213,7 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
           <ShieldCheckIcon className="size-5 text-emerald-600" />
           <div>
             <div className="text-sm font-medium">Parent PIN is set</div>
-            <div className="text-xs text-muted-foreground">Required to leave Kid Mode.</div>
+            <div className="text-xs text-muted-foreground">Required to open Parent HQ from the profile picker.</div>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
@@ -171,7 +237,7 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
       }}
     >
       <p className="text-sm text-muted-foreground">
-        Kids will need this PIN to exit Kid Mode and return to your dashboard. Without one, anyone can tap “I&apos;m a parent”.
+        Kids pick their own profile with their PIN. This PIN keeps them out of Parent HQ. Without one, anyone can open the parent tile.
       </p>
       <PinInput value={pin} onChange={setPin} length={4} masked={false} className="mx-auto w-fit" />
       <div className="flex justify-center gap-2">
@@ -189,24 +255,62 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
   );
 }
 
-export function ProfileForm({ name: initial }: { name: string }) {
+export function ProfileForm({
+  name: initialName,
+  motto: initialMotto = "",
+  avatarKey: initialAvatar = "fox",
+  colorKey: initialColor = "sky",
+}: {
+  name: string;
+  motto?: string | null;
+  avatarKey?: string | null;
+  colorKey?: string | null;
+}) {
   const { run, pending } = useAction();
-  const [name, setName] = useState(initial);
+  const [name, setName] = useState(initialName);
+  const [motto, setMotto] = useState(initialMotto ?? "");
+  const [avatar, setAvatar] = useState(initialAvatar || "fox");
+  const [color, setColor] = useState(initialColor || "sky");
   return (
     <form
-      className="flex items-end gap-3"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => updateProfileName(name));
+        run(() =>
+          saveParentLook({
+            name,
+            motto: motto.trim() || null,
+            avatar_key: avatar,
+            color_key: color,
+          })
+        );
       }}
     >
-      <div className="flex-1 space-y-2">
+      <div className="space-y-2">
         <Label htmlFor="prof-name">Your name</Label>
         <Input id="prof-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
       </div>
-      <Button type="submit" variant="outline" disabled={pending || name.trim() === initial}>
+      <div className="space-y-2">
+        <Label htmlFor="prof-motto">Motto</Label>
+        <Input
+          id="prof-motto"
+          value={motto}
+          onChange={(e) => setMotto(e.target.value)}
+          placeholder="Chief of the nest"
+          maxLength={80}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Your face</Label>
+        <AvatarPicker value={avatar} onChange={setAvatar} color={color} />
+      </div>
+      <div className="space-y-2">
+        <Label>Color</Label>
+        <ColorPicker value={color} onChange={setColor} />
+      </div>
+      <Button type="submit" variant="outline" disabled={pending || !name.trim()}>
         {pending ? <Loader2Icon className="animate-spin" /> : null}
-        Save
+        Save look
       </Button>
     </form>
   );

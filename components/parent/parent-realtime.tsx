@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { inQuietHours, readPrefs } from "@/lib/prefs";
 import type { ChoreCompletion, RewardRedemption } from "@/types/database";
 
 /**
@@ -40,6 +41,7 @@ export function ParentRealtime({ familyId }: { familyId: string }) {
           const c = payload.new;
           refresh();
           if (c.status !== "pending") return;
+          if (inQuietHours(readPrefs())) return;
           const [kid, chore] = await Promise.all([kidName(c.child_id), nameOf("chores", c.chore_id)]);
           toast(`${kid} finished “${chore ?? "a quest"}”`, {
             description: "Waiting for your approval.",

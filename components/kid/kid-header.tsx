@@ -4,19 +4,34 @@ import { FlameIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { levelInfo } from "@/lib/levels";
+import { childLook, frameClass } from "@/lib/milestones";
 import { switchChild } from "@/lib/actions/kid-mode";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
   const lvl = levelInfo(child.lifetime_points);
+  const look = childLook(child.style);
+  const shownName = child.nickname?.trim() || child.name;
   return (
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
       <div className="flex items-center gap-3 rounded-3xl bg-card/80 p-3 shadow-sm backdrop-blur sm:gap-4 sm:p-4">
-        <KidAvatar avatar={child.avatar} color={child.color} size="md" className="shadow-md ring-3 ring-white sm:size-16 sm:text-4xl" />
+        <span className="relative">
+          <KidAvatar
+            avatar={child.avatar}
+            color={child.color}
+            size="md"
+            sticker={look.sticker}
+            frameClassName={frameClass(look.frame)}
+            className="shadow-md sm:size-16 sm:text-4xl"
+          />
+          <span className="absolute -right-1 -bottom-1 rounded-full bg-card px-1 text-[10px] font-bold shadow-sm" title={lvl.title}>
+            {lvl.level < 3 ? "🐣" : lvl.level < 6 ? "🐥" : lvl.level < 10 ? "🐦" : "🦅"}
+          </span>
+        </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-display text-xl font-semibold sm:text-2xl">{child.name}</h1>
+            <h1 className="truncate font-display text-xl font-semibold sm:text-2xl">{shownName}</h1>
             {child.current_streak > 0 ? (
               <motion.span
                 initial={{ scale: 0 }}
@@ -30,7 +45,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
           </div>
           <div className="mt-1 flex items-center gap-2">
             <span className="shrink-0 text-xs font-semibold text-muted-foreground">
-              Lv {lvl.level} · {lvl.title}
+              Lv {lvl.level} · {look.title || lvl.title}
             </span>
             <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
               <motion.div
@@ -59,8 +74,8 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
           <button
             type="submit"
             className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            aria-label="Switch kid"
-            title="Switch kid"
+            aria-label="Switch profile"
+            title="Switch profile"
           >
             <UsersIcon className="size-5" />
           </button>

@@ -10,7 +10,7 @@ export function WelcomeToast({ familyName }: { familyName: string }) {
   useEffect(() => {
     confetti({ particleCount: 140, spread: 80, origin: { y: 0.3 } });
     toast.success(`${familyName} is ready!`, {
-      description: "Tap “Kid Mode” whenever your kids want to play. Everything else lives here.",
+      description: "Hand them the tablet — they pick their profile and do quests. Tap yours for Parent HQ.",
       duration: 7000,
     });
     router.replace("/app");

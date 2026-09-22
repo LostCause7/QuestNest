@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/parent/page-header";
 import { RewardsManager } from "@/components/parent/rewards-manager";
+import { ManagerFallback } from "@/components/parent/manager-fallback";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren, getRewards, getRedemptions } from "@/lib/data/parent";
 
@@ -17,7 +18,7 @@ export default async function RewardsPage() {
   return (
     <>
       <PageHeader title="Reward shop" description={`Everything your kids can spend their ${family.currency_name.toLowerCase()} on.`} />
-      <Suspense>
+      <Suspense fallback={<ManagerFallback />}>
         <RewardsManager rewards={rewards} redemptions={redemptions} kids={kids} family={family} />
       </Suspense>
     </>

@@ -23,10 +23,20 @@ type Insert<T, Optional extends keyof T = never, Omitted extends keyof T = never
   never
 >;
 
+export type EquippedStyle = {
+  title?: string | null;
+  frame?: string | null;
+  sticker?: string | null;
+};
+
 export type Profile = {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  avatar_key?: string | null;
+  color_key?: string | null;
+  motto?: string | null;
+  style?: EquippedStyle | null;
   created_at: string;
 }
 
@@ -37,6 +47,11 @@ export type Family = {
   currency_name: string;
   currency_emoji: string;
   timezone: string;
+  location_city: string | null;
+  location_state: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  location_radius_miles: number;
   created_at: string;
 }
 
@@ -59,6 +74,19 @@ export type Child = {
   longest_streak: number;
   last_streak_date: string | null;
   sort_order: number;
+  is_active: boolean;
+  nickname?: string | null;
+  motto?: string | null;
+  style?: EquippedStyle | null;
+  created_at: string;
+}
+
+export type FamilyMilestone = {
+  id: string;
+  family_id: string;
+  lifetime_points: number;
+  title: string;
+  icon: string;
   is_active: boolean;
   created_at: string;
 }
@@ -108,8 +136,14 @@ export type Reward = {
   category: string;
   requires_approval: boolean;
   is_active: boolean;
+  source_key: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type RewardAssignment = {
+  reward_id: string;
+  child_id: string;
 }
 
 export type RewardRedemption = {
@@ -153,7 +187,19 @@ export type Database = {
       };
       families: {
         Row: Row<Family>;
-        Insert: Insert<Family, "id" | "currency_name" | "currency_emoji" | "timezone" | "created_at">;
+        Insert: Insert<
+          Family,
+          | "id"
+          | "currency_name"
+          | "currency_emoji"
+          | "timezone"
+          | "location_city"
+          | "location_state"
+          | "location_lat"
+          | "location_lng"
+          | "location_radius_miles"
+          | "created_at"
+        >;
         Update: Partial<Family>;
         Relationships: [];
       };
@@ -177,6 +223,9 @@ export type Database = {
           | "last_streak_date"
           | "sort_order"
           | "is_active"
+          | "nickname"
+          | "motto"
+          | "style"
           | "created_at"
         >;
         Update: Partial<Child>;
@@ -232,10 +281,17 @@ export type Database = {
           | "category"
           | "requires_approval"
           | "is_active"
+          | "source_key"
           | "created_at"
           | "updated_at"
         >;
         Update: Partial<Reward>;
+        Relationships: [];
+      };
+      reward_assignments: {
+        Row: Row<RewardAssignment>;
+        Insert: RewardAssignment;
+        Update: Partial<RewardAssignment>;
         Relationships: [];
       };
       reward_redemptions: {
@@ -260,6 +316,12 @@ export type Database = {
         Row: Row<ChildBadge>;
         Insert: Insert<ChildBadge, "earned_at">;
         Update: Partial<ChildBadge>;
+        Relationships: [];
+      };
+      family_milestones: {
+        Row: Row<FamilyMilestone>;
+        Insert: Insert<FamilyMilestone, "id" | "is_active" | "created_at" | "icon">;
+        Update: Partial<FamilyMilestone>;
         Relationships: [];
       };
     };

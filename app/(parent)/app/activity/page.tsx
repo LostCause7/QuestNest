@@ -6,6 +6,7 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren, getTransactions } from "@/lib/data/parent";
 import { cn } from "@/lib/utils";
+import { CsvExportButton, PrintButton } from "@/components/parent/nest-extras";
 
 export const metadata: Metadata = { title: "Activity" };
 
@@ -23,7 +24,10 @@ export default async function ActivityPage(props: PageProps<"/app/activity">) {
 
   return (
     <>
-      <PageHeader title="Activity" description="The full ledger - every point earned, spent, refunded or adjusted." />
+      <PageHeader title="Activity" description="The full ledger - every point earned, spent, refunded or adjusted.">
+        <CsvExportButton rows={transactions} filename="questnest-ledger.csv" />
+        <PrintButton label="Print" />
+      </PageHeader>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <FilterChip href="/app/activity" active={!kidId}>

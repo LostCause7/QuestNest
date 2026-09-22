@@ -7,10 +7,12 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { BadgeGrid } from "@/components/shared/badge-grid";
+import { UnlockTrack } from "@/components/kid/unlock-track";
 import { ActivityList } from "@/components/parent/activity-list";
 import { StatCard } from "@/components/parent/stat-card";
 import { requireFamily } from "@/lib/data/family";
-import { getBadges, getChildren, getChores, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
+import { getBadges, getChildren, getChores, getFamilyMilestones, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
+import { childLook, frameClass } from "@/lib/milestones";
 import { levelInfo } from "@/lib/levels";
 import { describeSchedule } from "@/lib/schedule";
 import { dateTime } from "@/lib/format";
@@ -24,13 +26,15 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
   const kid = kids.find((k) => k.id === id);
   if (!kid) notFound();
 
-  const [badges, chores, transactions, redemptions, rewards] = await Promise.all([
+  const [badges, chores, transactions, redemptions, rewards, extras] = await Promise.all([
     getBadges([kid.id]),
     getChores(family.id),
     getTransactions(family.id, { childId: kid.id, limit: 30 }),
     getRedemptions(family.id, undefined, 20),
     getRewards(family.id),
+    getFamilyMilestones(family.id),
   ]);
+  const look = childLook(kid.style);
   const myChores = chores.filter((c) => c.child_ids.includes(kid.id) && c.is_active);
   const myRedemptions = redemptions.filter((r) => r.child_id === kid.id);
   const rewardMap = new Map(rewards.map((r) => [r.id, r]));
@@ -46,12 +50,20 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
       </Button>
 
       <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 sm:flex-row sm:items-center">
-        <KidAvatar avatar={kid.avatar} color={kid.color} size="xl" />
+        <KidAvatar
+          avatar={kid.avatar}
+          color={kid.color}
+          size="xl"
+          sticker={look.sticker}
+          frameClassName={frameClass(look.frame)}
+        />
         <div className="flex-1">
-          <h1 className="font-display text-3xl font-semibold">{kid.name}</h1>
+          <h1 className="font-display text-3xl font-semibold">{kid.nickname?.trim() || kid.name}</h1>
           <p className="text-muted-foreground">
-            Level {lvl.level} · {lvl.title}
+            {kid.nickname?.trim() ? `${kid.name} · ` : ""}
+            Level {lvl.level} · {look.title || lvl.title}
           </p>
+          {kid.motto ? <p className="mt-1 text-sm italic text-muted-foreground">“{kid.motto}”</p> : null}
           <div className="mt-3 max-w-sm space-y-1">
             <Progress value={lvl.progress * 100} className="h-2.5" />
             <div className="text-xs text-muted-foreground">
@@ -69,7 +81,10 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_1fr]">
         <section>
           <h2 className="mb-3 font-display text-xl font-semibold">Trophies</h2>
-          <BadgeGrid earned={badges} size="sm" />
+          <BadgeGrid earned={badges} size="sm" lifetimePoints={kid.lifetime_points} />
+          <div className="mt-6">
+            <UnlockTrack key={kid.id} child={kid} family={family} extras={extras} />
+          </div>
         </section>
         <section>
           <div className="mb-3 flex items-center justify-between">

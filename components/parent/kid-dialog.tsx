@@ -45,12 +45,21 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
   const [color, setColor] = useState(child?.color ?? "sky");
   const [pin, setPin] = useState("");
   const [changePin, setChangePin] = useState(false);
+  const [nickname, setNickname] = useState(child?.nickname ?? "");
+  const [motto, setMotto] = useState(child?.motto ?? "");
 
   const pinValid = /^\d{4}$/.test(pin);
   const canSave = name.trim().length > 0 && (editing ? !changePin || pinValid : pinValid);
 
   const submit = async () => {
-    const payload = { name: name.trim(), avatar, color, pin: editing ? (changePin ? pin : undefined) : pin };
+    const payload = {
+      name: name.trim(),
+      avatar,
+      color,
+      nickname: nickname.trim() || null,
+      motto: motto.trim() || null,
+      pin: editing ? (changePin ? pin : undefined) : pin,
+    };
     await run(() => (editing && child ? updateChild(child.id, payload) : createChild(payload)), {
       onSuccess: onClose,
     });
@@ -71,6 +80,16 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
           <div className="flex-1 space-y-2">
             <Label htmlFor="kid-name">Name</Label>
             <Input id="kid-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Maya" autoFocus />
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="kid-nick">Nickname</Label>
+            <Input id="kid-nick" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Optional" maxLength={24} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="kid-motto">Motto</Label>
+            <Input id="kid-motto" value={motto} onChange={(e) => setMotto(e.target.value)} placeholder="Be kind. Be brave." maxLength={80} />
           </div>
         </div>
         <div className="space-y-2">

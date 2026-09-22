@@ -7,6 +7,7 @@ import { KidPinClient } from "@/components/kid/kid-pin-client";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren } from "@/lib/data/parent";
 import { getActiveChildId } from "@/lib/data/kid";
+import { childLook, frameClass } from "@/lib/milestones";
 
 export const metadata: Metadata = { title: "Enter your PIN" };
 
@@ -31,8 +32,15 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
           childId={kid.id}
           header={
             <div className="flex flex-col items-center gap-3">
-              <KidAvatar avatar={kid.avatar} color={kid.color} size="xl" className="shadow-xl ring-4 ring-white animate-float" />
-              <h1 className="font-display text-3xl font-semibold">Hi {kid.name}!</h1>
+              <KidAvatar
+                avatar={kid.avatar}
+                color={kid.color}
+                size="xl"
+                sticker={childLook(kid.style).sticker}
+                frameClassName={frameClass(childLook(kid.style).frame)}
+                className="shadow-xl animate-float"
+              />
+              <h1 className="font-display text-3xl font-semibold">Hi {kid.nickname?.trim() || kid.name}!</h1>
               <p className="text-muted-foreground">Enter your secret PIN</p>
             </div>
           }

@@ -8,6 +8,7 @@ import { ApprovalQueue, type PendingItem } from "@/components/parent/approval-qu
 import { KidSummaryCard } from "@/components/parent/kid-summary-card";
 import { ActivityList } from "@/components/parent/activity-list";
 import { WelcomeToast } from "@/components/parent/welcome-toast";
+import { Chalkboard, FamilyXpBar, FirstWeekCoach, RivalBoard } from "@/components/parent/nest-extras";
 import { requireFamily } from "@/lib/data/family";
 import {
   getChildren,
@@ -71,6 +72,9 @@ export default async function DashboardPage(props: PageProps<"/app">) {
   });
   const totalDue = perKid.reduce((s, k) => s + k.dueToday, 0);
   const totalDone = perKid.reduce((s, k) => s + k.doneToday, 0);
+  const weeklyCounts = Object.fromEntries(
+    children.map((kid) => [kid.id, approvedThisWeek.filter((c) => c.child_id === kid.id).length])
+  );
 
   return (
     <>
@@ -85,10 +89,15 @@ export default async function DashboardPage(props: PageProps<"/app">) {
         <Button asChild>
           <Link href="/kids">
             <PlayIcon />
-            Kid Mode
+            Switch profile
           </Link>
         </Button>
       </PageHeader>
+
+      <div className="mb-6 grid gap-3 lg:grid-cols-2">
+        <FirstWeekCoach hasKids={children.length > 0} hasQuests={chores.some((c) => c.is_active)} hasRewards={rewards.some((r) => r.is_active)} />
+        <Chalkboard familyId={family.id} />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Needs approval" value={pending.length} hint={pending.length ? "Tap approve below" : "You're all caught up"} icon="✅" tone={pending.length ? "sun" : "default"} />
@@ -143,6 +152,9 @@ export default async function DashboardPage(props: PageProps<"/app">) {
               </Button>
             </EmptyState>
           )}
+
+          <FamilyXpBar kids={children} family={family} />
+          <RivalBoard kids={children} weeklyCounts={weeklyCounts} />
 
           <div className="rounded-2xl border bg-card p-4">
             <h3 className="mb-3 font-medium">Quick links</h3>

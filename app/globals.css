@@ -279,3 +279,36 @@
     @apply font-sans;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.qn-high-contrast {
+  --muted-foreground: oklch(0.32 0.04 290);
+  --border: oklch(0.45 0.06 290);
+}
+html.qn-high-contrast .kid-mode {
+  font-weight: 600;
+}
+html.qn-big-type .kid-mode {
+  font-size: 1.08rem;
+}
+html.qn-bedtime .kid-mode {
+  filter: saturate(0.7) brightness(0.82);
+}
+
+@media print {
+  header,
+  nav,
+  .toaster {
+    display: none !important;
+  }
+}

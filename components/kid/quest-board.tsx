@@ -2,10 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckIcon, ClockIcon, Loader2Icon, RotateCcwIcon, SparklesIcon } from "lucide-react";
+import { CheckIcon, ClockIcon, Loader2Icon, RotateCcwIcon, SparklesIcon, Volume2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Celebration, type CelebrationData } from "@/components/kid/celebration";
 import { completeQuest } from "@/lib/actions/kid-mode";
+import { playSuccess, playTap } from "@/lib/sound";
+import { speak } from "@/lib/motion";
 import { longDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { QuestCard } from "@/lib/data/kid";
@@ -20,7 +22,19 @@ function praiseFor(id: string) {
   return PRAISE[h % PRAISE.length];
 }
 
-export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]; family: Family; child: Child; today: string }) {
+export function QuestBoard({
+  cards,
+  family,
+  child,
+  today,
+  tomorrowPeek = [],
+}: {
+  cards: QuestCard[];
+  family: Family;
+  child: Child;
+  today: string;
+  tomorrowPeek?: { title: string; icon: string }[];
+}) {
   const [busy, setBusy] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const closeCelebration = useCallback(() => setCelebration(null), []);
@@ -32,14 +46,18 @@ export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]
   const finished = waiting.length + done.length;
   const allDone = total > 0 && todo.length === 0;
 
+  const spotlight = todo.reduce((best, card) => (!best || card.chore.points > best.chore.points ? card : best), null as QuestCard | null);
+
   const complete = async (card: QuestCard) => {
     setBusy(card.chore.id);
+    playTap();
+    try {
     const res = await completeQuest(card.chore.id);
-    setBusy(null);
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
+    playSuccess();
     const approved = res.data?.status === "approved";
     setCelebration(
       approved
@@ -58,11 +76,16 @@ export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]
             tone: "pending",
           }
     );
+    } catch {
+      toast.error("Could not finish that quest. Try again.");
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
     <>
-      <Celebration data={celebration} onClose={closeCelebration} />
+      <Celebration data={celebration} onClose={closeCelebration} colors={["#ffd166", "#ff8a3d", "#6d4fe0", "#34d399"]} />
 
       <div className="mb-4 flex items-end justify-between">
         <div>
@@ -87,6 +110,19 @@ export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]
             animate={{ width: `${(finished / total) * 100}%` }}
             transition={{ type: "spring", stiffness: 60, damping: 15 }}
           />
+        </div>
+      ) : null}
+
+      {spotlight && !allDone ? (
+        <div className="mb-4 rounded-3xl border-2 border-sun-400/70 bg-sun-300/25 px-4 py-3 text-sm font-semibold">
+          Quest of the day: {spotlight.chore.icon} {spotlight.chore.title} · +{spotlight.chore.points} {family.currency_emoji}
+        </div>
+      ) : null}
+
+      {tomorrowPeek.length ? (
+        <div className="mb-4 rounded-3xl bg-card/70 px-4 py-3 text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">Tomorrow: </span>
+          {tomorrowPeek.map((q) => `${q.icon} ${q.title}`).join(" · ")}
         </div>
       ) : null}
 
@@ -121,6 +157,7 @@ export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]
               key={card.chore.id}
               card={card}
               family={family}
+              featured={spotlight?.chore.id === card.chore.id && !allDone}
               busy={busy === card.chore.id}
               disabled={busy !== null}
               onComplete={() => complete(card)}
@@ -135,12 +172,14 @@ export function QuestBoard({ cards, family, child, today }: { cards: QuestCard[]
 function QuestItem({
   card,
   family,
+  featured,
   busy,
   disabled,
   onComplete,
 }: {
   card: QuestCard;
   family: Family;
+  featured?: boolean;
   busy: boolean;
   disabled: boolean;
   onComplete: () => void;
@@ -158,6 +197,7 @@ function QuestItem({
       exit={{ opacity: 0, scale: 0.95 }}
       className={cn(
         "relative flex items-center gap-4 overflow-hidden rounded-3xl bg-card p-4 shadow-sm transition-shadow",
+        featured && "ring-2 ring-sun-400",
         isDone && "bg-mint-300/30",
         isWaiting && "bg-sun-300/25"
       )}
@@ -171,8 +211,23 @@ function QuestItem({
         {chore.icon}
       </span>
       <div className="min-w-0 flex-1">
-        <h3 className={cn("font-display text-lg font-semibold leading-tight", isDone && "text-muted-foreground line-through")}>{chore.title}</h3>
+        <div className="flex items-start gap-1">
+          <h3 className={cn("font-display text-lg font-semibold leading-tight", isDone && "text-muted-foreground line-through")}>{chore.title}</h3>
+          <button
+            type="button"
+            className="mt-0.5 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label={`Read ${chore.title}`}
+            onClick={() => speak(`${chore.title}. ${chore.points} ${family.currency_name}.`)}
+          >
+            <Volume2Icon className="size-4" />
+          </button>
+        </div>
         {chore.description && !isDone ? <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{chore.description}</p> : null}
+        {isRedo && card.completion?.note ? (
+          <p className="mt-1 rounded-xl bg-rose-100/80 px-2.5 py-1.5 text-xs text-rose-800">
+            Parent: {card.completion.note}
+          </p>
+        ) : null}
         <div className="mt-1 flex items-center gap-2 text-xs font-semibold">
           <span className="inline-flex items-center gap-1 rounded-full bg-sun-300/50 px-2 py-0.5">
             +{chore.points} {family.currency_emoji}
@@ -208,7 +263,7 @@ function QuestItem({
           whileTap={{ scale: 0.9 }}
           disabled={disabled}
           onClick={onComplete}
-          className="flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-5 font-display text-base font-bold text-primary-foreground shadow-md transition-all hover:brightness-105 disabled:opacity-60"
+          className="flex h-12 min-w-[5.5rem] shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-5 font-display text-base font-bold text-primary-foreground shadow-md transition-all hover:brightness-105 active:scale-90 disabled:opacity-60"
         >
           {busy ? <Loader2Icon className="size-5 animate-spin" /> : <CheckIcon className="size-5" strokeWidth={3} />}
           Done!

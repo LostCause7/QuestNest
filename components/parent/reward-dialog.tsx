@@ -20,17 +20,21 @@ import { IconPicker } from "@/components/shared/icon-picker";
 import { useAction } from "@/hooks/use-action";
 import { createReward, updateReward, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_ICONS } from "@/lib/templates";
-import type { Family, Reward } from "@/types/database";
+import { KidAvatar } from "@/components/shared/avatar-picker";
+import { cn } from "@/lib/utils";
+import type { Child, Family } from "@/types/database";
+import type { RewardWithKids } from "@/lib/data/parent";
 
 type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  reward?: Reward | null;
+  reward?: RewardWithKids | null;
   preset?: Partial<RewardInput> | null;
   family: Family;
+  kids: Child[];
 };
 
-export function RewardDialog({ open, onOpenChange, reward, preset, family }: Props) {
+export function RewardDialog({ open, onOpenChange, reward, preset, family, kids }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
@@ -39,6 +43,7 @@ export function RewardDialog({ open, onOpenChange, reward, preset, family }: Pro
           reward={reward ?? null}
           preset={preset ?? null}
           family={family}
+          kids={kids}
           onClose={() => onOpenChange(false)}
         />
       </DialogContent>
@@ -50,11 +55,13 @@ function RewardForm({
   reward,
   preset,
   family,
+  kids,
   onClose,
 }: {
-  reward: Reward | null;
+  reward: RewardWithKids | null;
   preset: Partial<RewardInput> | null;
   family: Family;
+  kids: Child[];
   onClose: () => void;
 }) {
   const editing = Boolean(reward);
@@ -70,10 +77,19 @@ function RewardForm({
   const [stock, setStock] = useState(String(initialStock ?? 1));
   const [category, setCategory] = useState<RewardInput["category"]>((src?.category as RewardInput["category"]) ?? "privilege");
   const [requiresApproval, setRequiresApproval] = useState(src?.requires_approval ?? true);
+  const [childIds, setChildIds] = useState<string[]>(
+    reward?.child_ids?.length
+      ? reward.child_ids
+      : preset?.child_ids?.length
+        ? preset.child_ids
+        : kids.filter((k) => k.is_active).map((k) => k.id)
+  );
 
   const c = Number.parseInt(cost, 10);
   const s = Number.parseInt(stock, 10);
-  const canSave = title.trim().length > 0 && Number.isFinite(c) && c >= 0 && (!limited || (Number.isFinite(s) && s >= 0));
+  const canSave =
+    title.trim().length > 0 && Number.isFinite(c) && c >= 0 && childIds.length > 0 && (!limited || (Number.isFinite(s) && s >= 0));
+  const toggleKid = (id: string) => setChildIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
   const submit = async () => {
     const payload: RewardInput = {
@@ -84,6 +100,7 @@ function RewardForm({
       stock: limited ? s : null,
       category,
       requires_approval: requiresApproval,
+      child_ids: childIds,
     };
     await run(() => (editing && reward ? updateReward(reward.id, payload) : createReward(payload)), {
       onSuccess: onClose,
@@ -143,6 +160,33 @@ function RewardForm({
               <Input type="number" min={0} value={stock} onChange={(e) => setStock(e.target.value)} className="mr-3 w-20" aria-label="Stock" />
             ) : null}
             <Switch checked={limited} onCheckedChange={setLimited} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Who can buy this</Label>
+            {kids.length ? (
+              <div className="flex flex-wrap gap-2">
+                {kids.map((k) => {
+                  const on = childIds.includes(k.id);
+                  return (
+                    <button
+                      key={k.id}
+                      type="button"
+                      onClick={() => toggleKid(k.id)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
+                        on ? "border-primary bg-primary/5" : "border-border opacity-70"
+                      )}
+                    >
+                      <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
+                      {k.name}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Add a kid first.</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between rounded-xl border p-3">

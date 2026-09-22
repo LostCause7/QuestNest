@@ -1,4 +1,4 @@
-import { BADGES } from "@/lib/badges";
+import { BADGES, lifetimeBadgeKeys } from "@/lib/badges";
 import { cn } from "@/lib/utils";
 import type { ChildBadge } from "@/types/database";
 
@@ -8,8 +8,19 @@ const TIER_STYLES = {
   gold: "from-yellow-200 to-amber-400",
 };
 
-export function BadgeGrid({ earned, size = "md" }: { earned: ChildBadge[]; size?: "sm" | "md" }) {
+export function BadgeGrid({
+  earned,
+  size = "md",
+  lifetimePoints,
+}: {
+  earned: ChildBadge[];
+  size?: "sm" | "md";
+  lifetimePoints?: number;
+}) {
   const earnedKeys = new Set(earned.map((b) => b.badge_key));
+  if (lifetimePoints != null) {
+    for (const key of lifetimeBadgeKeys(lifetimePoints)) earnedKeys.add(key);
+  }
   return (
     <ul className={cn("grid gap-3", size === "sm" ? "grid-cols-4 sm:grid-cols-6" : "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6")}>
       {BADGES.map((b) => {

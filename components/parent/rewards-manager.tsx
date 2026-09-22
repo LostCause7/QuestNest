@@ -28,13 +28,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { EmptyState } from "@/components/parent/page-header";
 import { RewardDialog } from "@/components/parent/reward-dialog";
+import { NearbyRewardsButton } from "@/components/parent/nearby-rewards";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteReward, setRewardActive, resolveRedemption, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
 import { timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Child, Family, Reward, RewardRedemption } from "@/types/database";
+import type { Child, Family, RewardRedemption } from "@/types/database";
+import type { RewardWithKids } from "@/lib/data/parent";
 
 export function RewardsManager({
   rewards,
@@ -42,7 +44,7 @@ export function RewardsManager({
   kids,
   family,
 }: {
-  rewards: Reward[];
+  rewards: RewardWithKids[];
   redemptions: RewardRedemption[];
   kids: Child[];
   family: Family;
@@ -53,10 +55,10 @@ export function RewardsManager({
 
   const openedViaQuery = searchParams.get("new") === "1";
   const [dialogOpen, setDialogOpen] = useState(openedViaQuery);
-  const [editing, setEditing] = useState<Reward | null>(null);
+  const [editing, setEditing] = useState<RewardWithKids | null>(null);
   const [preset, setPreset] = useState<Partial<RewardInput> | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [deleting, setDeleting] = useState<Reward | null>(null);
+  const [deleting, setDeleting] = useState<RewardWithKids | null>(null);
 
   useEffect(() => {
     if (openedViaQuery) router.replace("/app/rewards");
@@ -77,10 +79,12 @@ export function RewardsManager({
 
   return (
     <>
-      <div className="mb-4 flex justify-end gap-2">
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
+        <NearbyRewardsButton family={family} kids={kids} />
         <Button variant="outline" onClick={() => setLibraryOpen(true)}>
           <LibraryIcon />
-          Reward ideas
+          <span className="hidden sm:inline">Reward ideas</span>
+          <span className="sm:hidden">Ideas</span>
         </Button>
         <Button onClick={() => openNew()}>
           <PlusIcon />
@@ -206,7 +210,7 @@ export function RewardsManager({
         </section>
       ) : null}
 
-      <RewardDialog open={dialogOpen} onOpenChange={setDialogOpen} reward={editing} preset={preset} family={family} />
+      <RewardDialog open={dialogOpen} onOpenChange={setDialogOpen} reward={editing} preset={preset} family={family} kids={kids} />
 
       <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
@@ -261,7 +265,7 @@ function RewardCard({
   onToggle,
   onDelete,
 }: {
-  reward: Reward;
+  reward: RewardWithKids;
   family: Family;
   hidden?: boolean;
   busy: boolean;
@@ -281,6 +285,7 @@ function RewardCard({
           <div className="text-xs text-muted-foreground capitalize">
             {reward.category}
             {reward.stock !== null ? ` · ${soldOut ? "sold out" : `${reward.stock} left`}` : ""}
+            {reward.source_key ? " · nearby" : ""}
           </div>
         </div>
         <DropdownMenu>

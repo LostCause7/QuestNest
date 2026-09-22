@@ -4,8 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "QuestNest",
     short_name: "QuestNest",
-    description: "Chores become quests. Kids actually want to do them.",
-    start_url: "/app",
+    description: "Chores become quests. Kids actually want to do.",
+    start_url: "/kids",
     display: "standalone",
     background_color: "#f8f7fc",
     theme_color: "#5b3fd1",

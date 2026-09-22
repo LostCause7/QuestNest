@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { FlameIcon, TrophyIcon, StarIcon, SwordsIcon } from "lucide-react";
+import { UnlockTrack } from "@/components/kid/unlock-track";
 import { BadgeGrid } from "@/components/shared/badge-grid";
 import { requireFamily } from "@/lib/data/family";
 import { requireActiveChild } from "@/lib/data/kid";
-import { getBadges, getTransactions } from "@/lib/data/parent";
+import { familyToday, getBadges, getCompletionsBetween, getFamilyMilestones, getTransactions, shiftDate } from "@/lib/data/parent";
 import { levelInfo } from "@/lib/levels";
-import { BADGES } from "@/lib/badges";
 import { dateTime, signed } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -15,15 +15,23 @@ export default async function KidTrophiesPage(props: PageProps<"/kids/[childId]/
   const { childId } = await props.params;
   const family = await requireFamily();
   const child = await requireActiveChild(family, childId);
-  const [badges, transactions] = await Promise.all([getBadges([child.id]), getTransactions(family.id, { childId: child.id, limit: 15 })]);
+  const today = familyToday(family);
+  const weekAgo = shiftDate(today, -6);
+  const [badges, transactions, week, extras] = await Promise.all([
+    getBadges([child.id]),
+    getTransactions(family.id, { childId: child.id, limit: 15 }),
+    getCompletionsBetween(family.id, weekAgo, today),
+    getFamilyMilestones(family.id),
+  ]);
   const lvl = levelInfo(child.lifetime_points);
+  const mineThisWeek = week.filter((c) => c.child_id === child.id && c.status === "approved").length;
 
   return (
     <>
       <div className="mb-4">
         <h2 className="font-display text-2xl font-semibold">Trophy room</h2>
         <p className="text-sm text-muted-foreground">
-          {badges.length} of {BADGES.length} trophies earned
+          Lifetime {family.currency_name.toLowerCase()} unlock titles and looks — spending never takes them away.
         </p>
       </div>
 
@@ -34,8 +42,22 @@ export default async function KidTrophiesPage(props: PageProps<"/kids/[childId]/
         <Stat icon={<SwordsIcon className="size-5" />} label="To next level" value={lvl.toNext} sub={family.currency_name} className="bg-gradient-to-br from-pink-400 to-fuchsia-500" />
       </div>
 
+      {mineThisWeek > 0 ? (
+        <div className="mb-5 rounded-3xl bg-sunrise-gradient p-4 text-white shadow-md">
+          <div className="text-xs font-semibold uppercase tracking-wide text-white/80">This week&apos;s nest trophy</div>
+          <div className="mt-1 font-display text-xl font-bold">
+            {child.name} finished {mineThisWeek} quest{mineThisWeek === 1 ? "" : "s"} this week
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mb-8">
+        <UnlockTrack key={child.id} child={child} family={family} extras={extras} />
+      </div>
+
+      <h3 className="mb-3 font-display text-xl font-semibold">Trophy case</h3>
       <div className="rounded-3xl bg-card/80 p-4 shadow-sm">
-        <BadgeGrid earned={badges} />
+        <BadgeGrid earned={badges} lifetimePoints={child.lifetime_points} />
       </div>
 
       <h3 className="mt-8 mb-3 font-display text-xl font-semibold">Recent adventures</h3>

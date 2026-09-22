@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fredoka, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { SkipLink } from "@/components/shared/skip-link";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSupabaseEnv, supabaseEnvBootstrapScript } from "@/lib/supabase/env";
 import "./globals.css";
@@ -21,6 +22,7 @@ const fredoka = Fredoka({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const siteUrl = getSiteUrl();
@@ -28,7 +30,7 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "QuestNest - Chores become quests. Kids actually want to do them.",
+    default: "QuestNest — Chores become quests. Kids actually want to do.",
     template: "%s | QuestNest",
   },
   description:
@@ -44,16 +46,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "QuestNest",
-    title: "QuestNest - Chores become quests",
+    title: "QuestNest — Chores become quests. Kids actually want to do.",
     description:
-      "Turn chores into quests, points into rewards, and nagging into high-fives.",
+      "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "QuestNest - Chores become quests",
+    title: "QuestNest — Chores become quests. Kids actually want to do.",
     description:
-      "Turn chores into quests, points into rewards, and nagging into high-fives.",
+      "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
   },
   icons: {
     icon: "/icon.svg",
@@ -81,6 +83,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             dangerouslySetInnerHTML={{ __html: supabaseEnvBootstrapScript(supabaseEnv) }}
           />
         ) : null}
+        <SkipLink />
         {children}
         <Toaster position="top-center" richColors closeButton />
       </body>

@@ -51,6 +51,9 @@ export function UserMenu({ name, email, avatarUrl, compact }: Props) {
             Settings
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/app/settings#whats-new">What&apos;s new</Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <form action="/auth/signout" method="post" className="w-full">

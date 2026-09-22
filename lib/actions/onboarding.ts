@@ -56,23 +56,21 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
   const { data: existing } = await supabase.from("families").select("id").limit(1).maybeSingle();
   if (existing) redirect("/app");
 
-  const { data: family, error: famErr } = await supabase
-    .from("families")
-    .insert({
-      name: data.familyName,
-      owner_id: userId,
-      currency_name: data.currencyName,
-      currency_emoji: data.currencyEmoji,
-      timezone: data.timezone,
-    })
-    .select()
-    .single();
-  if (famErr || !family) return { error: famErr?.message ?? "Could not create your family." };
+  const familyId = crypto.randomUUID();
+  const { error: famErr } = await supabase.from("families").insert({
+    id: familyId,
+    name: data.familyName,
+    owner_id: userId,
+    currency_name: data.currencyName,
+    currency_emoji: data.currencyEmoji,
+    timezone: data.timezone,
+  });
+  if (famErr) return { error: famErr.message };
 
   const { data: child, error: childErr } = await supabase
     .from("children")
     .insert({
-      family_id: family.id,
+      family_id: familyId,
       name: data.child.name,
       avatar: data.child.avatar,
       color: data.child.color,
@@ -89,7 +87,7 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
       .from("chores")
       .insert(
         data.chores.map((c) => ({
-          family_id: family.id,
+          family_id: familyId,
           title: c.title,
           icon: c.icon,
           points: c.points,
@@ -111,7 +109,7 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
   if (data.rewards.length) {
     const { error: rewardErr } = await supabase.from("rewards").insert(
       data.rewards.map((r) => ({
-        family_id: family.id,
+        family_id: familyId,
         title: r.title,
         icon: r.icon,
         cost: r.cost,

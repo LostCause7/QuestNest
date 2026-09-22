@@ -59,6 +59,49 @@ export const CHORE_PACKS: Record<AgeBand, ChoreTemplate[]> = {
   ],
 };
 
+export const EXTRA_CHORE_PACKS: { key: string; label: string; items: ChoreTemplate[] }[] = [
+  {
+    key: "pets",
+    label: "Pets",
+    items: [
+      { title: "Feed the pet", icon: "🐾", points: 10, recurrence: "daily" },
+      { title: "Walk the dog", icon: "🐕", points: 15, recurrence: "daily" },
+      { title: "Clean the litter box", icon: "🐱", points: 15, recurrence: "daily" },
+      { title: "Fill water bowl", icon: "🥣", points: 5, recurrence: "daily", requires_approval: false },
+    ],
+  },
+  {
+    key: "lawn",
+    label: "Yard",
+    items: [
+      { title: "Water the plants", icon: "🪴", points: 10, recurrence: "custom", days_of_week: [0, 3] },
+      { title: "Pick up sticks", icon: "🌿", points: 10, recurrence: "custom", days_of_week: [6] },
+      { title: "Help mow the lawn", icon: "🚜", points: 30, recurrence: "custom", days_of_week: [6] },
+      { title: "Sweep the porch", icon: "🧹", points: 10, recurrence: "custom", days_of_week: [0] },
+    ],
+  },
+  {
+    key: "homework",
+    label: "Homework",
+    items: [
+      { title: "Homework done", icon: "📚", points: 15, recurrence: "custom", days_of_week: [1, 2, 3, 4] },
+      { title: "Read for 20 minutes", icon: "📖", points: 10, recurrence: "daily" },
+      { title: "Pack backpack", icon: "🎒", points: 5, recurrence: "custom", days_of_week: [0, 1, 2, 3, 4], requires_approval: false },
+      { title: "Practice an instrument", icon: "🎹", points: 15, recurrence: "custom", days_of_week: [1, 3, 5] },
+    ],
+  },
+  {
+    key: "halloween",
+    label: "Seasonal",
+    items: [
+      { title: "Halloween tidy", icon: "🎃", points: 20, recurrence: "once" },
+      { title: "Decorate together", icon: "🎄", points: 15, recurrence: "once" },
+      { title: "Write thank-you notes", icon: "✉️", points: 15, recurrence: "once" },
+      { title: "Spring clean one room", icon: "✨", points: 25, recurrence: "once" },
+    ],
+  },
+];
+
 export const REWARD_PACK: RewardTemplate[] = [
   { title: "30 min extra screen time", icon: "🎮", cost: 40, category: "privilege" },
   { title: "Pick tonight's dinner", icon: "🍕", cost: 60, category: "privilege" },
@@ -68,6 +111,10 @@ export const REWARD_PACK: RewardTemplate[] = [
   { title: "$5 allowance", icon: "💵", cost: 150, category: "item" },
   { title: "Friend sleepover", icon: "🎉", cost: 300, category: "experience" },
   { title: "New book or toy (up to $15)", icon: "🎁", cost: 400, category: "item" },
+  { title: "Indoor fort night", icon: "⛺", cost: 50, category: "privilege" },
+  { title: "Pick a rainy-day movie", icon: "🌧️", cost: 40, category: "privilege" },
+  { title: "Bake cookies together", icon: "🍪", cost: 80, category: "experience" },
+  { title: "Board game of your choice", icon: "🎲", cost: 35, category: "privilege" },
 ];
 
 export const CHORE_ICONS = [

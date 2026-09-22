@@ -9,6 +9,6 @@ export default async function KidQuestsPage(props: PageProps<"/kids/[childId]">)
   const { childId } = await props.params;
   const family = await requireFamily();
   const child = await requireActiveChild(family, childId);
-  const { today, cards } = await getQuestBoard(family, child);
-  return <QuestBoard cards={cards} family={family} child={child} today={today} />;
+  const { today, cards, tomorrowPeek } = await getQuestBoard(family, child);
+  return <QuestBoard cards={cards} family={family} child={child} today={today} tomorrowPeek={tomorrowPeek} />;
 }

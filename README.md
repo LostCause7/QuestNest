@@ -14,7 +14,7 @@ Next.js 16 (App Router) - React 19 - Tailwind CSS 4 - shadcn/ui - Framer Motion 
 
 ## Getting started
 
-1. Follow [SUPABASE_SETUP.md](SUPABASE_SETUP.md) once (runs the SQL, enables Email + Google login).
+1. Follow [SUPABASE_SETUP.md](SUPABASE_SETUP.md) once (runs the SQL, enables email/password login).
 2. `npm install`
 3. `npm run dev` and open http://localhost:3000
 
@@ -26,7 +26,7 @@ Environment variables live in `.env.local` (see `.env.example`).
 app/
   (marketing)/           landing page
   (auth)/                login, signup, forgot/reset password
-  auth/callback          OAuth + email-link code exchange
+  auth/callback          email confirmation + password-reset links
   onboarding/            first-run wizard
   (parent)/app/          Parent HQ
   (kid)/kids/            Kid Mode
@@ -58,6 +58,5 @@ npx vercel --prod
 **After the first production deploy**, register the URL in Supabase:
 
 1. **Authentication > URL Configuration** - set *Site URL* to `https://your-app.vercel.app` and add `https://your-app.vercel.app/auth/callback` (plus `https://*-your-team.vercel.app/auth/callback` for previews) to *Redirect URLs*.
-2. If Google sign-in is enabled, add the same origin to the Google OAuth client's **Authorized JavaScript origins**.
 
 `next build` passes with zero type or lint errors, so Vercel's default Next.js settings work without changes.

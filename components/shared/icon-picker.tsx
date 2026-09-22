@@ -42,8 +42,9 @@ export function IconPicker({
                 onChange(o);
                 setOpen(false);
               }}
+              aria-label={`Icon ${o}`}
               className={cn(
-                "flex aspect-square items-center justify-center rounded-lg text-xl hover:bg-muted",
+                "flex aspect-square min-h-11 items-center justify-center rounded-lg text-xl hover:bg-muted",
                 o === value && "bg-primary/15"
               )}
             >

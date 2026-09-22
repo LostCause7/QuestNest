@@ -14,7 +14,15 @@ export type AvatarKey =
   | "lion"
   | "bunny"
   | "penguin"
-  | "octopus";
+  | "octopus"
+  | "bee"
+  | "owlkid"
+  | "tiger"
+  | "whale"
+  | "fairy"
+  | "ninja"
+  | "wizard"
+  | "phoenix";
 
 export const AVATARS: Record<AvatarKey, { emoji: string; label: string }> = {
   fox: { emoji: "🦊", label: "Fox" },
@@ -33,6 +41,14 @@ export const AVATARS: Record<AvatarKey, { emoji: string; label: string }> = {
   bunny: { emoji: "🐰", label: "Bunny" },
   penguin: { emoji: "🐧", label: "Penguin" },
   octopus: { emoji: "🐙", label: "Octopus" },
+  bee: { emoji: "🐝", label: "Bee" },
+  owlkid: { emoji: "🦝", label: "Raccoon" },
+  tiger: { emoji: "🐯", label: "Tiger" },
+  whale: { emoji: "🐋", label: "Whale" },
+  fairy: { emoji: "🧚", label: "Fairy" },
+  ninja: { emoji: "🥷", label: "Ninja" },
+  wizard: { emoji: "🧙", label: "Wizard" },
+  phoenix: { emoji: "🦅", label: "Phoenix" },
 };
 
 export const AVATAR_KEYS = Object.keys(AVATARS) as AvatarKey[];
@@ -49,7 +65,11 @@ export type ColorKey =
   | "coral"
   | "bubblegum"
   | "lime"
-  | "ocean";
+  | "ocean"
+  | "slate"
+  | "rose"
+  | "honey"
+  | "midnight";
 
 export const COLORS: Record<
   ColorKey,
@@ -118,6 +138,38 @@ export const COLORS: Record<
     text: "text-cyan-700",
     soft: "bg-cyan-100",
     gradient: "from-cyan-400 to-indigo-500",
+  },
+  slate: {
+    label: "Slate",
+    bg: "bg-slate-500",
+    ring: "ring-slate-500",
+    text: "text-slate-700",
+    soft: "bg-slate-100",
+    gradient: "from-slate-400 to-slate-700",
+  },
+  rose: {
+    label: "Rose",
+    bg: "bg-rose-500",
+    ring: "ring-rose-500",
+    text: "text-rose-600",
+    soft: "bg-rose-100",
+    gradient: "from-rose-400 to-red-500",
+  },
+  honey: {
+    label: "Honey",
+    bg: "bg-yellow-500",
+    ring: "ring-yellow-500",
+    text: "text-yellow-700",
+    soft: "bg-yellow-100",
+    gradient: "from-yellow-300 to-amber-500",
+  },
+  midnight: {
+    label: "Midnight",
+    bg: "bg-indigo-700",
+    ring: "ring-indigo-700",
+    text: "text-indigo-700",
+    soft: "bg-indigo-100",
+    gradient: "from-indigo-600 to-violet-900",
   },
 };
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { MarketingMobileNav } from "@/components/marketing/mobile-nav";
 import { getClaims } from "@/lib/supabase/server";
 
 export async function SiteHeader() {
@@ -23,9 +24,10 @@ export async function SiteHeader() {
           </a>
         </nav>
         <div className="flex items-center gap-2">
+          <MarketingMobileNav />
           {claims ? (
             <Button asChild className="bg-sun-500 text-nest-950 hover:bg-sun-400">
-              <Link href="/app">Open my nest</Link>
+              <Link href="/kids">Open my nest</Link>
             </Button>
           ) : (
             <>
