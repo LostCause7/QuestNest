@@ -31,7 +31,7 @@ export function publicCallbackOrigin(request: { headers: Headers; url: string })
 }
 
 /** Only allow relative, same-site redirect targets. */
-export function safeNext(next: string | null | undefined, fallback = "/app") {
+export function safeNext(next: string | null | undefined, fallback = "/kids") {
   if (!next) return fallback;
   if (!next.startsWith("/") || next.startsWith("//")) return fallback;
   return next;

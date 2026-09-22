@@ -13,6 +13,7 @@ import type {
   ChildBadge,
   Family,
   FamilyMilestone,
+  ParentProfile,
 } from "@/types/database";
 
 export type ChoreWithKids = Chore & { child_ids: string[] };
@@ -123,6 +124,18 @@ export const getFamilyMilestones = cache(async (familyId: string): Promise<Famil
     .order("lifetime_points");
   if (error) return [];
   return (data ?? []) as FamilyMilestone[];
+});
+
+export const getParentProfiles = cache(async (familyId: string): Promise<ParentProfile[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("parent_profiles")
+    .select("*")
+    .eq("family_id", familyId)
+    .order("sort_order")
+    .order("created_at");
+  if (error) return [];
+  return (data ?? []) as ParentProfile[];
 });
 
 export const hasParentPin = cache(async (familyId: string): Promise<boolean> => {

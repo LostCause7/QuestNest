@@ -10,7 +10,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const origin = publicCallbackOrigin(request);
   const code = searchParams.get("code");
-  const next = safeNext(searchParams.get("next"));
+  const requested = searchParams.get("next");
+  const next =
+    requested === "/onboarding" || requested === "/reset-password"
+      ? requested
+      : requested?.startsWith("/app")
+        ? "/kids"
+        : safeNext(requested, "/kids");
   const errorDescription = searchParams.get("error_description");
 
   if (errorDescription) {

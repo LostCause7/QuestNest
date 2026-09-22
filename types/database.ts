@@ -81,6 +81,17 @@ export type Child = {
   created_at: string;
 }
 
+export type ParentProfile = {
+  id: string;
+  family_id: string;
+  name: string;
+  avatar: string;
+  color: string;
+  motto: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
 export type FamilyMilestone = {
   id: string;
   family_id: string;
@@ -324,6 +335,12 @@ export type Database = {
         Update: Partial<FamilyMilestone>;
         Relationships: [];
       };
+      parent_profiles: {
+        Row: Row<ParentProfile>;
+        Insert: Insert<ParentProfile, "id" | "avatar" | "color" | "motto" | "sort_order" | "created_at">;
+        Update: Partial<ParentProfile>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -332,6 +349,8 @@ export type Database = {
       set_parent_pin: { Args: { p_family: string; p_pin: string }; Returns: undefined };
       verify_parent_pin: { Args: { p_family: string; p_pin: string }; Returns: boolean };
       has_parent_pin: { Args: { p_family: string }; Returns: boolean };
+      set_parent_profile_pin: { Args: { p_parent: string; p_pin: string }; Returns: undefined };
+      verify_parent_profile_pin: { Args: { p_parent: string; p_pin: string }; Returns: boolean };
       complete_chore: {
         Args: { p_chore: string; p_child: string; p_date?: string };
         Returns: ChoreCompletion;

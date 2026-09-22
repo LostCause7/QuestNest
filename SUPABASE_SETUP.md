@@ -18,8 +18,9 @@ If this project already has the first migration, run any later files you have no
 - [`0005_location_and_shop.sql`](supabase/migrations/0005_location_and_shop.sql) — city/state shop radius and per-kid rewards
 - [`0006_cast_adjust_points.sql`](supabase/migrations/0006_cast_adjust_points.sql) — bonus/deduct enum cast
 - [`0007_milestones_and_style.sql`](supabase/migrations/0007_milestones_and_style.sql) — lifetime unlocks, kid/parent looks, custom nest milestones
+- [`0008_parent_profiles.sql`](supabase/migrations/0008_parent_profiles.sql) — extra parent faces on the picker, each with their own PIN
 
-The app still runs if a later file is missing (nearby shop, custom unlocks, and extra look fields degrade instead of crashing). Run them in order when you can.
+The app still runs if a later file is missing (nearby shop, custom unlocks, extra parent faces, and extra look fields degrade instead of crashing). Run them in order when you can.
 
 ## 2. Email + password sign-in
 

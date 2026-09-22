@@ -12,7 +12,7 @@ export const ACTIVE_CHILD_COOKIE = "qn_active_child";
 
 /**
  * Refreshes the Supabase session cookie on every matched request and applies
- * optimistic redirects (unauthenticated -> /login, authenticated -> /app).
+ * optimistic redirects (unauthenticated -> /login, authenticated -> /kids).
  * Page-level code still re-verifies with getClaims().
  */
 export async function updateSession(request: NextRequest) {

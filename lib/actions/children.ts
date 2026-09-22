@@ -1,12 +1,18 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
+import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Child } from "@/types/database";
+
+async function kidModeBlocksManage() {
+  return (await cookies()).get(KID_MODE_COOKIE)?.value === "1";
+}
 
 const childSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(40),
@@ -34,6 +40,7 @@ function revalidate() {
 
 export async function createChild(input: ChildInput): Promise<ActionResult<Child>> {
   return guardAction(async () => {
+  if (await kidModeBlocksManage()) return fail("Ask a parent to add a kid.");
   const parsed = childSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
   const pin = pinSchema.safeParse(input.pin);

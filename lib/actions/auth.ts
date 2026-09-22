@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
-import { getEmailOrigin, safeNext } from "@/lib/origin";
+import { getEmailOrigin } from "@/lib/origin";
 import { isNextRedirect } from "@/lib/errors";
 
 export type AuthState = { error?: string; message?: string } | undefined;
@@ -46,7 +46,7 @@ export async function signInWithPassword(_prev: AuthState, formData: FormData): 
             : "Incorrect email or password.",
       };
     }
-    redirect(safeNext(formData.get("next")?.toString(), "/kids"));
+    redirect("/kids");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return { error: CONFIG_ERROR };
@@ -143,7 +143,7 @@ export async function updatePassword(_prev: AuthState, formData: FormData): Prom
     if (!supabase) return { error: CONFIG_ERROR };
     const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
     if (error) return { error: error.message };
-    redirect("/app?updated=password");
+    redirect("/kids");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return { error: CONFIG_ERROR };

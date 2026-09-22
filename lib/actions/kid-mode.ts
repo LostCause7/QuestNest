@@ -155,3 +155,25 @@ export async function exitKidMode(pin: string | null, next?: string): Promise<Ac
   store.delete(KID_MODE_COOKIE);
   redirect(safeNext(next, "/app"));
 }
+
+/** Extra parent profile enters their own PIN. */
+export async function unlockExtraParent(parentId: string, pin: string): Promise<ActionResult> {
+  const parsed = z.object({ parentId: z.uuid(), pin: z.string().regex(/^\d{4}$/) }).safeParse({ parentId, pin });
+  if (!parsed.success) return fail("That PIN doesn't look right.");
+  await requireFamily();
+  const supabase = await createClient();
+  const { data: valid, error } = await supabase.rpc("verify_parent_profile_pin", {
+    p_parent: parsed.data.parentId,
+    p_pin: parsed.data.pin,
+  });
+  if (error && /does not exist|schema cache/i.test(error.message)) {
+    return fail("Extra parents need the latest nest update.");
+  }
+  if (error) return fail(friendlyError(error.message));
+  if (!valid) return fail("That's not their PIN.");
+
+  const store = await cookies();
+  store.delete(ACTIVE_CHILD_COOKIE);
+  store.delete(KID_MODE_COOKIE);
+  redirect("/app");
+}

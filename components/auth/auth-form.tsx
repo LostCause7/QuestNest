@@ -36,7 +36,7 @@ function Feedback({ state, initialError }: { state: AuthState; initialError?: st
   return null;
 }
 
-export function LoginForm({ next, initialError }: { next?: string; initialError?: string }) {
+export function LoginForm({ initialError }: { initialError?: string }) {
   const [state, action] = useActionState<AuthState, FormData>(signInWithPassword, undefined);
   return (
     <div className="space-y-6">
@@ -45,7 +45,6 @@ export function LoginForm({ next, initialError }: { next?: string; initialError?
         <p className="text-muted-foreground">Sign in to your family&apos;s nest.</p>
       </div>
       <form action={action} className="space-y-4">
-        {next ? <input type="hidden" name="next" value={next} /> : null}
         <Feedback state={state} initialError={initialError} />
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>

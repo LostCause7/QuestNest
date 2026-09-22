@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Logo } from "@/components/brand/logo";
 import { ProfilePicker } from "@/components/kid/profile-picker";
 import { requireFamily, requireUser } from "@/lib/data/family";
-import { getChildren } from "@/lib/data/parent";
+import { getChildren, getParentProfiles } from "@/lib/data/parent";
 import { createClient } from "@/lib/supabase/server";
+import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 
 export const metadata: Metadata = { title: "Who's using the nest?" };
 
@@ -11,6 +13,8 @@ export default async function KidPickerPage() {
   const user = await requireUser();
   const family = await requireFamily();
   const kids = await getChildren(family.id);
+  const extraParents = await getParentProfiles(family.id);
+  const canAdd = (await cookies()).get(KID_MODE_COOKIE)?.value !== "1";
   let parentName = user.email?.split("@")[0] ?? "Parent";
   let parentAvatar: string | null = null;
   let parentAvatarKey: string | null = null;
@@ -47,15 +51,17 @@ export default async function KidPickerPage() {
           Who&apos;s using the nest?
         </h1>
         <p className="mt-3 max-w-md text-center text-lg text-white/60">
-          Kids pick their face and enter their PIN. Parents pick theirs.
+          Kids pick their face and enter their PIN. Extra parents use their own PIN.
         </p>
-        {kids.length === 0 ? (
+        {kids.length === 0 && canAdd ? (
           <p className="mt-10 max-w-sm text-center text-white/55">
-            No kid profiles yet. Open the parent tile to add them in Parent HQ.
+            No kid profiles yet. Tap Add a kid to make one.
           </p>
         ) : null}
         <ProfilePicker
           kids={kids}
+          extraParents={extraParents}
+          canAdd={canAdd}
           parent={{
             name: parentName,
             avatarUrl: parentAvatar,
