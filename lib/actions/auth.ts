@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
-import { getOrigin, safeNext } from "@/lib/origin";
+import { getEmailOrigin, safeNext } from "@/lib/origin";
 import { isNextRedirect } from "@/lib/errors";
 
 export type AuthState = { error?: string; message?: string } | undefined;
@@ -68,7 +68,7 @@ export async function signUpWithPassword(_prev: AuthState, formData: FormData): 
     const supabase = await supabaseForAuth();
     if (!supabase) return { error: CONFIG_ERROR };
 
-    const origin = await getOrigin();
+    const origin = await getEmailOrigin();
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -113,7 +113,7 @@ export async function requestPasswordReset(_prev: AuthState, formData: FormData)
     const supabase = await supabaseForAuth();
     if (!supabase) return { error: CONFIG_ERROR };
 
-    const origin = await getOrigin();
+    const origin = await getEmailOrigin();
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
       redirectTo: `${origin}/auth/callback?next=/reset-password`,
     });
