@@ -4,18 +4,24 @@ type LogoMarkProps = {
   className?: string;
   /** Use light strokes on dark backgrounds */
   tone?: "default" | "light";
+  px?: number;
 };
 
+const MARK_PX = { sm: 24, md: 32, lg: 48 } as const;
+
 /** The ChoreHall mark: a nest cradling a rising star. */
-export function LogoMark({ className, tone = "default" }: LogoMarkProps) {
+export function LogoMark({ className, tone = "default", px = 32 }: LogoMarkProps) {
   const nest = tone === "light" ? "#fff" : "url(#qn-nest)";
   const star = "url(#qn-star)";
   return (
     <svg
       viewBox="0 0 64 64"
+      width={px}
+      height={px}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("size-8", className)}
+      style={{ width: px, height: px }}
       aria-hidden="true"
     >
       <defs>
@@ -59,13 +65,13 @@ type LogoProps = {
 
 export function Logo({ className, tone = "default", size = "md" }: LogoProps) {
   const sizes = {
-    sm: { mark: "size-6", text: "text-lg" },
-    md: { mark: "size-8", text: "text-xl" },
-    lg: { mark: "size-12", text: "text-3xl" },
+    sm: { mark: "size-6", text: "text-lg", px: MARK_PX.sm },
+    md: { mark: "size-8", text: "text-xl", px: MARK_PX.md },
+    lg: { mark: "size-12", text: "text-3xl", px: MARK_PX.lg },
   }[size];
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <LogoMark className={sizes.mark} tone={tone} />
+      <LogoMark className={sizes.mark} tone={tone} px={sizes.px} />
       <span
         className={cn(
           "font-display font-semibold tracking-tight",

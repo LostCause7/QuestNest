@@ -95,7 +95,17 @@ export default async function HomePage() {
         </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pt-16 pb-24 lg:grid-cols-2 lg:pt-24">
           <div>
-            <span className="qn-glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-amber-100">
+                <span className="size-1.5 rounded-full bg-amber-400" aria-hidden="true" />
+                In Development
+              </span>
+              <span className="qn-frost inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-cyan-100">
+                <span className="size-1.5 rounded-full bg-cyan-300" aria-hidden="true" />
+                Open Beta
+              </span>
+            </div>
+            <span className="qn-glass mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
               <SparklesIcon className="size-3.5 text-sky-600" />
               Frost, chrome, and quests
             </span>

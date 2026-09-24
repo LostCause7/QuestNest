@@ -77,7 +77,12 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+.shimmer {
+  --_highlight: rgba(255, 255, 255, 0.22);
+}
+
 :root {
+  --spacing: 0.25rem;
   --background: oklch(0.17 0.02 230);
   --foreground: oklch(0.96 0.01 230);
   --card: oklch(0.23 0.02 230 / 0.72);

@@ -19,6 +19,7 @@ export function FamilyCrest({
   const src = crestSrc(letter);
   const tone = resolveCrestColor(color);
   const fill = CREST_COLORS.find((c) => c.key === tone)?.fill ?? CREST_COLORS[0].fill;
+  const px = { sm: 32, md: 48, lg: 64 }[size];
   const dim = { sm: "size-8 text-sm", md: "size-12 text-xl", lg: "size-16 text-3xl" }[size];
   const [broken, setBroken] = useState(false);
 
@@ -34,11 +35,12 @@ export function FamilyCrest({
         dim,
         className
       )}
+      style={{ width: px, height: px }}
       aria-hidden="true"
     >
       <span className="relative size-full overflow-hidden rounded-full bg-slate-950">
         {src && !broken ? (
-          <img src={src} alt="" className="size-full object-cover" onError={() => setBroken(true)} />
+          <img src={src} alt="" width={px} height={px} className="size-full object-cover" onError={() => setBroken(true)} />
         ) : (
           <span className="flex size-full items-center justify-center font-display font-extrabold tracking-tight text-white">
             {letter}

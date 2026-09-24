@@ -25,6 +25,7 @@ export function KidAvatar({
   aura?: string | null;
 }) {
   const theme = colorTheme(color);
+  const px = { xs: 32, sm: 40, md: 56, lg: 80, xl: 112 }[size];
   const sizes = {
     xs: "size-8 text-lg",
     sm: "size-10 text-xl",
@@ -50,10 +51,11 @@ export function KidAvatar({
         frameClassName,
         className
       )}
+      style={{ width: px, height: px }}
       aria-hidden="true"
     >
       {src && !broken ? (
-        <img src={src} alt="" className="size-full object-cover" onError={() => setBroken(true)} />
+        <img src={src} alt="" width={px} height={px} className="size-full object-cover" onError={() => setBroken(true)} />
       ) : (
         <span className="drop-shadow-sm">{avatarEmoji(avatar)}</span>
       )}

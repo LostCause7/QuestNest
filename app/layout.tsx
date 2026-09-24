@@ -78,6 +78,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <style
+          dangerouslySetInnerHTML={{
+            __html: ":root{--spacing:.25rem}img{max-width:100%}",
+          }}
+        />
         {supabaseEnv ? (
           <script
             dangerouslySetInnerHTML={{ __html: supabaseEnvBootstrapScript(supabaseEnv) }}
