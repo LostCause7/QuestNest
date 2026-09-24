@@ -83,7 +83,9 @@
 
 :root {
   --spacing: 0.25rem;
+  --background: #15202b;
   --background: oklch(0.17 0.02 230);
+  --foreground: #f1f5f9;
   --foreground: oklch(0.96 0.01 230);
   --card: oklch(0.23 0.02 230 / 0.72);
   --card-foreground: oklch(0.96 0.01 230);

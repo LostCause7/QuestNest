@@ -80,7 +80,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <style
           dangerouslySetInnerHTML={{
-            __html: ":root{--spacing:.25rem}img{max-width:100%}",
+            __html:
+              "html,body{background:#15202b;color:#e8eef4;margin:0}img{max-width:100%}",
           }}
         />
         {supabaseEnv ? (
