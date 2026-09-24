@@ -46,11 +46,14 @@ export default async function KidPickerPage() {
   }
 
   return (
-    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
+    <div className="qn-picker-chrome flex min-h-dvh flex-col text-white">
       <header className="flex items-center px-6 py-5" style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}>
         <Logo tone="light" size="sm" />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-20" style={{ paddingBottom: "max(5rem, env(safe-area-inset-bottom))" }}>
+      <main
+        className="flex flex-1 flex-col items-center px-6 pt-6"
+        style={{ paddingBottom: "max(5rem, env(safe-area-inset-bottom))" }}
+      >
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/50">
           {family.style?.crestEmoji ? (
             <FamilyCrest mark={family.style.crestEmoji} color={family.style.crestColor} size="sm" />
