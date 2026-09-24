@@ -58,7 +58,11 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, 
       startTransition(async () => {
         const res = await onSubmit(value);
         if (res && !res.ok) {
-          play("pinError");
+          try {
+            play("pinError");
+          } catch {
+            /* ignore */
+          }
           setError(res.error);
           setShake((s) => s + 1);
           setPin("");
@@ -68,7 +72,11 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, 
             return next;
           });
         } else {
-          play("pinUnlock");
+          try {
+            play("pinUnlock");
+          } catch {
+            /* ignore */
+          }
           setFails(0);
         }
       });
@@ -79,7 +87,11 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, 
   const change = useCallback(
     (value: string) => {
       if (pending || Date.now() < lockedUntil) return;
-      play("pinDigit");
+      try {
+        play("pinDigit");
+      } catch {
+        /* iPad can reject Web Audio; PIN still has to register. */
+      }
       const next = value.slice(0, maxLen);
       setPin(next);
       clearIdle();

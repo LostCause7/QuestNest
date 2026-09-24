@@ -20,7 +20,7 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
   if ((await getActiveChildId()) === kid.id) redirect(`/kids/${kid.id}`);
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-background">
+    <div className="relative flex min-h-dvh flex-col bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-20 left-1/4 size-80 rounded-full bg-sky-500/15 blur-3xl" />
         <div className="absolute bottom-0 right-0 size-96 rounded-full bg-cyan-400/10 blur-3xl" />
