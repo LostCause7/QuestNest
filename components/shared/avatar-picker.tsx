@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji, avatarSrc } from "@/lib/avatars";
 import { auraClassName, hatEmoji } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
@@ -84,15 +84,17 @@ export function AvatarPicker({
   onChange: (v: string) => void;
   color: string;
 }) {
-  const group = useId();
   return (
     <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
       {AVATAR_KEYS.map((key) => {
         const selected = key === value;
         return (
-          <label
+          <button
             key={key}
+            type="button"
             title={AVATARS[key].label}
+            aria-pressed={selected}
+            onClick={() => onChange(key)}
             className={cn(
               "qn-lift flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl",
               selected
@@ -100,10 +102,9 @@ export function AvatarPicker({
                 : "qn-glass-panel hover:border-primary/40"
             )}
           >
-            <input type="radio" name={group} className="sr-only" checked={selected} onChange={() => onChange(key)} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={AVATARS[key].src} alt={AVATARS[key].label} className="size-full object-cover" />
-          </label>
+          </button>
         );
       })}
     </div>
@@ -111,23 +112,24 @@ export function AvatarPicker({
 }
 
 export function ColorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const group = useId();
   return (
     <div className="flex flex-wrap gap-2">
       {COLOR_KEYS.map((key) => {
         const selected = key === value;
         return (
-          <label
+          <button
             key={key}
+            type="button"
             title={COLORS[key].label}
+            aria-label={COLORS[key].label}
+            aria-pressed={selected}
+            onClick={() => onChange(key)}
             className={cn(
-              "size-11 cursor-pointer rounded-full bg-gradient-to-br transition-all hover:scale-110",
+              "size-11 cursor-pointer rounded-full bg-gradient-to-br",
               COLORS[key].gradient,
               selected ? "ring-3 ring-offset-2 ring-offset-background ring-foreground/60" : ""
             )}
-          >
-            <input type="radio" name={group} className="sr-only" checked={selected} onChange={() => onChange(key)} aria-label={COLORS[key].label} />
-          </label>
+          />
         );
       })}
     </div>

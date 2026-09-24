@@ -185,16 +185,18 @@ function ChoreForm({
                 {WEEKDAYS.map((d) => {
                   const on = days.includes(d.value);
                   return (
-                    <label
+                    <button
                       key={d.value}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleDay(d.value)}
                       className={cn(
                         "flex-1 cursor-pointer rounded-lg border py-2 text-center text-xs font-medium transition-colors",
                         on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                     >
-                      <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleDay(d.value)} />
                       {d.short}
-                    </label>
+                    </button>
                   );
                 })}
               </div>
@@ -208,17 +210,19 @@ function ChoreForm({
                 {kids.map((k) => {
                   const on = childIds.includes(k.id);
                   return (
-                    <label
+                    <button
                       key={k.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleKid(k.id)}
                       className={cn(
                         "flex cursor-pointer items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >
-                      <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleKid(k.id)} />
                       <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
                       {k.name}
-                    </label>
+                    </button>
                   );
                 })}
               </div>

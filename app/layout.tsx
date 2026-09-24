@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SkipLink } from "@/components/shared/skip-link";
-import { IosPointerUnlock } from "@/components/shared/ios-pointer-unlock";
+import { IosTapBridge } from "@/components/shared/ios-tap-bridge";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSupabaseEnv, supabaseEnvBootstrapScript } from "@/lib/supabase/env";
 import "./globals.css";
@@ -82,7 +82,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <style
           dangerouslySetInnerHTML={{
             __html:
-              "html,body{background:#15202b;color:#e8eef4;margin:0}img{max-width:100%}.qn-backdrop{pointer-events:none!important}[data-slot=dialog-overlay][data-closed],[data-slot=sheet-overlay][data-closed],[data-slot=dialog-content][data-closed],[data-slot=sheet-content][data-closed],[data-state=closed]{pointer-events:none!important;display:none!important}button,a,select,label,summary,input,textarea{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:rgba(125,211,252,.35)}select{-webkit-appearance:menulist-button;appearance:auto}.qn-skip{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.qn-skip:focus{width:auto;height:auto;clip:auto;overflow:visible}",
+              "html,body{background:#15202b;color:#e8eef4;margin:0}img{max-width:100%}.qn-backdrop{pointer-events:none!important}[data-slot=dialog-overlay][data-closed],[data-slot=sheet-overlay][data-closed]{display:none!important;pointer-events:none!important}button,a,[role=button],label,summary,input,textarea,select{pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(125,211,252,.35)}.qn-skip{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.qn-skip:focus{width:auto;height:auto;clip:auto;overflow:visible}",
           }}
         />
         {supabaseEnv ? (
@@ -91,7 +91,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           />
         ) : null}
         <SkipLink />
-        <IosPointerUnlock />
+        <IosTapBridge />
         {children}
         <Toaster position="top-center" richColors closeButton />
       </body>
