@@ -566,8 +566,13 @@
   body {
     @apply bg-background text-foreground;
   }
-  button:not(:disabled), [role="button"]:not(:disabled) {
+  button:not(:disabled), [role="button"]:not(:disabled), a, select, summary, label {
     cursor: pointer;
+    touch-action: manipulation;
+  }
+  select {
+    font: inherit;
+    color: inherit;
   }
   html {
     @apply font-sans;

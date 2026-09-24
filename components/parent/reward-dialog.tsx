@@ -180,18 +180,16 @@ function RewardForm({
                   { key: "legendary", label: "🌟 Legendary" },
                 ] as const
               ).map((r) => (
-                <button
+                <label
                   key={r.key}
-                  type="button"
-                  onClick={() => setRarity(r.key)}
-                  aria-pressed={rarity === r.key}
                   className={cn(
-                    "rounded-full border-2 px-3 py-1.5 text-sm font-medium",
+                    "cursor-pointer rounded-full border-2 px-3 py-1.5 text-sm font-medium",
                     rarity === r.key ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
                   )}
                 >
+                  <input type="radio" name="reward-shine" className="sr-only" checked={rarity === r.key} onChange={() => setRarity(r.key)} />
                   {r.label}
-                </button>
+                </label>
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground">Purely cosmetic: a foil shimmer on the shop card so big rewards feel big.</p>
@@ -215,18 +213,17 @@ function RewardForm({
                 {kids.map((k) => {
                   const on = childIds.includes(k.id);
                   return (
-                    <button
+                    <label
                       key={k.id}
-                      type="button"
-                      onClick={() => toggleKid(k.id)}
                       className={cn(
-                        "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >
+                      <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleKid(k.id)} />
                       <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
                       {k.name}
-                    </button>
+                    </label>
                   );
                 })}
               </div>

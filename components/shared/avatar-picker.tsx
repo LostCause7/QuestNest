@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji, avatarSrc } from "@/lib/avatars";
 import { auraClassName, hatEmoji } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
@@ -84,28 +84,26 @@ export function AvatarPicker({
   onChange: (v: string) => void;
   color: string;
 }) {
+  const group = useId();
   return (
     <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
       {AVATAR_KEYS.map((key) => {
         const selected = key === value;
         return (
-          <button
+          <label
             key={key}
-            type="button"
             title={AVATARS[key].label}
-            aria-label={AVATARS[key].label}
-            onClick={() => onChange(key)}
             className={cn(
-              "qn-lift flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl",
+              "qn-lift flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl",
               selected
                 ? cn("border-white/80 bg-gradient-to-br text-white shadow-md", colorTheme(color).gradient)
                 : "qn-glass-panel hover:border-primary/40"
             )}
-            aria-pressed={selected}
           >
+            <input type="radio" name={group} className="sr-only" checked={selected} onChange={() => onChange(key)} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={AVATARS[key].src} alt="" className="size-full object-cover" />
-          </button>
+            <img src={AVATARS[key].src} alt={AVATARS[key].label} className="size-full object-cover" />
+          </label>
         );
       })}
     </div>
@@ -113,24 +111,23 @@ export function AvatarPicker({
 }
 
 export function ColorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const group = useId();
   return (
     <div className="flex flex-wrap gap-2">
       {COLOR_KEYS.map((key) => {
         const selected = key === value;
         return (
-          <button
+          <label
             key={key}
-            type="button"
             title={COLORS[key].label}
-            onClick={() => onChange(key)}
             className={cn(
-              "size-11 rounded-full bg-gradient-to-br transition-all hover:scale-110",
+              "size-11 cursor-pointer rounded-full bg-gradient-to-br transition-all hover:scale-110",
               COLORS[key].gradient,
               selected ? "ring-3 ring-offset-2 ring-offset-background ring-foreground/60" : ""
             )}
-            aria-pressed={selected}
-            aria-label={COLORS[key].label}
-          />
+          >
+            <input type="radio" name={group} className="sr-only" checked={selected} onChange={() => onChange(key)} aria-label={COLORS[key].label} />
+          </label>
         );
       })}
     </div>

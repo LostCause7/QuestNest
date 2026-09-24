@@ -185,17 +185,16 @@ function ChoreForm({
                 {WEEKDAYS.map((d) => {
                   const on = days.includes(d.value);
                   return (
-                    <button
+                    <label
                       key={d.value}
-                      type="button"
-                      onClick={() => toggleDay(d.value)}
                       className={cn(
-                        "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
+                        "flex-1 cursor-pointer rounded-lg border py-2 text-center text-xs font-medium transition-colors",
                         on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                     >
+                      <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleDay(d.value)} />
                       {d.short}
-                    </button>
+                    </label>
                   );
                 })}
               </div>
@@ -209,18 +208,17 @@ function ChoreForm({
                 {kids.map((k) => {
                   const on = childIds.includes(k.id);
                   return (
-                    <button
+                    <label
                       key={k.id}
-                      type="button"
-                      onClick={() => toggleKid(k.id)}
                       className={cn(
-                        "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >
+                      <input type="checkbox" className="sr-only" checked={on} onChange={() => toggleKid(k.id)} />
                       <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
                       {k.name}
-                    </button>
+                    </label>
                   );
                 })}
               </div>
