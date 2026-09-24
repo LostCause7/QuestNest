@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getAuthOrigin, getSiteUrl, isVercelDeploymentHost } from "@/lib/site-url";
+import { CANONICAL_ORIGIN, getAuthOrigin, getSiteUrl, isVercelDeploymentHost } from "@/lib/site-url";
 
 /** Absolute origin of the current request (works on localhost, Vercel previews and prod). */
 export async function getOrigin() {
@@ -24,10 +24,11 @@ export async function getEmailOrigin() {
 }
 
 export function publicCallbackOrigin(request: { headers: Headers; url: string }) {
-  const forwarded = request.headers.get("x-forwarded-host");
-  const fromAuth = getAuthOrigin(forwarded);
-  if (!isVercelDeploymentHost(fromAuth)) return fromAuth;
-  return getAuthOrigin(new URL(request.url).host);
+  if (process.env.VERCEL_ENV === "production") return CANONICAL_ORIGIN;
+  const host = request.headers.get("x-forwarded-host") ?? new URL(request.url).host;
+  const origin = getAuthOrigin(host);
+  if (!isVercelDeploymentHost(origin)) return origin;
+  return CANONICAL_ORIGIN;
 }
 
 /** Only allow relative, same-site redirect targets. */

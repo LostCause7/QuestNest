@@ -1,11 +1,11 @@
-# QuestNest
+# ChoreHall
 
 Chores become quests. Kids actually want to do them.
 
-QuestNest is a web app for families: parents create quests (chores) and a reward shop, kids pick their avatar, enter a PIN, complete quests, earn a custom currency, keep streaks, unlock badges, and spend their points on rewards the parents define.
+ChoreHall is a web app for families: parents create quests (chores) and a reward shop, kids pick their avatar, enter a PIN, complete quests, earn a custom currency, keep streaks, unlock badges, and spend their points on rewards the parents define.
 
 - **Parent HQ** (`/app`): dashboard with approval queue, kid management, quests, rewards, activity ledger, settings.
-- **Kid Mode** (`/kids`): Netflix-style profile picker + PIN pad, today's quests, shop, trophy room.
+- **Kid Mode** (`/kids`): Netflix-style profile picker + PIN pad, today's quests, shop, trophy room (badge sets, season pass, stamp book), and a Closet of unlockable looks, rooms, sound packs and confetti styles.
 - **Marketing site** (`/`).
 
 ## Stack
@@ -35,6 +35,7 @@ lib/
   supabase/              browser + server clients, proxy helper
   actions/               server actions (all mutations)
   levels.ts badges.ts templates.ts schedule.ts avatars.ts
+  cosmetics.ts sound.ts confetti.ts celebrate.ts copy.ts   looks catalog, sound synth, confetti, celebration bus, kid-friendly copy
 supabase/migrations/     SQL schema (paste into the SQL Editor)
 types/database.ts        typed schema for supabase-js
 proxy.ts                 session refresh + route protection
@@ -49,7 +50,7 @@ npx vercel login          # one-time, opens the browser
 npx vercel                # creates the project and a preview deploy
 npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
 npx vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY production
-npx vercel env add NEXT_PUBLIC_SITE_URL production   # https://your-app.vercel.app
+npx vercel env add NEXT_PUBLIC_SITE_URL production   # https://chorehall.net
 npx vercel --prod
 ```
 
@@ -57,6 +58,6 @@ npx vercel --prod
 
 **After the first production deploy**, register the URL in Supabase:
 
-1. **Authentication > URL Configuration** - set *Site URL* to `https://your-app.vercel.app` and add `https://your-app.vercel.app/auth/callback` (plus `https://*-your-team.vercel.app/auth/callback` for previews) to *Redirect URLs*.
+1. **Authentication > URL Configuration** — set *Site URL* to `https://chorehall.net` (not a `*.vercel.app` URL). Add `https://chorehall.net/**`, `https://www.chorehall.net/**`, `http://localhost:3000/**`, and `https://*-*.vercel.app/**` to *Redirect URLs*.
 
 `next build` passes with zero type or lint errors, so Vercel's default Next.js settings work without changes.

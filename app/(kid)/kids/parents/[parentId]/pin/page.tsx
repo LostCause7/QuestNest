@@ -17,11 +17,11 @@ export default async function ExtraParentPinPage(props: { params: Promise<{ pare
   if (!parent) redirect("/kids");
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <header className="flex items-center px-6 py-5">
         <Link
           href="/kids"
-          className="inline-flex items-center gap-1.5 rounded-full bg-card/70 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+          className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" />
           Not you?

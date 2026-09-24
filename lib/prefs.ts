@@ -4,6 +4,14 @@ export type NestPrefs = {
   sounds: boolean;
   highContrast: boolean;
   bigType: boolean;
+  /** Soft background loop while on the kid screens. Off by default. */
+  ambient: boolean;
+  /** Mirror the PIN pad / big buttons for left-handed kids. */
+  leftHanded: boolean;
+  /** Extra-large tap targets. */
+  bigTap: boolean;
+  /** Add pattern textures so status isn't color-only. */
+  colorPatterns: boolean;
   quietStart: string;
   quietEnd: string;
 };
@@ -14,6 +22,10 @@ const DEFAULTS: NestPrefs = {
   sounds: true,
   highContrast: false,
   bigType: false,
+  ambient: false,
+  leftHanded: false,
+  bigTap: false,
+  colorPatterns: false,
   quietStart: "20:30",
   quietEnd: "07:00",
 };
@@ -42,7 +54,11 @@ export function applyPrefs(prefs: NestPrefs = readPrefs()) {
   const root = document.documentElement;
   root.classList.toggle("qn-high-contrast", prefs.highContrast);
   root.classList.toggle("qn-big-type", prefs.bigType);
+  root.classList.toggle("qn-left-handed", prefs.leftHanded);
+  root.classList.toggle("qn-big-tap", prefs.bigTap);
+  root.classList.toggle("qn-color-patterns", prefs.colorPatterns);
   root.dataset.qnSounds = prefs.sounds ? "1" : "0";
+  root.dataset.qnAmbient = prefs.ambient ? "1" : "0";
 }
 
 export function inQuietHours(prefs: NestPrefs = readPrefs(), now = new Date()) {

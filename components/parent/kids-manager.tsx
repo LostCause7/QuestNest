@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PlusIcon, MoreHorizontalIcon, PencilIcon, CoinsIcon, ArchiveIcon, ArchiveRestoreIcon, Trash2Icon, FlameIcon, TrophyIcon, UsersIcon } from "lucide-react";
+import { PlusIcon, MoreHorizontalIcon, PencilIcon, CoinsIcon, ArchiveIcon, ArchiveRestoreIcon, Trash2Icon, FlameIcon, TrophyIcon, UsersIcon, HeartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,15 +17,17 @@ import { EmptyState } from "@/components/parent/page-header";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { AdjustPointsDialog } from "@/components/parent/adjust-points-dialog";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
+import { KudosDialog } from "@/components/parent/kudos-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteChild, setChildActive } from "@/lib/actions/children";
 import { levelInfo } from "@/lib/levels";
 import { childLook, frameClass } from "@/lib/milestones";
+import { nameplateClassName } from "@/lib/cosmetics";
 import { colorTheme } from "@/lib/avatars";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 
-export function KidsManager({ kids, family }: { kids: Child[]; family: Family }) {
+export function KidsManager({ kids, family, gifts = {} }: { kids: Child[]; family: Family; gifts?: Record<string, string[]> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { run, pending } = useAction();
@@ -35,6 +37,7 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
   const [editing, setEditing] = useState<Child | null>(null);
   const [adjusting, setAdjusting] = useState<Child | null>(null);
   const [deleting, setDeleting] = useState<Child | null>(null);
+  const [cheering, setCheering] = useState<Child | null>(null);
 
   useEffect(() => {
     if (openedViaQuery) router.replace("/app/kids");
@@ -79,6 +82,7 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
                 setDialogOpen(true);
               }}
               onAdjust={() => setAdjusting(kid)}
+              onCheer={() => setCheering(kid)}
               onArchive={() => run(() => setChildActive(kid.id, false))}
               onDelete={() => setDeleting(kid)}
             />
@@ -101,6 +105,7 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
                   setDialogOpen(true);
                 }}
                 onAdjust={() => setAdjusting(kid)}
+                onCheer={() => setCheering(kid)}
                 onArchive={() => run(() => setChildActive(kid.id, true))}
                 onDelete={() => setDeleting(kid)}
               />
@@ -110,7 +115,7 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
       ) : null}
 
       <div className="hidden print:block">
-        <h2 className="font-display text-2xl font-semibold">QuestNest PIN reminder</h2>
+        <h2 className="font-display text-2xl font-semibold">ChoreHall PIN reminder</h2>
         <p className="mt-1 text-sm">Write each kid&apos;s PIN in the box. Keep this on the fridge, not in a kid&apos;s backpack.</p>
         <ul className="mt-6 grid gap-4">
           {active.map((kid) => (
@@ -124,6 +129,7 @@ export function KidsManager({ kids, family }: { kids: Child[]; family: Family })
 
       <KidDialog open={dialogOpen} onOpenChange={setDialogOpen} child={editing} />
       <AdjustPointsDialog open={Boolean(adjusting)} onOpenChange={(o) => !o && setAdjusting(null)} child={adjusting} family={family} />
+      <KudosDialog open={Boolean(cheering)} onOpenChange={(o) => !o && setCheering(null)} child={cheering} gifted={cheering ? gifts[cheering.id] ?? [] : []} />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(o) => !o && setDeleting(null)}
@@ -145,6 +151,7 @@ function KidCard({
   archived,
   onEdit,
   onAdjust,
+  onCheer,
   onArchive,
   onDelete,
 }: {
@@ -153,11 +160,12 @@ function KidCard({
   archived?: boolean;
   onEdit: () => void;
   onAdjust: () => void;
+  onCheer: () => void;
   onArchive: () => void;
   onDelete: () => void;
 }) {
   const lvl = levelInfo(kid.lifetime_points);
-  const look = childLook(kid.style);
+  const look = childLook(kid.style, { seasonal: family.style?.seasonalStickers !== false });
   const theme = colorTheme(kid.color);
   return (
     <div className={cn("relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
@@ -169,11 +177,16 @@ function KidCard({
             color={kid.color}
             size="md"
             sticker={look.sticker}
+            hat={look.hat}
+            aura={look.aura}
             frameClassName={frameClass(look.frame)}
           />
         </Link>
         <div className="min-w-0 flex-1">
-          <Link href={`/app/kids/${kid.id}`} className="block truncate font-display text-lg font-semibold hover:underline">
+          <Link
+            href={`/app/kids/${kid.id}`}
+            className={cn("block truncate font-display text-lg font-semibold hover:underline", nameplateClassName(look.nameplate))}
+          >
             {kid.nickname?.trim() || kid.name}
           </Link>
           <div className="text-sm text-muted-foreground">
@@ -216,10 +229,16 @@ function KidCard({
         <Stat label="Streak" value={kid.current_streak} icon={<FlameIcon className="size-3.5 text-orange-500" />} />
         <Stat label="Lifetime" value={kid.lifetime_points} icon={<TrophyIcon className="size-3.5 text-amber-500" />} />
       </div>
-      <Button variant="outline" size="sm" className="mt-4 w-full" onClick={onAdjust}>
-        <CoinsIcon />
-        Bonus / deduct
-      </Button>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button variant="outline" size="sm" onClick={onAdjust}>
+          <CoinsIcon />
+          Bonus / deduct
+        </Button>
+        <Button variant="outline" size="sm" onClick={onCheer}>
+          <HeartIcon className="text-rose-500" />
+          Kudos / gift
+        </Button>
+      </div>
     </div>
   );
 }

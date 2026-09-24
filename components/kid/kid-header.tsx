@@ -3,25 +3,34 @@
 import { FlameIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { PointsTicker } from "@/components/kid/points-ticker";
 import { levelInfo } from "@/lib/levels";
 import { childLook, frameClass } from "@/lib/milestones";
+import { bannerClassName, nameplateClassName } from "@/lib/cosmetics";
+import { BADGE_MAP } from "@/lib/badges";
 import { switchChild } from "@/lib/actions/kid-mode";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
   const lvl = levelInfo(child.lifetime_points);
-  const look = childLook(child.style);
+  const look = childLook(child.style, { seasonal: family.style?.seasonalStickers !== false });
   const shownName = child.nickname?.trim() || child.name;
+  const plate = nameplateClassName(look.nameplate);
+  const banner = bannerClassName(look.banner);
+  const showcase = (look.showcase ?? []).map((k) => BADGE_MAP[k]).filter(Boolean);
+  const metal = lvl.level >= 10 ? "from-yellow-300 to-amber-500 text-amber-950" : lvl.level >= 5 ? "from-slate-200 to-slate-400 text-slate-900" : "from-amber-200 to-orange-300 text-orange-950";
   return (
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
-      <div className="flex items-center gap-3 rounded-3xl bg-card/80 p-3 shadow-sm backdrop-blur sm:gap-4 sm:p-4">
+      <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 rounded-3xl p-3 sm:gap-4 sm:p-4")}>
         <span className="relative">
           <KidAvatar
             avatar={child.avatar}
             color={child.color}
             size="md"
             sticker={look.sticker}
+            hat={look.hat}
+            aura={look.aura}
             frameClassName={frameClass(look.frame)}
             className="shadow-md sm:size-16 sm:text-4xl"
           />
@@ -31,7 +40,16 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate font-display text-xl font-semibold sm:text-2xl">{shownName}</h1>
+            <h1 className={cn("truncate font-display text-xl font-semibold sm:text-2xl", plate)}>{shownName}</h1>
+            {showcase.length ? (
+              <span className="hidden items-center gap-0.5 text-base sm:inline-flex" aria-label="Showcase trophies">
+                {showcase.map((b) => (
+                  <span key={b.key} title={b.name}>
+                    {b.emoji}
+                  </span>
+                ))}
+              </span>
+            ) : null}
             {child.current_streak > 0 ? (
               <motion.span
                 initial={{ scale: 0 }}
@@ -44,7 +62,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
             ) : null}
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+            <span className={cn("shrink-0 rounded-full bg-gradient-to-br px-2 py-0.5 text-[11px] font-bold", metal)}>
               Lv {lvl.level} · {look.title || lvl.title}
             </span>
             <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted">
@@ -58,14 +76,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
           </div>
         </div>
         <div className="flex flex-col items-end">
-          <motion.div
-            key={child.points_balance}
-            initial={{ scale: 1.3, color: "var(--color-sun-600)" }}
-            animate={{ scale: 1, color: "var(--color-foreground)" }}
-            className={cn("font-display text-2xl font-bold tabular-nums sm:text-3xl")}
-          >
-            {child.points_balance}
-          </motion.div>
+          <PointsTicker value={child.points_balance} className="font-display text-2xl font-bold tabular-nums sm:text-3xl" />
           <div className="text-xs font-medium text-muted-foreground">
             {family.currency_emoji} {family.currency_name}
           </div>

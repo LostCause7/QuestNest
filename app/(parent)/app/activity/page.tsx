@@ -25,7 +25,7 @@ export default async function ActivityPage(props: PageProps<"/app/activity">) {
   return (
     <>
       <PageHeader title="Activity" description="The full ledger - every point earned, spent, refunded or adjusted.">
-        <CsvExportButton rows={transactions} filename="questnest-ledger.csv" />
+        <CsvExportButton rows={transactions} filename="chorehall-ledger.csv" />
         <PrintButton label="Print" />
       </PageHeader>
 

@@ -34,6 +34,7 @@ import { useAction } from "@/hooks/use-action";
 import { deleteReward, setRewardActive, resolveRedemption, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
 import { timeAgo } from "@/lib/format";
+import { formatSpend, isCashReward } from "@/lib/suggested-points";
 import { cn } from "@/lib/utils";
 import type { Child, Family, RewardRedemption } from "@/types/database";
 import type { RewardWithKids } from "@/lib/data/parent";
@@ -111,7 +112,7 @@ export function RewardsManager({
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {timeAgo(r.requested_at)} · {r.cost_at_time} {family.currency_emoji} ·{" "}
+                      {timeAgo(r.requested_at)} · {formatSpend(r.cost_at_time, family.currency_emoji, reward?.title, reward?.description)} ·{" "}
                       <span className="capitalize">{r.status === "pending" ? "awaiting approval" : "approved, not delivered"}</span>
                     </div>
                   </div>
@@ -321,6 +322,11 @@ function RewardCard({
         {!reward.requires_approval ? (
           <Badge variant="outline" className="gap-1 text-[11px]">
             <CheckIcon className="size-3" /> Instant
+          </Badge>
+        ) : null}
+        {isCashReward(reward.title, reward.description) ? (
+          <Badge variant="outline" className="text-[11px]">
+            Kids pick $5s
           </Badge>
         ) : null}
         <Badge className="bg-sun-300/50 text-foreground hover:bg-sun-300/50">

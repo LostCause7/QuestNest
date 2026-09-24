@@ -11,6 +11,8 @@ import { useAction } from "@/hooks/use-action";
 import { reviewCompletion } from "@/lib/actions/chores";
 import { resolveRedemption } from "@/lib/actions/rewards";
 import { timeAgo, longDate } from "@/lib/format";
+import { formatSpend } from "@/lib/suggested-points";
+import { play } from "@/lib/sound";
 import type { Child, Chore, ChoreCompletion, Reward, RewardRedemption, Family } from "@/types/database";
 
 export type PendingItem =
@@ -21,6 +23,15 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
   const { run, isBusy } = useAction();
   const [sendBackId, setSendBackId] = useState<string | null>(null);
   const [sendBackNote, setSendBackNote] = useState("");
+  const [stamped, setStamped] = useState<string | null>(null);
+
+  const approve = (p: PendingItem, key: string) => {
+    setStamped(key);
+    play("stamp");
+    const fn = p.kind === "completion" ? () => reviewCompletion(p.item.id, true) : () => resolveRedemption(p.item.id, "fulfill");
+    // Let the stamp land before the row leaves.
+    setTimeout(() => void run(fn, { key, onSuccess: () => setStamped(null) }), 350);
+  };
 
   const completions = items.filter((p) => p.kind === "completion");
   const byKid = new Map<string, PendingItem[]>();
@@ -35,10 +46,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
       const first = items[0];
       if (!first) return;
       const key = `${first.kind}-${first.item.id}`;
-      if (e.key === "a" || e.key === "A") {
-        if (first.kind === "completion") run(() => reviewCompletion(first.item.id, true), { key });
-        else run(() => resolveRedemption(first.item.id, "fulfill"), { key });
-      }
+      if (e.key === "a" || e.key === "A") approve(first, key);
       if ((e.key === "n" || e.key === "N") && first.kind === "completion") {
         setSendBackId(first.item.id);
         setSendBackNote("");
@@ -46,6 +54,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, run]);
 
   if (!items.length) {
@@ -94,15 +103,23 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: 40 }}
-              className="flex flex-col gap-3 rounded-2xl border bg-card p-3"
+              className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border bg-card p-3"
             >
+              {stamped === key ? (
+                <span
+                  aria-hidden="true"
+                  className="qn-stamp pointer-events-none absolute top-2 right-3 z-10 rounded-lg border-[3px] border-emerald-600 px-2 py-0.5 font-display text-lg font-black uppercase tracking-widest text-emerald-600"
+                >
+                  {p.kind === "completion" && p.item.excuse ? "That's okay" : "Approved"}
+                </span>
+              ) : null}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               {p.child ? <KidAvatar avatar={p.child.avatar} color={p.child.color} size="sm" /> : null}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="font-medium">{p.child?.name ?? "Someone"}</span>
                   <span className="text-muted-foreground">
-                    {p.kind === "completion" ? "finished" : "wants"}
+                    {p.kind === "completion" ? (p.item.excuse ? "can't do" : "finished") : "wants"}
                   </span>
                   <span className="font-medium">
                     {p.kind === "completion" ? (
@@ -119,15 +136,21 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                 <div className="text-xs text-muted-foreground">
                   {p.kind === "completion"
                     ? `${longDate(p.item.for_date)} · submitted ${timeAgo(p.item.completed_at)}`
-                    : `requested ${timeAgo(p.item.requested_at)} · ${p.item.cost_at_time} ${family.currency_emoji} held`}
+                    : `requested ${timeAgo(p.item.requested_at)} · ${formatSpend(p.item.cost_at_time, family.currency_emoji, p.reward?.title, p.reward?.description)} held`}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {p.kind === "completion" ? (
                   <>
-                    <span className="mr-1 rounded-full bg-sun-300/40 px-2.5 py-1 text-sm font-semibold">
-                      +{p.chore?.points ?? 0} {family.currency_emoji}
-                    </span>
+                    {p.item.excuse ? (
+                      <span className="mr-1 rounded-full bg-sky-100 px-2.5 py-1 text-sm font-semibold text-sky-800">
+                        Skip today
+                      </span>
+                    ) : (
+                      <span className="mr-1 rounded-full bg-sun-300/40 px-2.5 py-1 text-sm font-semibold">
+                        +{p.chore?.points ?? 0} {family.currency_emoji}
+                      </span>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
@@ -139,11 +162,11 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                       }}
                     >
                       <XIcon />
-                      Not yet
+                      {p.item.excuse ? "Still needs doing" : "Not yet"}
                     </Button>
-                    <Button size="sm" className="min-h-11 px-3" disabled={busy} onClick={() => run(() => reviewCompletion(p.item.id, true), { key })}>
+                    <Button size="sm" className="min-h-11 px-3" disabled={busy || stamped === key} onClick={() => approve(p, key)}>
                       {busy ? <Loader2Icon className="animate-spin" /> : <CheckIcon />}
-                      Approve
+                      {p.item.excuse ? "That's okay" : "Approve"}
                     </Button>
                   </>
                 ) : (
@@ -158,7 +181,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                       <XIcon />
                       Decline
                     </Button>
-                    <Button size="sm" className="min-h-11 px-3" disabled={busy} onClick={() => run(() => resolveRedemption(p.item.id, "fulfill"), { key })}>
+                    <Button size="sm" className="min-h-11 px-3" disabled={busy || stamped === key} onClick={() => approve(p, key)}>
                       {busy ? <Loader2Icon className="animate-spin" /> : <PackageCheckIcon />}
                       Approve
                     </Button>
@@ -171,7 +194,11 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                   <Textarea
                     value={sendBackNote}
                     onChange={(e) => setSendBackNote(e.target.value)}
-                    placeholder="Optional note for your kid (what to fix, try again, etc.)"
+                    placeholder={
+                      items.find((x) => x.kind === "completion" && x.item.id === sendBackId && x.item.excuse)
+                        ? "Optional note (why they still need to do it)"
+                        : "Optional note for your kid (what to fix, try again, etc.)"
+                    }
                     maxLength={280}
                     className="min-h-20 bg-background"
                     autoFocus

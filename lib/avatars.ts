@@ -1,3 +1,5 @@
+import { gatedColorGradient, gatedFaceEmoji } from "@/lib/cosmetics";
+
 export type AvatarKey =
   | "fox"
   | "owl"
@@ -24,37 +26,43 @@ export type AvatarKey =
   | "wizard"
   | "phoenix";
 
-export const AVATARS: Record<AvatarKey, { emoji: string; label: string }> = {
-  fox: { emoji: "🦊", label: "Fox" },
-  owl: { emoji: "🦉", label: "Owl" },
-  dino: { emoji: "🦖", label: "Dino" },
-  robot: { emoji: "🤖", label: "Robot" },
-  unicorn: { emoji: "🦄", label: "Unicorn" },
-  cat: { emoji: "🐱", label: "Cat" },
-  dog: { emoji: "🐶", label: "Dog" },
-  panda: { emoji: "🐼", label: "Panda" },
-  dragon: { emoji: "🐲", label: "Dragon" },
-  astronaut: { emoji: "🧑‍🚀", label: "Astronaut" },
-  frog: { emoji: "🐸", label: "Frog" },
-  koala: { emoji: "🐨", label: "Koala" },
-  lion: { emoji: "🦁", label: "Lion" },
-  bunny: { emoji: "🐰", label: "Bunny" },
-  penguin: { emoji: "🐧", label: "Penguin" },
-  octopus: { emoji: "🐙", label: "Octopus" },
-  bee: { emoji: "🐝", label: "Bee" },
-  owlkid: { emoji: "🦝", label: "Raccoon" },
-  tiger: { emoji: "🐯", label: "Tiger" },
-  whale: { emoji: "🐋", label: "Whale" },
-  fairy: { emoji: "🧚", label: "Fairy" },
-  ninja: { emoji: "🥷", label: "Ninja" },
-  wizard: { emoji: "🧙", label: "Wizard" },
-  phoenix: { emoji: "🦅", label: "Phoenix" },
+export const AVATARS: Record<AvatarKey, { emoji: string; label: string; src: string }> = {
+  fox: { emoji: "🦊", label: "Fox", src: "/faces/fox.png" },
+  owl: { emoji: "🦉", label: "Owl", src: "/faces/owl.png" },
+  dino: { emoji: "🦖", label: "Dino", src: "/faces/dino.png" },
+  robot: { emoji: "🤖", label: "Robot", src: "/faces/robot.png" },
+  unicorn: { emoji: "🦄", label: "Unicorn", src: "/faces/unicorn.png" },
+  cat: { emoji: "🐱", label: "Cat", src: "/faces/cat.png" },
+  dog: { emoji: "🐶", label: "Dog", src: "/faces/dog.png" },
+  panda: { emoji: "🐼", label: "Panda", src: "/faces/panda.png" },
+  dragon: { emoji: "🐲", label: "Dragon", src: "/faces/dragon.png" },
+  astronaut: { emoji: "🧑‍🚀", label: "Astronaut", src: "/faces/astronaut.png" },
+  frog: { emoji: "🐸", label: "Frog", src: "/faces/frog.png" },
+  koala: { emoji: "🐨", label: "Koala", src: "/faces/koala.png" },
+  lion: { emoji: "🦁", label: "Lion", src: "/faces/lion.png" },
+  bunny: { emoji: "🐰", label: "Bunny", src: "/faces/bunny.png" },
+  penguin: { emoji: "🐧", label: "Penguin", src: "/faces/penguin.png" },
+  octopus: { emoji: "🐙", label: "Octopus", src: "/faces/octopus.png" },
+  bee: { emoji: "🐝", label: "Bee", src: "/faces/bee.png" },
+  owlkid: { emoji: "🦝", label: "Raccoon", src: "/faces/owlkid.png" },
+  tiger: { emoji: "🐯", label: "Tiger", src: "/faces/tiger.png" },
+  whale: { emoji: "🐋", label: "Whale", src: "/faces/whale.png" },
+  fairy: { emoji: "🧚", label: "Fairy", src: "/faces/fairy.png" },
+  ninja: { emoji: "🥷", label: "Ninja", src: "/faces/ninja.png" },
+  wizard: { emoji: "🧙", label: "Wizard", src: "/faces/wizard.png" },
+  phoenix: { emoji: "🦅", label: "Phoenix", src: "/faces/phoenix.png" },
 };
 
 export const AVATAR_KEYS = Object.keys(AVATARS) as AvatarKey[];
 
 export function avatarEmoji(key: string) {
-  return AVATARS[key as AvatarKey]?.emoji ?? "🙂";
+  return AVATARS[key as AvatarKey]?.emoji ?? gatedFaceEmoji(key) ?? "🙂";
+}
+
+export function avatarSrc(key: string) {
+  if (AVATARS[key as AvatarKey]) return `/faces/${key}.png`;
+  if (gatedFaceEmoji(key)) return `/faces/${key}.png`;
+  return null;
 }
 
 export type ColorKey =
@@ -176,5 +184,9 @@ export const COLORS: Record<
 export const COLOR_KEYS = Object.keys(COLORS) as ColorKey[];
 
 export function colorTheme(key: string) {
-  return COLORS[key as ColorKey] ?? COLORS.sky;
+  const base = COLORS[key as ColorKey];
+  if (base) return base;
+  const gated = gatedColorGradient(key);
+  if (gated) return { ...COLORS.slate, label: key, gradient: gated };
+  return COLORS.sky;
 }

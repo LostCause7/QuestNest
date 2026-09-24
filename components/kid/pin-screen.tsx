@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { PinPad } from "@/components/shared/pin-pad";
-import { playTap, playUnlock } from "@/lib/sound";
+import { play } from "@/lib/sound";
+import { colorTheme } from "@/lib/avatars";
 import { cn } from "@/lib/utils";
 import type { ActionResult } from "@/lib/actions/result";
 
@@ -14,9 +15,12 @@ type Props = {
   header: React.ReactNode;
   hint?: string;
   variableLength?: boolean;
+  /** Kid color key; tints the PIN dots so the screen feels like theirs. */
+  color?: string;
 };
 
-export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }: Props) {
+export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, color }: Props) {
+  const dotGradient = color ? colorTheme(color).gradient : null;
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [shake, setShake] = useState(0);
@@ -26,6 +30,7 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
   const [now, setNow] = useState(() => Date.now());
   const locked = lockedUntil > now;
   const maxLen = variableLength ? 6 : length;
+  const idleTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (lockedUntil <= Date.now()) return;
@@ -33,8 +38,18 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
     return () => window.clearInterval(t);
   }, [lockedUntil]);
 
+  const clearIdle = useCallback(() => {
+    if (idleTimer.current != null) {
+      window.clearTimeout(idleTimer.current);
+      idleTimer.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => clearIdle(), [clearIdle]);
+
   const submit = useCallback(
     (value: string) => {
+      clearIdle();
       if (Date.now() < lockedUntil) {
         setError("Too many tries. Wait a moment.");
         return;
@@ -43,6 +58,7 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
       startTransition(async () => {
         const res = await onSubmit(value);
         if (res && !res.ok) {
+          play("pinError");
           setError(res.error);
           setShake((s) => s + 1);
           setPin("");
@@ -52,23 +68,31 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
             return next;
           });
         } else {
-          playUnlock();
+          play("pinUnlock");
           setFails(0);
         }
       });
     },
-    [onSubmit, lockedUntil]
+    [onSubmit, lockedUntil, clearIdle]
   );
 
   const change = useCallback(
     (value: string) => {
       if (pending || Date.now() < lockedUntil) return;
-      playTap();
+      play("pinDigit");
       const next = value.slice(0, maxLen);
       setPin(next);
-      if (!variableLength && next.length === length) submit(next);
+      clearIdle();
+      if (next.length === maxLen || (!variableLength && next.length === length)) {
+        submit(next);
+        return;
+      }
+      // 4–6 digit parent PINs: unlock as soon as they pause after a complete PIN.
+      if (variableLength && next.length >= 4) {
+        idleTimer.current = window.setTimeout(() => submit(next), 400);
+      }
     },
-    [pending, maxLen, variableLength, length, submit]
+    [pending, maxLen, variableLength, length, submit, lockedUntil, clearIdle]
   );
 
   // Physical keyboard support
@@ -77,11 +101,10 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
       if (pending) return;
       if (/^\d$/.test(e.key)) change(pin + e.key);
       else if (e.key === "Backspace") change(pin.slice(0, -1));
-      else if (e.key === "Enter" && variableLength && pin.length >= 4) submit(pin);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pending, pin, variableLength, change, submit]);
+  }, [pending, pin, change]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-8">
@@ -98,7 +121,11 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
               key={i}
               className={cn(
                 "size-5 rounded-full border-2 transition-all",
-                i < pin.length ? "scale-110 border-primary bg-primary" : "border-foreground/30 bg-transparent",
+                i < pin.length
+                  ? dotGradient
+                    ? cn("scale-110 border-transparent bg-gradient-to-br", dotGradient)
+                    : "scale-110 border-primary bg-primary"
+                  : "border-foreground/30 bg-transparent",
                 pending && "animate-pulse"
               )}
             />
@@ -109,16 +136,6 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength }
         </p>
       </motion.div>
       <PinPad value={pin} onChange={change} length={maxLen} disabled={pending || locked} />
-      {variableLength ? (
-        <button
-          type="button"
-          onClick={() => submit(pin)}
-          disabled={pin.length < 4 || pending || locked}
-          className="h-12 w-full max-w-xs rounded-2xl bg-primary font-semibold text-primary-foreground shadow-md transition-all active:scale-95 disabled:opacity-50"
-        >
-          Unlock
-        </button>
-      ) : null}
     </div>
   );
 }

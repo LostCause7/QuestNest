@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
+import { itemsOf } from "@/lib/cosmetics";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Child } from "@/types/database";
@@ -14,20 +15,32 @@ async function kidModeBlocksManage() {
   return (await cookies()).get(KID_MODE_COOKIE)?.value === "1";
 }
 
+const FACE_KEYS = [...AVATAR_KEYS, ...itemsOf("face").map((f) => f.key)];
+const COLOR_ALL = [...COLOR_KEYS, ...itemsOf("color").map((c) => c.key)];
+
 const childSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(40),
-  avatar: z.enum(AVATAR_KEYS as [string, ...string[]]),
-  color: z.enum(COLOR_KEYS as [string, ...string[]]),
+  avatar: z.enum(FACE_KEYS as [string, ...string[]]),
+  color: z.enum(COLOR_ALL as [string, ...string[]]),
   nickname: z.string().trim().max(24).optional().nullable(),
   motto: z.string().trim().max(80).optional().nullable(),
+  cheer: z.string().trim().max(80).optional().nullable(),
 });
 
-function omitFlavor<T extends { nickname?: unknown; motto?: unknown }>(row: T) {
+function omitCheer<T extends { cheer?: unknown }>(row: T) {
   const next = { ...row };
+  delete next.cheer;
+  return next;
+}
+
+function omitFlavor<T extends { nickname?: unknown; motto?: unknown; cheer?: unknown }>(row: T) {
+  const next = omitCheer(row);
   delete next.nickname;
   delete next.motto;
   return next;
 }
+
+const MISSING_COLUMN = /column|schema cache|does not exist/i;
 
 const pinSchema = z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits.");
 
@@ -56,11 +69,16 @@ export async function createChild(input: ChildInput): Promise<ActionResult<Child
 
   const insertRow = { family_id: family.id, ...parsed.data, sort_order: count ?? 0 };
   let { data, error } = await supabase.from("children").insert(insertRow).select().single();
-  if (error && /column|schema cache|does not exist/i.test(error.message)) {
-    const core = omitFlavor(insertRow);
-    const retry = await supabase.from("children").insert(core).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    // 0009 (cheer) missing → drop it; 0007 (nickname/motto) missing → drop those too.
+    const retry = await supabase.from("children").insert(omitCheer(insertRow)).select().single();
     data = retry.data;
     error = retry.error;
+    if (error && MISSING_COLUMN.test(error.message)) {
+      const core = await supabase.from("children").insert(omitFlavor(insertRow)).select().single();
+      data = core.data;
+      error = core.error;
+    }
   }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not add kid."));
 
@@ -80,10 +98,15 @@ export async function updateChild(id: string, input: ChildInput): Promise<Action
   await requireFamily();
   const supabase = await createClient();
   let { data, error } = await supabase.from("children").update(parsed.data).eq("id", id).select().single();
-  if (error && /column|schema cache|does not exist/i.test(error.message)) {
-    const retry = await supabase.from("children").update(omitFlavor(parsed.data)).eq("id", id).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("children").update(omitCheer(parsed.data)).eq("id", id).select().single();
     data = retry.data;
     error = retry.error;
+    if (error && MISSING_COLUMN.test(error.message)) {
+      const core = await supabase.from("children").update(omitFlavor(parsed.data)).eq("id", id).select().single();
+      data = core.data;
+      error = core.error;
+    }
   }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not update."));
 

@@ -78,8 +78,12 @@ function ChoreForm({
   const [recurrence, setRecurrence] = useState<Recurrence>((src?.recurrence as Recurrence) ?? "daily");
   const [days, setDays] = useState<number[]>(src?.days_of_week?.length ? src.days_of_week : [1, 2, 3, 4, 5]);
   const [requiresApproval, setRequiresApproval] = useState(src?.requires_approval ?? true);
+  const [kindness, setKindness] = useState(chore?.kind === "kindness");
+  const [singleClaim, setSingleClaim] = useState(Boolean(chore?.single_claim ?? preset?.single_claim));
+  const [mandatory, setMandatory] = useState(Boolean(chore?.mandatory ?? preset?.mandatory));
+  const [allowSkip, setAllowSkip] = useState(Boolean(chore?.allow_skip ?? preset?.allow_skip ?? chore?.mandatory ?? preset?.mandatory));
   const [childIds, setChildIds] = useState<string[]>(
-    chore?.child_ids ?? (kids.length === 1 ? [kids[0].id] : kids.map((k) => k.id))
+    chore?.child_ids ?? preset?.child_ids ?? (kids.length === 1 ? [kids[0].id] : kids.map((k) => k.id))
   );
 
   const pts = Number.parseInt(points, 10);
@@ -99,6 +103,10 @@ function ChoreForm({
       recurrence,
       days_of_week: needsDays ? days : [0, 1, 2, 3, 4, 5, 6],
       requires_approval: requiresApproval,
+      kind: kindness ? "kindness" : "quest",
+      single_claim: singleClaim,
+      mandatory,
+      allow_skip: allowSkip,
       child_ids: childIds,
     };
     await run(() => (editing && chore ? updateChore(chore.id, payload) : createChore(payload)), {
@@ -162,6 +170,14 @@ function ChoreForm({
             </div>
           </div>
 
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div className="flex-1">
+              <div className="text-sm font-medium">💗 Kindness quest</div>
+              <div className="text-xs text-muted-foreground">Counts toward the kindness meter and the Kind Heart trophy.</div>
+            </div>
+            <Switch checked={kindness} onCheckedChange={setKindness} />
+          </div>
+
           {needsDays ? (
             <div className="space-y-2">
               <Label>Which days?</Label>
@@ -211,6 +227,43 @@ function ChoreForm({
             ) : (
               <p className="text-sm text-muted-foreground">Add a kid first.</p>
             )}
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div className="flex-1 pr-3">
+              <div className="text-sm font-medium">Only one kid can claim this</div>
+              <div className="text-xs text-muted-foreground">
+                First to tap Done keeps it for the day. Other kids see it as taken. If this is also mandatory, one claim saves everyone from losing points.
+              </div>
+            </div>
+            <Switch checked={singleClaim} onCheckedChange={setSingleClaim} />
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div className="flex-1 pr-3">
+              <div className="text-sm font-medium">Mandatory</div>
+              <div className="text-xs text-muted-foreground">
+                If they don&apos;t finish it by the end of the day, they lose {pts >= 0 && Number.isFinite(pts) ? pts : "the"} {family.currency_name} instead of earning them.
+                {singleClaim ? " One kid finishing it means nobody loses points." : ""}
+              </div>
+            </div>
+            <Switch
+              checked={mandatory}
+              onCheckedChange={(on) => {
+                setMandatory(on);
+                if (on) setAllowSkip(true);
+              }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border p-3">
+            <div className="flex-1 pr-3">
+              <div className="text-sm font-medium">Kids can say they can&apos;t do this today</div>
+              <div className="text-xs text-muted-foreground">
+                Adds a button on their board. You confirm it. They don&apos;t earn points and they don&apos;t lose points if this quest is mandatory.
+              </div>
+            </div>
+            <Switch checked={allowSkip} onCheckedChange={setAllowSkip} />
           </div>
 
           <div className="flex items-center justify-between rounded-xl border p-3">

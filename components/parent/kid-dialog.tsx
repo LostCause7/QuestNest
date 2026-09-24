@@ -47,6 +47,7 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
   const [changePin, setChangePin] = useState(false);
   const [nickname, setNickname] = useState(child?.nickname ?? "");
   const [motto, setMotto] = useState(child?.motto ?? "");
+  const [cheer, setCheer] = useState(child?.cheer ?? "");
 
   const pinValid = /^\d{4}$/.test(pin);
   const canSave = name.trim().length > 0 && (editing ? !changePin || pinValid : pinValid);
@@ -58,6 +59,7 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
       color,
       nickname: nickname.trim() || null,
       motto: motto.trim() || null,
+      cheer: cheer.trim() || null,
       pin: editing ? (changePin ? pin : undefined) : pin,
     };
     await run(() => (editing && child ? updateChild(child.id, payload) : createChild(payload)), {
@@ -91,6 +93,11 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
             <Label htmlFor="kid-motto">Motto</Label>
             <Input id="kid-motto" value={motto} onChange={(e) => setMotto(e.target.value)} placeholder="Be kind. Be brave." maxLength={80} />
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="kid-cheer">Your cheer for them</Label>
+          <Input id="kid-cheer" value={cheer} onChange={(e) => setCheer(e.target.value)} placeholder="Go get 'em, Maya-saurus!" maxLength={80} />
+          <p className="text-xs text-muted-foreground">Shows on their PIN screen and under big celebrations.</p>
         </div>
         <div className="space-y-2">
           <Label>Avatar</Label>

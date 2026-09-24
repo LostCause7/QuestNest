@@ -1,4 +1,4 @@
-# QuestNest - Supabase setup (one time, ~10 minutes)
+# ChoreHall - Supabase setup (one time, ~10 minutes)
 
 Project: `kpvkgffjiihaihwkzrxq` (https://supabase.com/dashboard/project/kpvkgffjiihaihwkzrxq)
 
@@ -19,8 +19,13 @@ If this project already has the first migration, run any later files you have no
 - [`0006_cast_adjust_points.sql`](supabase/migrations/0006_cast_adjust_points.sql) — bonus/deduct enum cast
 - [`0007_milestones_and_style.sql`](supabase/migrations/0007_milestones_and_style.sql) — lifetime unlocks, kid/parent looks, custom nest milestones
 - [`0008_parent_profiles.sql`](supabase/migrations/0008_parent_profiles.sql) — extra parent faces on the picker, each with their own PIN
+- [`0009_fun_and_rewards.sql`](supabase/migrations/0009_fun_and_rewards.sql) — family look (crest, default room, sky, locked slots), bonus rules (daily / combo / mystery / perfect-day points), kindness quests, reward rarity, kudos notes, gifted looks, season-pass claims, daily awards, and the new trophies that go with them
+- [`0010_single_claim.sql`](supabase/migrations/0010_single_claim.sql) — optional “only one kid can claim this” quests (first Done tap of the day keeps it)
+- [`0011_mandatory_chores.sql`](supabase/migrations/0011_mandatory_chores.sql) — optional mandatory quests: miss a due day and the assigned kid loses that quest’s points (a single-claim quest is safe for everyone if anyone claimed it)
+- [`0012_skip_requests.sql`](supabase/migrations/0012_skip_requests.sql) — kids can ask to skip a quest today; a parent confirms; confirmed (or still-pending) skips award no points and skip the mandatory deduction
+- [`0013_cash_redeem_and_cancel.sql`](supabase/migrations/0013_cash_redeem_and_cancel.sql) — cash rewards (name or details contain $) let kids pick a $5-step amount; they can change their mind on a pending or approved redemption and get the points back
 
-The app still runs if a later file is missing (nearby shop, custom unlocks, extra parent faces, and extra look fields degrade instead of crashing). Run them in order when you can.
+The app still runs if a later file is missing (nearby shop, custom unlocks, extra parent faces, extra look fields, kudos, gifted looks, bonus rules, daily awards, one-kid-claim quests, mandatory deductions, cash amounts, and change-mind refunds degrade instead of crashing — the related settings just show a hint to run the migration). Run them in order when you can.
 
 ## 2. Email + password sign-in
 
@@ -33,10 +38,14 @@ The app still runs if a later file is missing (nearby shop, custom unlocks, extr
 
 **Authentication > URL Configuration**
 
-- **Site URL**: `http://localhost:3000` (change to your Vercel URL after deploying)
+Confirmation emails use Site URL when the requested redirect is not on this list. If Site URL is a `*.vercel.app` address, families land on Vercel instead of finishing setup.
+
+- **Site URL**: `https://chorehall.net`
 - **Redirect URLs** (add each):
+  - `https://chorehall.net/**`
+  - `https://www.chorehall.net/**`
   - `http://localhost:3000/**`
-  - `https://<your-app>.vercel.app/**` (after deploying)
+  - `https://*-*.vercel.app/**` (preview deploys only)
 
 ## 4. API key
 

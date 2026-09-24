@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PlusIcon, ShieldIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { ParentDialog } from "@/components/parent/parent-dialog";
 import { colorTheme } from "@/lib/avatars";
 import { childLook, frameClass } from "@/lib/milestones";
+import { nameplateClassName } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 import type { Child, ParentProfile } from "@/types/database";
 
@@ -21,33 +22,22 @@ type OwnerTile = {
 };
 
 function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
-  if (avatarKey) {
+  if (avatarUrl && !avatarKey) {
     return (
-      <KidAvatar
-        avatar={avatarKey}
-        color={colorKey ?? "sky"}
-        size="xl"
-        className="relative shadow-xl ring-4 ring-white/90 sm:size-32 sm:text-8xl"
-      />
-    );
-  }
-  if (avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}
         alt=""
-        className="relative size-28 rounded-full object-cover shadow-xl ring-4 ring-white/90 sm:size-32"
+        className="relative size-28 rounded-full object-cover shadow-xl ring-4 ring-white/40 sm:size-32"
       />
     );
   }
   return (
-    <span
-      className="relative inline-flex size-28 items-center justify-center rounded-full bg-nest-gradient text-white shadow-xl ring-4 ring-white/90 sm:size-32"
-      aria-hidden="true"
-    >
-      <ShieldIcon className="size-12" />
-    </span>
+    <KidAvatar
+      avatar={avatarKey || "fox"}
+      color={colorKey || "slate"}
+      size="xl"
+      className="relative shadow-xl ring-4 ring-white/40 sm:size-32 sm:text-8xl"
+    />
   );
 }
 
@@ -64,11 +54,11 @@ function AddTile({ label, onClick, delay }: { label: string; onClick: () => void
         className="group flex flex-col items-center gap-4 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
       >
         <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block">
-          <span className="relative inline-flex size-28 items-center justify-center rounded-full border-4 border-dashed border-white/35 text-white/70 transition-colors group-hover:border-sun-400 group-hover:text-sun-300 sm:size-32">
+          <span className="relative inline-flex size-28 items-center justify-center rounded-full border-4 border-dashed border-white/30 text-white/60 transition-colors group-hover:border-white/70 group-hover:text-white sm:size-32">
             <PlusIcon className="size-12" />
           </span>
         </motion.span>
-        <span className="font-display text-xl font-semibold text-white/80">{label}</span>
+        <span className="font-display text-xl font-semibold text-white/75">{label}</span>
       </button>
     </motion.li>
   );
@@ -79,11 +69,13 @@ export function ProfilePicker({
   parent,
   extraParents,
   canAdd,
+  seasonal = true,
 }: {
   kids: Child[];
   parent: OwnerTile;
   extraParents: ParentProfile[];
   canAdd: boolean;
+  seasonal?: boolean;
 }) {
   const [addKid, setAddKid] = useState(false);
   const [addParent, setAddParent] = useState(false);
@@ -94,7 +86,8 @@ export function ProfilePicker({
       <ul className="mt-12 flex flex-wrap justify-center gap-8 sm:gap-12">
         {kids.map((kid) => {
           const theme = colorTheme(kid.color);
-          const look = childLook(kid.style);
+          const look = childLook(kid.style, { seasonal });
+          const plate = nameplateClassName(look.nameplate);
           const i = delay++;
           return (
             <motion.li
@@ -119,12 +112,14 @@ export function ProfilePicker({
                     color={kid.color}
                     size="xl"
                     sticker={look.sticker}
+                    hat={look.hat}
+                    aura={look.aura}
                     frameClassName={frameClass(look.frame)}
                     className="relative shadow-xl transition-[box-shadow] group-hover:ring-sun-400 sm:size-32 sm:text-8xl"
                   />
                 </motion.span>
                 <span className="flex flex-col items-center gap-0.5">
-                  <span className="font-display text-2xl font-semibold text-white">{kid.nickname?.trim() || kid.name}</span>
+                  <span className={cn("font-display text-2xl font-semibold text-white", plate)}>{kid.nickname?.trim() || kid.name}</span>
                   {look.title ? (
                     <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">{look.title}</span>
                   ) : null}

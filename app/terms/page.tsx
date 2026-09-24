@@ -15,7 +15,7 @@ export default function TermsPage() {
       <main id="main" className="mx-auto max-w-2xl px-6 py-12">
         <h1 className="font-display text-3xl font-semibold">Terms</h1>
         <p className="mt-4 text-muted-foreground">
-          QuestNest is a chore-and-reward tool for families. You are responsible for the kids on your nest, the
+          ChoreHall is a chore-and-reward tool for families. You are responsible for the kids on your nest, the
           PINs you set, and the rewards you offer. The service is provided as-is.
         </p>
         <p className="mt-3 text-muted-foreground">

@@ -1,3 +1,5 @@
+import { dollarsToPoints, POINTS_PER_DOLLAR } from "@/lib/suggested-points";
+
 export type NearbyPlace = {
   key: string;
   name: string;
@@ -11,7 +13,7 @@ export type NearbyPlace = {
   address?: string | null;
 };
 
-const UA = "QuestNest/1.0 (https://questnest.org; family rewards app)";
+const UA = "ChoreHall/1.0 (https://chorehall.net; family rewards app)";
 
 type NominatimHit = {
   lat: string;
@@ -53,28 +55,28 @@ const PLACE_FILTERS: {
   verb: string;
   query: string;
 }[] = [
-  { tag: "amenity", value: "ice_cream", kind: "Ice cream", icon: "🍦", cost: 100, verb: "Ice cream at", query: "ice cream" },
-  { tag: "amenity", value: "cinema", kind: "Movies", icon: "🎬", cost: 150, verb: "Movie at", query: "movie theater" },
+  { tag: "amenity", value: "ice_cream", kind: "Ice cream", icon: "🍦", cost: dollarsToPoints(6), verb: "Ice cream at", query: "ice cream" },
+  { tag: "amenity", value: "cinema", kind: "Movies", icon: "🎬", cost: dollarsToPoints(13), verb: "Movie at", query: "movie theater" },
   { tag: "amenity", value: "library", kind: "Library", icon: "📚", cost: 40, verb: "Visit", query: "library" },
-  { tag: "amenity", value: "cafe", kind: "Cafe", icon: "🧁", cost: 80, verb: "Treat at", query: "cafe" },
-  { tag: "amenity", value: "fast_food", kind: "Restaurant", icon: "🍔", cost: 120, verb: "Meal at", query: "restaurant" },
+  { tag: "amenity", value: "cafe", kind: "Cafe", icon: "🧁", cost: dollarsToPoints(8), verb: "Treat at", query: "cafe" },
+  { tag: "amenity", value: "fast_food", kind: "Restaurant", icon: "🍔", cost: dollarsToPoints(10), verb: "Meal at", query: "restaurant" },
   { tag: "leisure", value: "park", kind: "Park", icon: "🏞️", cost: 50, verb: "Play at", query: "park" },
   { tag: "leisure", value: "playground", kind: "Playground", icon: "🛝", cost: 50, verb: "Play at", query: "playground" },
-  { tag: "leisure", value: "bowling_alley", kind: "Bowling", icon: "🎳", cost: 180, verb: "Bowl at", query: "bowling" },
-  { tag: "leisure", value: "swimming_pool", kind: "Pool", icon: "🏊", cost: 100, verb: "Swim at", query: "swimming pool" },
-  { tag: "tourism", value: "museum", kind: "Museum", icon: "🏛️", cost: 140, verb: "Visit", query: "museum" },
-  { tag: "tourism", value: "zoo", kind: "Zoo", icon: "🦁", cost: 220, verb: "Visit", query: "zoo" },
-  { tag: "shop", value: "toys", kind: "Toy store", icon: "🧸", cost: 200, verb: "Shop at", query: "toy store" },
-  { tag: "shop", value: "books", kind: "Bookstore", icon: "📖", cost: 90, verb: "Bookstore trip to", query: "bookstore" },
-  { tag: "shop", value: "bakery", kind: "Bakery", icon: "🥐", cost: 70, verb: "Treat at", query: "bakery" },
-  { tag: "leisure", value: "ice_rink", kind: "Ice rink", icon: "⛸️", cost: 160, verb: "Skate at", query: "ice rink" },
-  { tag: "leisure", value: "miniature_golf", kind: "Mini golf", icon: "⛳", cost: 120, verb: "Play at", query: "mini golf" },
-  { tag: "amenity", value: "restaurant", kind: "Restaurant", icon: "🍝", cost: 130, verb: "Meal at", query: "pizza" },
-  { tag: "amenity", value: "theatre", kind: "Theater", icon: "🎭", cost: 140, verb: "Show at", query: "theater" },
-  { tag: "leisure", value: "water_park", kind: "Water park", icon: "🌊", cost: 200, verb: "Splash at", query: "water park" },
-  { tag: "tourism", value: "aquarium", kind: "Aquarium", icon: "🐠", cost: 200, verb: "Visit", query: "aquarium" },
-  { tag: "shop", value: "confectionery", kind: "Candy shop", icon: "🍬", cost: 70, verb: "Treat at", query: "candy store" },
-  { tag: "leisure", value: "amusement_arcade", kind: "Arcade", icon: "🕹️", cost: 90, verb: "Play at", query: "arcade" },
+  { tag: "leisure", value: "bowling_alley", kind: "Bowling", icon: "🎳", cost: dollarsToPoints(16), verb: "Bowl at", query: "bowling" },
+  { tag: "leisure", value: "swimming_pool", kind: "Pool", icon: "🏊", cost: dollarsToPoints(8), verb: "Swim at", query: "swimming pool" },
+  { tag: "tourism", value: "museum", kind: "Museum", icon: "🏛️", cost: dollarsToPoints(15), verb: "Visit", query: "museum" },
+  { tag: "tourism", value: "zoo", kind: "Zoo", icon: "🦁", cost: dollarsToPoints(25), verb: "Visit", query: "zoo" },
+  { tag: "shop", value: "toys", kind: "Toy store", icon: "🧸", cost: dollarsToPoints(15), verb: "Shop at", query: "toy store" },
+  { tag: "shop", value: "books", kind: "Bookstore", icon: "📖", cost: dollarsToPoints(12), verb: "Bookstore trip to", query: "bookstore" },
+  { tag: "shop", value: "bakery", kind: "Bakery", icon: "🥐", cost: dollarsToPoints(6), verb: "Treat at", query: "bakery" },
+  { tag: "leisure", value: "ice_rink", kind: "Ice rink", icon: "⛸️", cost: dollarsToPoints(15), verb: "Skate at", query: "ice rink" },
+  { tag: "leisure", value: "miniature_golf", kind: "Mini golf", icon: "⛳", cost: dollarsToPoints(12), verb: "Play at", query: "mini golf" },
+  { tag: "amenity", value: "restaurant", kind: "Restaurant", icon: "🍝", cost: dollarsToPoints(15), verb: "Meal at", query: "pizza" },
+  { tag: "amenity", value: "theatre", kind: "Theater", icon: "🎭", cost: dollarsToPoints(20), verb: "Show at", query: "theater" },
+  { tag: "leisure", value: "water_park", kind: "Water park", icon: "🌊", cost: dollarsToPoints(30), verb: "Splash at", query: "water park" },
+  { tag: "tourism", value: "aquarium", kind: "Aquarium", icon: "🐠", cost: dollarsToPoints(25), verb: "Visit", query: "aquarium" },
+  { tag: "shop", value: "confectionery", kind: "Candy shop", icon: "🍬", cost: dollarsToPoints(6), verb: "Treat at", query: "candy store" },
+  { tag: "leisure", value: "amusement_arcade", kind: "Arcade", icon: "🕹️", cost: dollarsToPoints(10), verb: "Play at", query: "arcade" },
   { tag: "amenity", value: "community_centre", kind: "Community", icon: "🏠", cost: 40, verb: "Visit", query: "community center" },
 ];
 
@@ -103,6 +105,11 @@ function toPlace(
   address?: string | null
 ): NearbyPlace {
   const distance = miles < 10 ? miles.toFixed(1) : String(Math.round(miles));
+  const dollars = filter.cost / POINTS_PER_DOLLAR;
+  const moneyBit = Number.isInteger(dollars) && dollars >= 5 ? `About $${dollars}` : null;
+  const where = address
+    ? `${filter.kind} · ${distance} miles · ${address}`
+    : `${filter.kind} about ${distance} miles away.`;
   return {
     key,
     name,
@@ -111,9 +118,7 @@ function toPlace(
     cost: filter.cost,
     category: categoryFor(filter.kind),
     title: `${filter.verb} ${name}`.slice(0, 80),
-    description: address
-      ? `${filter.kind} · ${distance} miles · ${address}`
-      : `${filter.kind} about ${distance} miles away.`,
+    description: moneyBit ? `${moneyBit} · ${where}` : where,
     miles,
     address: address ?? null,
   };

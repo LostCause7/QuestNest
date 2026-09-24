@@ -11,6 +11,9 @@ import type {
   RewardRedemption,
   PointTransaction,
   ChildBadge,
+  ChildDayAward,
+  ChildKudos,
+  ChoreMissPenalty,
   Family,
   FamilyMilestone,
   ParentProfile,
@@ -136,6 +139,94 @@ export const getParentProfiles = cache(async (familyId: string): Promise<ParentP
     .order("created_at");
   if (error) return [];
   return (data ?? []) as ParentProfile[];
+});
+
+/** Parent-gifted cosmetics ("kind:key"). Empty until 0009 is applied. */
+export const getChildGifts = cache(async (childId: string): Promise<string[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("child_unlock_gifts").select("item_key").eq("child_id", childId);
+  if (error) return [];
+  return (data ?? []).map((g) => g.item_key);
+});
+
+/** Kudos from the last 24 hours. Empty until 0009 is applied. */
+export const getRecentKudos = cache(async (childId: string): Promise<ChildKudos[]> => {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("child_kudos")
+    .select("*")
+    .eq("child_id", childId)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (error) return [];
+  return (data ?? []) as ChildKudos[];
+});
+
+/** Approved kindness quests for a kid (all time). 0 until 0009 adds chores.kind. */
+export const getKindnessCount = cache(async (childId: string): Promise<number> => {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("chore_completions")
+    .select("id, chores!inner(kind)", { count: "exact", head: true })
+    .eq("child_id", childId)
+    .eq("status", "approved")
+    .eq("chores.kind", "kindness");
+  if (error) return 0;
+  return count ?? 0;
+});
+
+/** Daily awards (perfect days, combos, nest eggs…) for a kid in a date range. Empty until 0009. */
+export const getDayAwards = cache(async (childId: string, from: string, to: string): Promise<ChildDayAward[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("child_day_awards")
+    .select("*")
+    .eq("child_id", childId)
+    .gte("for_date", from)
+    .lte("for_date", to)
+    .order("for_date", { ascending: false });
+  if (error) return [];
+  return (data ?? []) as ChildDayAward[];
+});
+
+/** Approved quest count per kid inside a window (used by the season pass). */
+export const getApprovedCounts = cache(async (familyId: string, from: string, to: string): Promise<Record<string, number>> => {
+  const rows = await getCompletionsBetween(familyId, from, to);
+  const out: Record<string, number> = {};
+  for (const r of rows) if (r.status === "approved") out[r.child_id] = (out[r.child_id] ?? 0) + 1;
+  return out;
+});
+
+const MISSING = /does not exist|schema cache|column/i;
+
+/** Apply missed-mandatory deductions for days before today. Safe no-op if 0011 is not applied. */
+export const settleMandatoryPenalties = cache(async (family: Family): Promise<number> => {
+  const supabase = await createClient();
+  const through = shiftDate(familyToday(family), -1);
+  const { data, error } = await supabase.rpc("settle_mandatory_penalties", {
+    p_family: family.id,
+    p_through: through,
+  });
+  if (error) {
+    if (!MISSING.test(error.message)) console.error("settle_mandatory_penalties", error.message);
+    return 0;
+  }
+  return data ?? 0;
+});
+
+export const getRecentMisses = cache(async (childId: string, from: string, to: string): Promise<ChoreMissPenalty[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("chore_miss_penalties")
+    .select("*")
+    .eq("child_id", childId)
+    .gte("for_date", from)
+    .lte("for_date", to)
+    .order("for_date", { ascending: false });
+  if (error) return [];
+  return (data ?? []) as ChoreMissPenalty[];
 });
 
 export const hasParentPin = cache(async (familyId: string): Promise<boolean> => {

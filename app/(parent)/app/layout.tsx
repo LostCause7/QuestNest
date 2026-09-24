@@ -48,18 +48,18 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
   const displayName = profile?.display_name ?? user.email?.split("@")[0] ?? "Parent";
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       <PrefsApplier />
       <ParentRealtime familyId={family.id} />
       {/* Sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-white/20 bg-[linear-gradient(180deg,oklch(0.38_0.04_230),oklch(0.26_0.035_230))] text-sidebar-foreground shadow-[inset_-1px_0_0_rgba(255,255,255,0.08)] lg:flex">
         <div className="flex items-center justify-between px-5 py-5">
           <Link href="/app">
             <Logo tone="light" size="sm" />
           </Link>
         </div>
         <div className="px-3">
-          <div className="mb-4 rounded-2xl bg-sidebar-accent/60 px-4 py-3">
+          <div className="mb-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md">
             <div className="text-xs uppercase tracking-wide text-sidebar-foreground/60">Your nest</div>
             <div className="truncate font-medium">{family.name}</div>
             <div className="mt-0.5 text-xs text-sidebar-foreground/70">
@@ -77,24 +77,24 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
           </Button>
           <div className="flex items-center gap-2 text-xs text-sidebar-foreground/50">
             <LogoMark className="size-4" tone="light" />
-            QuestNest
+            ChoreHall
           </div>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b bg-background/90 px-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-3 md:hidden">
+        <header className="qn-glass-panel sticky top-0 z-30 flex h-14 items-center justify-between gap-3 rounded-none border-x-0 border-t-0 px-4 sm:px-6">
+          <div className="flex items-center gap-3 lg:hidden">
             <Link href="/app">
               <Logo size="sm" />
             </Link>
           </div>
-          <div className="hidden text-sm text-muted-foreground md:block">
+          <div className="hidden text-sm text-muted-foreground lg:block">
             {formatHeaderDate(family.timezone)}
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="md:hidden">
+            <Button asChild size="sm" className="lg:hidden">
               <Link href="/kids">
                 <PlayIcon />
                 Profiles
@@ -103,7 +103,7 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
             <UserMenu name={displayName} email={user.email} avatarUrl={profile?.avatar_url ?? null} />
           </div>
         </header>
-        <main id="main" className="flex-1 px-4 py-6 pb-24 sm:px-6 md:pb-8 lg:px-8">
+        <main id="main" className="flex-1 px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:pb-8">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
         <MobileNav pendingCount={pendingCount} />

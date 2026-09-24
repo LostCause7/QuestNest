@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlusIcon, SwordsIcon, GiftIcon, UsersIcon, ArrowRightIcon, PlayIcon } from "lucide-react";
+import { FamilyCrest } from "@/components/brand/family-crest";
 import { Button } from "@/components/ui/button";
 import { PageHeader, EmptyState } from "@/components/parent/page-header";
 import { StatCard } from "@/components/parent/stat-card";
@@ -9,8 +10,11 @@ import { KidSummaryCard } from "@/components/parent/kid-summary-card";
 import { ActivityList } from "@/components/parent/activity-list";
 import { WelcomeToast } from "@/components/parent/welcome-toast";
 import { Chalkboard, FamilyXpBar, FirstWeekCoach, RivalBoard } from "@/components/parent/nest-extras";
+import { Highlights } from "@/components/parent/highlights";
+import { MysteryWeekend } from "@/components/parent/mystery-weekend";
 import { requireFamily } from "@/lib/data/family";
 import {
+  getBadges,
   getChildren,
   getChores,
   getRewards,
@@ -21,7 +25,7 @@ import {
   familyToday,
   shiftDate,
 } from "@/lib/data/parent";
-import { isChoreDueOn } from "@/lib/schedule";
+import { isChoreDueOn, siblingClaim } from "@/lib/schedule";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -41,6 +45,7 @@ export default async function DashboardPage(props: PageProps<"/app">) {
       getCompletionsBetween(family.id, weekAgo, today),
       getTransactions(family.id, { limit: 8 }),
     ]);
+  const badges = await getBadges(children.map((c) => c.id));
 
   const choreMap = new Map(chores.map((c) => [c.id, c]));
   const rewardMap = new Map(rewards.map((r) => [r.id, r]));
@@ -66,7 +71,13 @@ export default async function DashboardPage(props: PageProps<"/app">) {
   const pointsThisWeek = approvedThisWeek.reduce((s, c) => s + (c.points_awarded ?? 0), 0);
 
   const perKid = children.map((kid) => {
-    const due = chores.filter((c) => c.is_active && c.child_ids.includes(kid.id) && isChoreDueOn(c, today));
+    const due = chores.filter(
+      (c) =>
+        c.is_active &&
+        c.child_ids.includes(kid.id) &&
+        isChoreDueOn(c, today) &&
+        !siblingClaim(c, kid.id, today, todayCompletions)
+    );
     const done = todayCompletions.filter((c) => c.child_id === kid.id && c.status !== "rejected");
     return { kid, dueToday: due.length, doneToday: Math.min(done.length, due.length) };
   });
@@ -79,7 +90,15 @@ export default async function DashboardPage(props: PageProps<"/app">) {
   return (
     <>
       {sp.welcome === "1" ? <WelcomeToast familyName={family.name} /> : null}
-      <PageHeader title={`Good ${greeting(family.timezone)}!`} description={`Here's what's happening in ${family.name}.`}>
+      <PageHeader
+        title={`Good ${greeting(family.timezone)}!`}
+        lead={
+          family.style?.crestEmoji ? (
+            <FamilyCrest mark={family.style.crestEmoji} color={family.style.crestColor} size="md" />
+          ) : null
+        }
+        description={`Here's what's happening in ${family.name}.`}
+      >
         <Button asChild variant="outline">
           <Link href="/app/chores?new=1">
             <PlusIcon />
@@ -97,6 +116,17 @@ export default async function DashboardPage(props: PageProps<"/app">) {
       <div className="mb-6 grid gap-3 lg:grid-cols-2">
         <FirstWeekCoach hasKids={children.length > 0} hasQuests={chores.some((c) => c.is_active)} hasRewards={rewards.some((r) => r.is_active)} />
         <Chalkboard familyId={family.id} />
+      </div>
+
+      <div className="mb-6 space-y-3">
+        <Highlights kids={children} family={family} weekCompletions={weekCompletions} transactions={transactions} badges={badges} />
+        <MysteryWeekend
+          family={family}
+          kids={children}
+          existingTitles={chores.map((c) => c.title)}
+          hasOnceToday={chores.some((c) => c.is_active && c.recurrence === "once" && c.created_at.slice(0, 10) === today)}
+          today={today}
+        />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

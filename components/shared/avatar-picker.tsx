@@ -1,6 +1,8 @@
 "use client";
 
-import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji } from "@/lib/avatars";
+import { useEffect, useState } from "react";
+import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji, avatarSrc } from "@/lib/avatars";
+import { auraClassName, hatEmoji } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 
 export function KidAvatar({
@@ -10,6 +12,8 @@ export function KidAvatar({
   className,
   frameClassName,
   sticker,
+  hat,
+  aura,
 }: {
   avatar: string;
   color: string;
@@ -17,6 +21,8 @@ export function KidAvatar({
   className?: string;
   frameClassName?: string;
   sticker?: string | null;
+  hat?: string | null;
+  aura?: string | null;
 }) {
   const theme = colorTheme(color);
   const sizes = {
@@ -26,10 +32,19 @@ export function KidAvatar({
     lg: "size-20 text-5xl",
     xl: "size-28 text-7xl",
   }[size];
-  return (
+  const hatSize = { xs: "text-xs -top-2", sm: "text-sm -top-2.5", md: "text-xl -top-3", lg: "text-3xl -top-4", xl: "text-4xl -top-5" }[size];
+  const auraClass = auraClassName(aura);
+  const hatChar = hatEmoji(hat);
+  const src = avatarSrc(avatar);
+  const [broken, setBroken] = useState(false);
+  useEffect(() => {
+    setBroken(false);
+  }, [src]);
+
+  const face = (
     <span
       className={cn(
-        "relative inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-inner",
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br text-white shadow-inner ring-2 ring-white/70",
         theme.gradient,
         sizes,
         frameClassName,
@@ -37,10 +52,23 @@ export function KidAvatar({
       )}
       aria-hidden="true"
     >
-      <span className="drop-shadow-sm">{avatarEmoji(avatar)}</span>
-      {sticker ? (
-        <span className="absolute -top-1 -right-1 text-base drop-shadow-sm sm:text-lg">{sticker}</span>
+      {src && !broken ? (
+        <img src={src} alt="" className="size-full object-cover" onError={() => setBroken(true)} />
+      ) : (
+        <span className="drop-shadow-sm">{avatarEmoji(avatar)}</span>
+      )}
+      {sticker ? <span className="absolute -top-1 -right-1 text-base drop-shadow-sm sm:text-lg">{sticker}</span> : null}
+      {hatChar ? (
+        <span className={cn("pointer-events-none absolute left-1/2 -translate-x-1/2 drop-shadow-md", hatSize)}>{hatChar}</span>
       ) : null}
+    </span>
+  );
+
+  if (!auraClass) return face;
+  return (
+    <span className="relative inline-flex shrink-0" aria-hidden="true">
+      <span className={cn("absolute -inset-3 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />
+      {face}
     </span>
   );
 }
@@ -66,14 +94,15 @@ export function AvatarPicker({
             aria-label={AVATARS[key].label}
             onClick={() => onChange(key)}
             className={cn(
-              "flex aspect-square items-center justify-center rounded-2xl border-2 text-2xl transition-all hover:scale-105",
+              "qn-lift flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl",
               selected
-                ? cn("border-transparent bg-gradient-to-br text-white shadow-md", colorTheme(color).gradient)
-                : "border-border bg-card hover:border-primary/40"
+                ? cn("border-white/80 bg-gradient-to-br text-white shadow-md", colorTheme(color).gradient)
+                : "qn-glass-panel hover:border-primary/40"
             )}
             aria-pressed={selected}
           >
-            {AVATARS[key].emoji}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={AVATARS[key].src} alt="" className="size-full object-cover" />
           </button>
         );
       })}

@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       // Custom domain + Vercel proxy: without this, every save can fail with
       // "An unexpected response was received from the server."
-      allowedOrigins: ["questnest.org", "www.questnest.org"],
+      allowedOrigins: ["chorehall.net", "www.chorehall.net"],
     },
   },
 };

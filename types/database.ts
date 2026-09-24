@@ -12,7 +12,7 @@ export type Json =
   | Json[];
 
 export type Recurrence = "once" | "daily" | "weekly" | "custom";
-export type CompletionStatus = "pending" | "approved" | "rejected";
+export type CompletionStatus = "pending" | "approved" | "rejected" | "excused";
 export type RedemptionStatus = "pending" | "approved" | "rejected" | "fulfilled";
 export type TxKind = "chore" | "reward" | "refund" | "bonus" | "penalty" | "adjustment";
 export type MemberRole = "owner" | "parent";
@@ -27,6 +27,25 @@ export type EquippedStyle = {
   title?: string | null;
   frame?: string | null;
   sticker?: string | null;
+  hat?: string | null;
+  aura?: string | null;
+  nameplate?: string | null;
+  banner?: string | null;
+  room?: string | null;
+  soundPack?: string | null;
+  confetti?: string | null;
+  showcase?: string[] | null;
+  savingFor?: string | null;
+};
+
+/** Nest-wide look, stored in families.style (0009). */
+export type FamilyStyle = {
+  room?: string | null;
+  sky?: "clear" | "rainy" | "snowy" | null;
+  seasonalStickers?: boolean;
+  lockedSlots?: string[];
+  crestEmoji?: string | null;
+  crestColor?: string | null;
 };
 
 export type Profile = {
@@ -52,6 +71,11 @@ export type Family = {
   location_lat: number | null;
   location_lng: number | null;
   location_radius_miles: number;
+  style?: FamilyStyle | null;
+  daily_bonus_points?: number | null;
+  combo_bonus_points?: number | null;
+  surprise_chance?: number | null;
+  perfect_day_points?: number | null;
   created_at: string;
 }
 
@@ -78,6 +102,35 @@ export type Child = {
   nickname?: string | null;
   motto?: string | null;
   style?: EquippedStyle | null;
+  cheer?: string | null;
+  created_at: string;
+}
+
+export type ChildKudos = {
+  id: string;
+  family_id: string;
+  child_id: string;
+  emoji: string;
+  message: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export type ChildUnlockGift = {
+  family_id: string;
+  child_id: string;
+  item_key: string;
+  created_at: string;
+}
+
+export type DayAwardKind = "daily" | "perfect_day" | "mystery" | "comeback" | "combo";
+
+export type ChildDayAward = {
+  family_id: string;
+  child_id: string;
+  for_date: string;
+  kind: DayAwardKind | string;
+  points: number;
   created_at: string;
 }
 
@@ -113,9 +166,26 @@ export type Chore = {
   days_of_week: number[];
   requires_approval: boolean;
   is_active: boolean;
+  kind?: string | null;
+  /** First kid to tap Done keeps it for the day. Others cannot claim it that date. */
+  single_claim?: boolean | null;
+  /** Miss a due day and the assigned kid loses this quest's points. */
+  mandatory?: boolean | null;
+  /** Kids can tap “Can't do this today” and a parent confirms the skip. */
+  allow_skip?: boolean | null;
   created_at: string;
   updated_at: string;
 }
+
+export type ChoreMissPenalty = {
+  id: string;
+  family_id: string;
+  child_id: string;
+  chore_id: string;
+  for_date: string;
+  points: number;
+  created_at: string;
+};
 
 export type ChoreAssignment = {
   chore_id: string;
@@ -134,6 +204,8 @@ export type ChoreCompletion = {
   completed_at: string;
   reviewed_at: string | null;
   reviewed_by: string | null;
+  /** True when this row is a “can't do this today” request, not a Done tap. */
+  excuse?: boolean | null;
 }
 
 export type Reward = {
@@ -148,6 +220,7 @@ export type Reward = {
   requires_approval: boolean;
   is_active: boolean;
   source_key: string | null;
+  rarity?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -341,6 +414,30 @@ export type Database = {
         Update: Partial<ParentProfile>;
         Relationships: [];
       };
+      child_kudos: {
+        Row: Row<ChildKudos>;
+        Insert: Insert<ChildKudos, "id" | "message" | "created_by" | "created_at">;
+        Update: Partial<ChildKudos>;
+        Relationships: [];
+      };
+      child_unlock_gifts: {
+        Row: Row<ChildUnlockGift>;
+        Insert: Insert<ChildUnlockGift, "created_at">;
+        Update: Partial<ChildUnlockGift>;
+        Relationships: [];
+      };
+      child_day_awards: {
+        Row: Row<ChildDayAward>;
+        Insert: Insert<ChildDayAward, "created_at" | "points">;
+        Update: Partial<ChildDayAward>;
+        Relationships: [];
+      };
+      chore_miss_penalties: {
+        Row: Row<ChoreMissPenalty>;
+        Insert: Insert<ChoreMissPenalty, "id" | "created_at">;
+        Update: Partial<ChoreMissPenalty>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -360,16 +457,20 @@ export type Database = {
         Returns: ChoreCompletion;
       };
       redeem_reward: {
-        Args: { p_reward: string; p_child: string };
+        Args: { p_reward: string; p_child: string; p_cost?: number | null };
         Returns: RewardRedemption;
       };
       resolve_redemption: {
-        Args: { p_redemption: string; p_action: "approve" | "reject" | "fulfill" };
+        Args: { p_redemption: string; p_action: "approve" | "reject" | "fulfill" | "cancel" };
         Returns: RewardRedemption;
       };
       adjust_points: {
         Args: { p_child: string; p_amount: number; p_note?: string | null };
         Returns: PointTransaction;
+      };
+      settle_mandatory_penalties: {
+        Args: { p_family: string; p_through: string };
+        Returns: number;
       };
     };
     Enums: {

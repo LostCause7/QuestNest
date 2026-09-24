@@ -3,14 +3,14 @@
  * kids level up often early on and progression stays meaningful later.
  */
 const LEVEL_TITLES = [
-  "Hatchling",
-  "Fledgling",
-  "Explorer",
-  "Adventurer",
-  "Pathfinder",
-  "Trailblazer",
-  "Champion",
-  "Hero",
+  "Rookie",
+  "Spark",
+  "Scout",
+  "Ace",
+  "Captain",
+  "Rival",
+  "Pro",
+  "Icon",
   "Legend",
   "Mythic",
 ];

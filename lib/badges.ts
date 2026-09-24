@@ -33,6 +33,10 @@ export const BADGES: BadgeDef[] = [
   { key: "streak_30", name: "Unstoppable", description: "30-day streak.", emoji: "☄️", tier: "gold" },
   { key: "first_reward", name: "Shopper", description: "Redeemed your first reward.", emoji: "🛍️", tier: "bronze" },
   { key: "helper", name: "Weekend Helper", description: "10 quests approved.", emoji: "🤝", tier: "bronze" },
+  { key: "perfect_day_1", name: "Perfect Day", description: "Finished every quest in one day.", emoji: "🌞", tier: "bronze" },
+  { key: "perfect_week", name: "Perfect Week", description: "Seven perfect days.", emoji: "📅", tier: "gold" },
+  { key: "kindness_10", name: "Kind Heart", description: "10 kindness quests approved.", emoji: "💗", tier: "silver" },
+  { key: "combo_5", name: "Combo Kid", description: "Hit a 3-quest combo five times.", emoji: "⚡", tier: "silver" },
 ];
 
 export const BADGE_MAP = Object.fromEntries(BADGES.map((b) => [b.key, b])) as Record<string, BadgeDef>;
@@ -58,4 +62,20 @@ export const LIFETIME_BADGE_THRESHOLDS: { key: string; points: number }[] = [
 
 export function lifetimeBadgeKeys(lifetimePoints: number) {
   return LIFETIME_BADGE_THRESHOLDS.filter((b) => lifetimePoints >= b.points).map((b) => b.key);
+}
+
+/** Themed groups of trophies. Finishing a set opens a cosmetic in lib/cosmetics.ts. */
+export type BadgeSet = { key: string; name: string; emoji: string; badgeKeys: string[]; reward: string };
+
+export const BADGE_SETS: BadgeSet[] = [
+  { key: "starter", name: "First Steps", emoji: "🌱", badgeKeys: ["first_quest", "points_25", "first_reward"], reward: "Party hat" },
+  { key: "quests", name: "Quest Master", emoji: "🏹", badgeKeys: ["quests_10", "quests_50", "quests_100"], reward: "Quest Master frame" },
+  { key: "streaks", name: "Fire Keeper", emoji: "🔥", badgeKeys: ["streak_3", "streak_7", "streak_14", "streak_30"], reward: "Halo hat" },
+  { key: "collector", name: "Star Collector", emoji: "⭐", badgeKeys: ["points_100", "points_250", "points_500", "points_1000"], reward: "Galaxy aura" },
+  { key: "perfect", name: "Perfectionist", emoji: "💯", badgeKeys: ["perfect_day_1", "perfect_week", "combo_5"], reward: "Shimmer frame" },
+];
+
+export function completedSets(badgeKeys: Iterable<string>) {
+  const have = new Set(badgeKeys);
+  return BADGE_SETS.filter((s) => s.badgeKeys.every((k) => have.has(k))).map((s) => s.key);
 }

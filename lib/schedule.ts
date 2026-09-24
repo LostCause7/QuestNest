@@ -59,7 +59,7 @@ export function describeSchedule(chore: Pick<Chore, "recurrence" | "days_of_week
   return days.map((d) => WEEKDAYS[d]?.short).join(", ");
 }
 
-export type QuestStatus = "todo" | "pending" | "approved" | "rejected";
+export type QuestStatus = "todo" | "pending" | "approved" | "rejected" | "excused";
 
 /** Derive the status of a chore for a child on a date from the completions list. */
 export function questStatus(
@@ -73,4 +73,24 @@ export function questStatus(
   );
   if (!c) return "todo";
   return c.status;
+}
+
+export function isSkipRequest(row: Pick<ChoreCompletion, "status" | "excuse"> | { status: string; excuse?: boolean | null }) {
+  return Boolean(row.excuse) || row.status === "excused";
+}
+
+export function isActiveClaim(row: Pick<ChoreCompletion, "status" | "excuse"> | { status: string; excuse?: boolean | null }) {
+  if (isSkipRequest(row)) return false;
+  return row.status === "pending" || row.status === "approved";
+}
+
+/** When `single_claim` is on, the sibling who already holds today's slot (if any). */
+export function siblingClaim<T extends Pick<ChoreCompletion, "chore_id" | "child_id" | "for_date" | "status"> & { excuse?: boolean | null }>(
+  chore: Pick<Chore, "id" | "single_claim">,
+  childId: string,
+  dateStr: string,
+  completions: T[]
+): T | undefined {
+  if (!chore.single_claim) return undefined;
+  return completions.find((x) => x.chore_id === chore.id && x.child_id !== childId && x.for_date === dateStr && isActiveClaim(x));
 }

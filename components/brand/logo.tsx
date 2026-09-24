@@ -6,7 +6,7 @@ type LogoMarkProps = {
   tone?: "default" | "light";
 };
 
-/** The QuestNest mark: a nest cradling a rising star. */
+/** The ChoreHall mark: a nest cradling a rising star. */
 export function LogoMark({ className, tone = "default" }: LogoMarkProps) {
   const nest = tone === "light" ? "#fff" : "url(#qn-nest)";
   const star = "url(#qn-star)";
@@ -20,12 +20,14 @@ export function LogoMark({ className, tone = "default" }: LogoMarkProps) {
     >
       <defs>
         <linearGradient id="qn-nest" x1="8" y1="34" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6d4fe0" />
-          <stop offset="1" stopColor="#4b2fc4" />
+          <stop stopColor="#94a3b8" />
+          <stop offset="0.45" stopColor="#64748b" />
+          <stop offset="1" stopColor="#334155" />
         </linearGradient>
         <linearGradient id="qn-star" x1="20" y1="6" x2="44" y2="34" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#ffd166" />
-          <stop offset="1" stopColor="#ff8a3d" />
+          <stop stopColor="#f8fafc" />
+          <stop offset="0.5" stopColor="#7dd3fc" />
+          <stop offset="1" stopColor="#38bdf8" />
         </linearGradient>
       </defs>
       {/* star */}
@@ -71,7 +73,7 @@ export function Logo({ className, tone = "default", size = "md" }: LogoProps) {
           tone === "light" ? "text-white" : "text-foreground"
         )}
       >
-        Quest<span className={tone === "light" ? "text-sun-400" : "text-nest-500"}>Nest</span>
+        Chore<span className={tone === "light" ? "text-sky-200" : "text-nest-400"}>Hall</span>
       </span>
     </span>
   );

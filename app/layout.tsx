@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fredoka, Geist_Mono } from "next/font/google";
+import { Inter, Outfit, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SkipLink } from "@/components/shared/skip-link";
 import { getSiteUrl } from "@/lib/site-url";
@@ -12,10 +12,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -30,11 +30,11 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "QuestNest — Chores become quests. Kids actually want to do.",
-    template: "%s | QuestNest",
+    default: "ChoreHall — Chores become quests. Kids actually want to do.",
+    template: "%s | ChoreHall",
   },
   description:
-    "QuestNest turns chores into quests, points into rewards, and nagging into high-fives. Parents customize everything; kids pick their avatar, enter a PIN, and start earning.",
+    "ChoreHall turns chores into quests, points into rewards, and nagging into high-fives. Parents customize everything; kids pick their avatar, enter a PIN, and start earning.",
   keywords: [
     "chore app for kids",
     "kids reward chart",
@@ -45,15 +45,15 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    siteName: "QuestNest",
-    title: "QuestNest — Chores become quests. Kids actually want to do.",
+    siteName: "ChoreHall",
+    title: "ChoreHall — Chores become quests. Kids actually want to do.",
     description:
       "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "QuestNest — Chores become quests. Kids actually want to do.",
+    title: "ChoreHall — Chores become quests. Kids actually want to do.",
     description:
       "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
   },
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#5b3fd1",
+  themeColor: "#15202b",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fredoka.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

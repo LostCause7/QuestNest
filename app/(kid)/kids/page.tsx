@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { FamilyCrest } from "@/components/brand/family-crest";
 import { Logo } from "@/components/brand/logo";
 import { ProfilePicker } from "@/components/kid/profile-picker";
 import { requireFamily, requireUser } from "@/lib/data/family";
@@ -17,8 +18,8 @@ export default async function KidPickerPage() {
   const canAdd = (await cookies()).get(KID_MODE_COOKIE)?.value !== "1";
   let parentName = user.email?.split("@")[0] ?? "Parent";
   let parentAvatar: string | null = null;
-  let parentAvatarKey: string | null = null;
-  let parentColorKey: string | null = null;
+  let parentAvatarKey: string | null = "fox";
+  let parentColorKey: string | null = "slate";
   let parentMotto: string | null = null;
   try {
     const supabase = await createClient();
@@ -33,24 +34,33 @@ export default async function KidPickerPage() {
         : full.data;
     parentName = profile?.display_name?.split(" ")[0] || parentName;
     parentAvatar = profile?.avatar_url ?? null;
-    parentAvatarKey = profile && "avatar_key" in profile ? (profile.avatar_key as string | null) : null;
-    parentColorKey = profile && "color_key" in profile ? (profile.color_key as string | null) : null;
+    parentAvatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" && profile.avatar_key
+      ? profile.avatar_key
+      : "fox";
+    parentColorKey = profile && "color_key" in profile && typeof profile.color_key === "string" && profile.color_key
+      ? profile.color_key
+      : "slate";
     parentMotto = profile && "motto" in profile ? (profile.motto as string | null) : null;
   } catch {
     // Picker still works without the profile row.
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col bg-nest-950 text-white">
-      <header className="flex items-center px-6 py-5">
+    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
+      <header className="flex items-center px-6 py-5" style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}>
         <Logo tone="light" size="sm" />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center px-6 pb-20">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">{family.name}</p>
+      <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-20" style={{ paddingBottom: "max(5rem, env(safe-area-inset-bottom))" }}>
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/50">
+          {family.style?.crestEmoji ? (
+            <FamilyCrest mark={family.style.crestEmoji} color={family.style.crestColor} size="sm" />
+          ) : null}
+          {family.name}
+        </p>
         <h1 className="mt-3 font-display text-4xl font-semibold text-balance text-center sm:text-5xl">
           Who&apos;s using the nest?
         </h1>
-        <p className="mt-3 max-w-md text-center text-lg text-white/60">
+        <p className="mt-3 max-w-md text-center text-lg text-white/65">
           Kids pick their face and enter their PIN. Extra parents use their own PIN.
         </p>
         {kids.length === 0 && canAdd ? (
@@ -62,6 +72,7 @@ export default async function KidPickerPage() {
           kids={kids}
           extraParents={extraParents}
           canAdd={canAdd}
+          seasonal={family.style?.seasonalStickers !== false}
           parent={{
             name: parentName,
             avatarUrl: parentAvatar,

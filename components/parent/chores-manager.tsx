@@ -133,6 +133,10 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
                   recurrence: c.recurrence,
                   days_of_week: c.days_of_week,
                   requires_approval: c.requires_approval,
+                  kind: c.kind === "kindness" ? "kindness" : "quest",
+                  single_claim: Boolean(c.single_claim),
+                  mandatory: Boolean(c.mandatory),
+                  allow_skip: Boolean(c.allow_skip),
                   child_ids: c.child_ids,
                 })
               }
@@ -168,6 +172,10 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
                     recurrence: c.recurrence,
                     days_of_week: c.days_of_week,
                     requires_approval: c.requires_approval,
+                    kind: c.kind === "kindness" ? "kindness" : "quest",
+                    single_claim: Boolean(c.single_claim),
+                    mandatory: Boolean(c.mandatory),
+                    allow_skip: Boolean(c.allow_skip),
                     child_ids: c.child_ids,
                   })
                 }
@@ -275,6 +283,21 @@ function ChoreCard({
           {assigned.length === 0 ? <span className="text-xs text-muted-foreground">Unassigned</span> : null}
         </div>
         <div className="flex items-center gap-1.5">
+          {chore.mandatory ? (
+            <Badge variant="outline" className="gap-1 text-[11px] text-rose-700">
+              Must do
+            </Badge>
+          ) : null}
+          {chore.allow_skip ? (
+            <Badge variant="outline" className="gap-1 text-[11px]">
+              Can skip
+            </Badge>
+          ) : null}
+          {chore.single_claim ? (
+            <Badge variant="outline" className="gap-1 text-[11px]">
+              One kid
+            </Badge>
+          ) : null}
           {!chore.requires_approval ? (
             <Badge variant="outline" className="gap-1 text-[11px]">
               <CheckIcon className="size-3" /> Auto

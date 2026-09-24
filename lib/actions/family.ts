@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
+import type { FamilyStyle } from "@/types/database";
 
 const settingsSchema = z.object({
   name: z.string().trim().min(1, "Family name is required.").max(60),
@@ -75,6 +76,66 @@ export async function updateFamilySettings(input: FamilySettingsInput): Promise<
   revalidatePath("/app", "layout");
   revalidatePath("/kids", "layout");
   return ok(undefined, city ? `Settings saved. Shop area is ${radius} miles around ${city}.` : "Settings saved.");
+  });
+}
+
+const familyStyleSchema = z.object({
+  room: z.string().trim().max(32).nullable().optional(),
+  sky: z.enum(["clear", "rainy", "snowy"]).nullable().optional(),
+  seasonalStickers: z.boolean().optional(),
+  lockedSlots: z.array(z.string().max(32)).max(20).optional(),
+  crestEmoji: z.string().trim().max(16).nullable().optional(),
+  crestColor: z.string().trim().max(32).nullable().optional(),
+});
+
+export type FamilyStyleInput = z.infer<typeof familyStyleSchema>;
+
+/** Family-wide look: room override, seasonal stickers, locked slots, crest. Needs 0009. */
+export async function updateFamilyStyle(input: FamilyStyleInput): Promise<ActionResult> {
+  return guardAction(async () => {
+    const parsed = familyStyleSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
+    const family = await requireFamily();
+    const supabase = await createClient();
+    const { findItem } = await import("@/lib/cosmetics");
+    const style: FamilyStyle = { ...(family.style ?? {}), ...parsed.data };
+    if (style.room && !findItem("room", style.room)) style.room = null;
+    if (style.lockedSlots) style.lockedSlots = [...new Set(style.lockedSlots)];
+    const { error } = await supabase.from("families").update({ style }).eq("id", family.id);
+    if (error) {
+      if (/column|schema cache|does not exist/i.test(error.message)) return fail("Family looks need the latest nest update (0009).");
+      return fail(friendlyError(error.message));
+    }
+    revalidatePath("/app", "layout");
+    revalidatePath("/kids", "layout");
+    return ok(undefined, "Nest look saved.");
+  });
+}
+
+const bonusSchema = z.object({
+  daily_bonus_points: z.number().int().min(0).max(1000),
+  combo_bonus_points: z.number().int().min(0).max(1000),
+  surprise_chance: z.number().int().min(0).max(100),
+  perfect_day_points: z.number().int().min(0).max(1000),
+});
+
+export type FamilyBonusInput = z.infer<typeof bonusSchema>;
+
+/** Bonus loops: first-of-day, combo, surprise roll, perfect day. 0 = off. Needs 0009. */
+export async function updateFamilyBonuses(input: FamilyBonusInput): Promise<ActionResult> {
+  return guardAction(async () => {
+    const parsed = bonusSchema.safeParse(input);
+    if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input.");
+    const family = await requireFamily();
+    const supabase = await createClient();
+    const { error } = await supabase.from("families").update(parsed.data).eq("id", family.id);
+    if (error) {
+      if (/column|schema cache|does not exist/i.test(error.message)) return fail("Bonus rules need the latest nest update (0009).");
+      return fail(friendlyError(error.message));
+    }
+    revalidatePath("/app", "layout");
+    revalidatePath("/kids", "layout");
+    return ok(undefined, "Bonus rules saved.");
   });
 }
 

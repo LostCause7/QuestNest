@@ -15,9 +15,9 @@ export default async function ExitKidModePage(props: PageProps<"/kids/exit">) {
   const pinSet = await hasParentPin(family.id);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <header className="flex items-center px-6 py-5">
-        <Link href="/kids" className="inline-flex items-center gap-1.5 rounded-full bg-card/70 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground">
+        <Link href="/kids" className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeftIcon className="size-4" />
           Back to profiles
         </Link>
@@ -28,7 +28,7 @@ export default async function ExitKidModePage(props: PageProps<"/kids/exit">) {
           hasPin={pinSet}
           header={
             <div className="flex flex-col items-center gap-3 text-center">
-              <span className="flex size-20 items-center justify-center rounded-3xl bg-nest-gradient text-white shadow-xl">
+              <span className="qn-chrome flex size-20 items-center justify-center rounded-3xl">
                 <ShieldIcon className="size-9" />
               </span>
               <h1 className="font-display text-3xl font-semibold">Parents only</h1>

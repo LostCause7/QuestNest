@@ -23,14 +23,14 @@ export function PinPad({ value, onChange, length = 4, disabled, className }: Pro
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
   return (
-    <div className={cn("mx-auto grid w-full max-w-xs grid-cols-3 gap-3", className)}>
+    <div className={cn("qn-pinpad mx-auto grid w-full max-w-xs grid-cols-3 gap-3", className)}>
       {keys.map((k) => (
         <button
           key={k}
           type="button"
           onClick={() => press(k)}
           disabled={disabled}
-          className="h-16 rounded-2xl bg-card text-2xl font-semibold shadow-sm transition-all hover:bg-accent active:scale-95 disabled:opacity-50"
+          className="h-16 rounded-2xl bg-card text-2xl font-semibold shadow-sm transition-all active:scale-95 active:bg-accent disabled:opacity-50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-accent"
         >
           {k}
         </button>
@@ -40,7 +40,7 @@ export function PinPad({ value, onChange, length = 4, disabled, className }: Pro
         type="button"
         onClick={() => press("0")}
         disabled={disabled}
-        className="h-16 rounded-2xl bg-card text-2xl font-semibold shadow-sm transition-all hover:bg-accent active:scale-95 disabled:opacity-50"
+        className="h-16 rounded-2xl bg-card text-2xl font-semibold shadow-sm transition-all active:scale-95 active:bg-accent disabled:opacity-50 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-accent"
       >
         0
       </button>
@@ -48,7 +48,7 @@ export function PinPad({ value, onChange, length = 4, disabled, className }: Pro
         type="button"
         onClick={back}
         disabled={disabled || value.length === 0}
-        className="flex h-16 items-center justify-center rounded-2xl bg-card text-muted-foreground shadow-sm transition-all hover:bg-accent active:scale-95 disabled:opacity-40"
+        className="flex h-16 items-center justify-center rounded-2xl bg-card text-muted-foreground shadow-sm transition-all active:scale-95 active:bg-accent disabled:opacity-40 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-accent"
         aria-label="Delete"
       >
         <DeleteIcon className="size-6" />

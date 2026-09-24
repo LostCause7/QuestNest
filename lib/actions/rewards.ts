@@ -15,10 +15,19 @@ const rewardSchema = z.object({
   stock: z.number().int().min(0).max(100000).nullable(),
   category: z.enum(["privilege", "item", "experience"]),
   requires_approval: z.boolean(),
+  rarity: z.enum(["rare", "epic", "legendary"]).nullable().optional(),
   child_ids: z.array(z.uuid()).min(1, "Assign the reward to at least one kid."),
 });
 
 export type RewardInput = z.infer<typeof rewardSchema>;
+
+const MISSING_COLUMN = /column|schema cache|does not exist/i;
+
+function withoutRarity<T extends { rarity?: unknown }>(row: T) {
+  const next = { ...row };
+  delete next.rarity;
+  return next;
+}
 
 function revalidate() {
   revalidatePath("/app", "layout");
@@ -32,11 +41,13 @@ export async function createReward(input: RewardInput): Promise<ActionResult<Rew
   const family = await requireFamily();
   const supabase = await createClient();
   const { child_ids, ...rest } = parsed.data;
-  const { data, error } = await supabase
-    .from("rewards")
-    .insert({ family_id: family.id, ...rest, description: rest.description || null })
-    .select()
-    .single();
+  const row = { family_id: family.id, ...rest, rarity: rest.rarity ?? null, description: rest.description || null };
+  let { data, error } = await supabase.from("rewards").insert(row).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("rewards").insert(withoutRarity(row)).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not create reward."));
   const { error: asgErr } = await supabase
     .from("reward_assignments")
@@ -54,12 +65,13 @@ export async function updateReward(id: string, input: RewardInput): Promise<Acti
   await requireFamily();
   const supabase = await createClient();
   const { child_ids, ...rest } = parsed.data;
-  const { data, error } = await supabase
-    .from("rewards")
-    .update({ ...rest, description: rest.description || null })
-    .eq("id", id)
-    .select()
-    .single();
+  const row = { ...rest, rarity: rest.rarity ?? null, description: rest.description || null };
+  let { data, error } = await supabase.from("rewards").update(row).eq("id", id).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("rewards").update(withoutRarity(row)).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not update reward."));
 
   const assignRes = await supabase.from("reward_assignments").select("child_id").eq("reward_id", id);

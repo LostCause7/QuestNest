@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeftIcon, ShieldIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import { ExitClient } from "@/components/kid/exit-client";
+import { KidAvatar } from "@/components/shared/avatar-picker";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { hasParentPin } from "@/lib/data/parent";
+import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/origin";
 
 export const metadata: Metadata = { title: "Parent unlock" };
@@ -16,14 +18,25 @@ export default async function ParentUnlockPage(props: {
   const user = await requireUser();
   const family = await requireFamily();
   const pinSet = await hasParentPin(family.id);
-  const first = user.email?.split("@")[0] ?? "Parent";
+  let first = user.email?.split("@")[0] ?? "Parent";
+  let avatarKey = "fox";
+  let colorKey = "slate";
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.from("profiles").select("avatar_key, color_key, display_name").eq("id", user.id).maybeSingle();
+    if (data?.avatar_key) avatarKey = data.avatar_key;
+    if (data?.color_key) colorKey = data.color_key;
+    if (data?.display_name) first = data.display_name.split(" ")[0] || first;
+  } catch {
+    // Face still renders with the default look.
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <header className="flex items-center px-6 py-5">
         <Link
           href="/kids"
-          className="inline-flex items-center gap-1.5 rounded-full bg-card/70 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:text-foreground"
+          className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           <ArrowLeftIcon className="size-4" />
           Back to profiles
@@ -35,9 +48,7 @@ export default async function ParentUnlockPage(props: {
           hasPin={pinSet}
           header={
             <div className="flex flex-col items-center gap-3 text-center">
-              <span className="flex size-20 items-center justify-center rounded-3xl bg-nest-gradient text-white shadow-xl">
-                <ShieldIcon className="size-9" />
-              </span>
+              <KidAvatar avatar={avatarKey} color={colorKey} size="xl" className="shadow-xl" />
               <h1 className="font-display text-3xl font-semibold">Hi, {first}</h1>
               <p className="max-w-xs text-muted-foreground">
                 {pinSet

@@ -1,3 +1,4 @@
+import { FRAME_ITEMS, frameClassName, seasonalSticker } from "@/lib/cosmetics";
 import type { EquippedStyle, FamilyMilestone } from "@/types/database";
 
 export type { EquippedStyle, FamilyMilestone };
@@ -34,19 +35,15 @@ export const LIFETIME_MILESTONES: MilestoneUnlock[] = [
 
 export type StyleUnlock = { key: string; label: string; kind: "title" | "frame" | "sticker" };
 
-export const FRAMES: { key: string; label: string; className: string }[] = [
-  { key: "none", label: "Plain", className: "ring-4 ring-white/90" },
-  { key: "gold", label: "Gold", className: "ring-4 ring-amber-400" },
-  { key: "sun", label: "Sunny", className: "ring-4 ring-sun-400" },
-  { key: "mint", label: "Mint", className: "ring-4 ring-emerald-400" },
-  { key: "coral", label: "Coral", className: "ring-4 ring-orange-400" },
-  { key: "rainbow", label: "Rainbow", className: "ring-4 ring-fuchsia-400" },
-  { key: "sparkle", label: "Sparkle", className: "ring-4 ring-yellow-300 shadow-[0_0_16px_rgba(253,224,71,0.7)]" },
-  { key: "crown", label: "Crown", className: "ring-4 ring-amber-300" },
-];
+/** Frames now live in lib/cosmetics.ts; kept here so older callers keep working. */
+export const FRAMES: { key: string; label: string; className: string }[] = FRAME_ITEMS.map((f) => ({
+  key: f.key,
+  label: f.label,
+  className: f.className ?? "",
+}));
 
 export function frameClass(key?: string | null) {
-  return FRAMES.find((f) => f.key === key)?.className ?? FRAMES[0].className;
+  return frameClassName(key);
 }
 
 export function unlockedMilestones(lifetimePoints: number, extras: FamilyMilestone[] = []) {
@@ -78,7 +75,7 @@ export function nextMilestone(lifetimePoints: number, extras: FamilyMilestone[] 
 
 export function unlockedTitles(lifetimePoints: number, extras: FamilyMilestone[] = []) {
   const set = new Map<string, string>();
-  set.set("Hatchling", "Hatchling");
+  set.set("Rookie", "Rookie");
   for (const m of unlockedMilestones(lifetimePoints, extras)) set.set(m.title, m.title);
   return [...set.values()];
 }
@@ -99,10 +96,24 @@ export function styleStorageKey(childId: string) {
   return `qn_style_${childId}`;
 }
 
-export function childLook(style?: EquippedStyle | null): EquippedStyle {
+/**
+ * Normalized look for rendering. When the kid has no sticker equipped and the
+ * nest allows it, a month-based seasonal sticker fills the slot.
+ */
+export function childLook(style?: EquippedStyle | null, opts: { seasonal?: boolean } = {}): EquippedStyle {
+  const seasonal = opts.seasonal ?? true;
   return {
     title: style?.title ?? null,
     frame: style?.frame ?? "none",
-    sticker: style?.sticker ?? null,
+    sticker: style?.sticker ?? (seasonal ? seasonalSticker() : null),
+    hat: style?.hat ?? null,
+    aura: style?.aura ?? null,
+    nameplate: style?.nameplate ?? null,
+    banner: style?.banner ?? null,
+    room: style?.room ?? null,
+    soundPack: style?.soundPack ?? null,
+    confetti: style?.confetti ?? null,
+    showcase: style?.showcase ?? null,
+    savingFor: style?.savingFor ?? null,
   };
 }

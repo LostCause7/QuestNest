@@ -39,10 +39,10 @@ export function SidebarNav({ pendingCount }: { pendingCount: number }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
               active
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                ? "border border-white/25 bg-white/15 text-sidebar-accent-foreground shadow-sm"
+                : "text-sidebar-foreground/70 hover:bg-white/10 hover:text-sidebar-accent-foreground"
             )}
           >
             <Icon className={cn("size-4.5", active ? "text-sidebar-primary" : "")} />
@@ -63,7 +63,7 @@ export function MobileNav({ pendingCount }: { pendingCount: number }) {
   const pathname = usePathname();
   const items = NAV_ITEMS;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
+    <nav className="qn-glass-panel fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0 lg:hidden">
       <ul className="grid grid-cols-6" style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}>
         {items.map((item) => {
           const active = isActivePath(pathname, item.href);

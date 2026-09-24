@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { CANONICAL_ORIGIN, isVercelDeploymentHost } from "@/lib/site-url";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 const PROTECTED_PREFIXES = ["/app", "/kids", "/onboarding"];
@@ -16,6 +17,23 @@ export const ACTIVE_CHILD_COOKIE = "qn_active_child";
  * Page-level code still re-verifies with getClaims().
  */
 export async function updateSession(request: NextRequest) {
+  const requestHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host;
+  if (process.env.VERCEL_ENV === "production" && isVercelDeploymentHost(requestHost)) {
+    const dest = new URL(request.nextUrl.pathname + request.nextUrl.search, CANONICAL_ORIGIN);
+    if (dest.searchParams.has("code") && dest.pathname !== "/auth/callback") {
+      dest.pathname = "/auth/callback";
+    }
+    return NextResponse.redirect(dest, 308);
+  }
+
+  const { pathname } = request.nextUrl;
+  // Supabase Site URL fallbacks land on `/` with `?code=`. Finish auth on the nest.
+  if (request.nextUrl.searchParams.has("code") && pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   let supabaseResponse = NextResponse.next({ request });
   const env = getSupabaseEnv();
   if (!env) return supabaseResponse;
@@ -40,7 +58,6 @@ export async function updateSession(request: NextRequest) {
   } catch {
     return supabaseResponse;
   }
-  const { pathname } = request.nextUrl;
 
   // Server Actions POST to the current page. A login/kid-mode redirect here
   // returns HTML and the UI shows "An unexpected response was received from the server."

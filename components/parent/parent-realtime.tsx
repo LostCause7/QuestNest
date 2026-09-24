@@ -43,8 +43,8 @@ export function ParentRealtime({ familyId }: { familyId: string }) {
           if (c.status !== "pending") return;
           if (inQuietHours(readPrefs())) return;
           const [kid, chore] = await Promise.all([kidName(c.child_id), nameOf("chores", c.chore_id)]);
-          toast(`${kid} finished “${chore ?? "a quest"}”`, {
-            description: "Waiting for your approval.",
+          toast(c.excuse ? `${kid} can't do “${chore ?? "a quest"}” today` : `${kid} finished “${chore ?? "a quest"}”`, {
+            description: c.excuse ? "Confirm the skip so they aren't penalized." : "Waiting for your approval.",
             action: { label: "Review", onClick: () => router.push("/app") },
             duration: 8000,
           });

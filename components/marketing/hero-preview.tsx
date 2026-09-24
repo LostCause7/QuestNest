@@ -21,9 +21,9 @@ export function HeroPreview() {
         initial={{ opacity: 0, y: 30, rotate: -2 }}
         animate={{ opacity: 1, y: 0, rotate: -2 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="kid-mode rounded-[2rem] bg-background p-4 text-foreground shadow-2xl ring-1 ring-black/5"
+        className="kid-mode qn-glass-panel rounded-[2rem] p-4 text-foreground"
       >
-        <div className="flex items-center gap-3 rounded-3xl bg-card p-3 shadow-sm">
+        <div className="qn-glass flex items-center gap-3 rounded-3xl p-3">
           <KidAvatar avatar="fox" color="coral" size="md" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ export function HeroPreview() {
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 + i * 0.12 }}
-              className={`flex items-center gap-3 rounded-2xl p-3 shadow-sm ${q.done ? "bg-mint-300/30" : "bg-card"}`}
+              className={`qn-lift flex items-center gap-3 rounded-2xl p-3 ${q.done ? "bg-mint-300/30" : "qn-glass"}`}
             >
               <span className={`flex size-10 items-center justify-center rounded-xl text-xl ${q.done ? "bg-mint-300/60" : "bg-accent"}`}>{q.icon}</span>
               <span className={`flex-1 font-display text-sm font-semibold ${q.done ? "text-muted-foreground line-through" : ""}`}>{q.title}</span>
@@ -64,7 +64,7 @@ export function HeroPreview() {
                 <button
                   type="button"
                   onClick={() => setQuests((list) => list.map((item) => (item.title === q.title ? { ...item, done: true } : item)))}
-                  className="rounded-full bg-primary px-3 py-1.5 font-display text-xs font-bold text-primary-foreground"
+                  className="qn-chrome rounded-full px-3 py-1.5 font-display text-xs font-bold"
                 >
                   Done!
                 </button>
@@ -78,7 +78,7 @@ export function HeroPreview() {
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1.2, type: "spring", stiffness: 260, damping: 16 }}
-        className="absolute -top-6 -right-4 rounded-2xl bg-white px-4 py-3 shadow-xl sm:-right-10"
+        className="qn-glass-panel absolute -top-6 -right-4 rounded-2xl px-4 py-3 sm:-right-10"
       >
         <div className="text-xs font-semibold text-muted-foreground">Parent HQ</div>
         <div className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -90,7 +90,7 @@ export function HeroPreview() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.5 }}
-        className="absolute -bottom-6 -left-4 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-xl sm:-left-10"
+        className="qn-glass-panel absolute -bottom-6 -left-4 flex items-center gap-2 rounded-2xl px-4 py-3 sm:-left-10"
       >
         <span className="text-2xl">🔥</span>
         <div>

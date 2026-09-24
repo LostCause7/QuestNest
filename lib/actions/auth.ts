@@ -10,7 +10,7 @@ import { isNextRedirect } from "@/lib/errors";
 export type AuthState = { error?: string; message?: string } | undefined;
 
 const CONFIG_ERROR =
-  "QuestNest could not reach the nest. Check that Supabase is connected, then try again.";
+  "ChoreHall could not reach the nest. Check that Supabase is connected, then try again.";
 
 async function supabaseForAuth() {
   if (!getSupabaseEnv()) return null;
@@ -74,7 +74,7 @@ export async function signUpWithPassword(_prev: AuthState, formData: FormData): 
       password: parsed.data.password,
       options: {
         data: { full_name: parsed.data.name },
-        emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${origin}/auth/callback`,
       },
     });
     if (error) {

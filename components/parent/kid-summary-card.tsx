@@ -30,8 +30,8 @@ export function KidSummaryCard({
     <Wrapper
       {...(href ? { href } : {})}
       className={cn(
-        "group relative flex flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-all",
-        href && "hover:-translate-y-0.5 hover:shadow-md"
+        "qn-glass-panel qn-lift group relative flex flex-col gap-4 overflow-hidden rounded-2xl p-4",
+        href && "hover:-translate-y-0.5"
       )}
     >
       <div className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", theme.gradient)} />
@@ -41,6 +41,8 @@ export function KidSummaryCard({
           color={child.color}
           size="md"
           sticker={look.sticker}
+          hat={look.hat}
+          aura={look.aura}
           frameClassName={frameClass(look.frame)}
         />
         <div className="min-w-0 flex-1">

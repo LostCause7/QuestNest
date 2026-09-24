@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <main id="main" className="mx-auto max-w-2xl px-6 py-12">
         <h1 className="font-display text-3xl font-semibold">Privacy</h1>
         <p className="mt-4 text-muted-foreground">
-          QuestNest stores your family&apos;s nest — kids, quests, rewards, and a points ledger — in Supabase so it
+          ChoreHall stores your family&apos;s nest — kids, quests, rewards, and a points ledger — in Supabase so it
           works on every device you sign in on. We don&apos;t sell that data. Nearby shop ideas come from
           OpenStreetMap using only the city you type in Settings.
         </p>

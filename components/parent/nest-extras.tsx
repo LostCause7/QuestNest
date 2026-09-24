@@ -171,6 +171,30 @@ export function DevicePrefsForm() {
         checked={prefs.bigType}
         onChange={(bigType) => set({ bigType })}
       />
+      <ToggleRow
+        label="Big tap targets"
+        hint="Taller Done, Get it and PIN buttons for little hands."
+        checked={prefs.bigTap}
+        onChange={(bigTap) => set({ bigTap })}
+      />
+      <ToggleRow
+        label="Left-handed PIN pad"
+        hint="Moves the delete key to the bottom-left."
+        checked={prefs.leftHanded}
+        onChange={(leftHanded) => set({ leftHanded })}
+      />
+      <ToggleRow
+        label="Pattern textures"
+        hint="Done and waiting cards get stripes and dots, so status isn't color-only."
+        checked={prefs.colorPatterns}
+        onChange={(colorPatterns) => set({ colorPatterns })}
+      />
+      <ToggleRow
+        label="Ambient hum"
+        hint="A very quiet background tone while a kid is on their screen. Off by default."
+        checked={prefs.ambient}
+        onChange={(ambient) => set({ ambient })}
+      />
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label htmlFor="quiet-start" className="text-xs">
@@ -260,7 +284,7 @@ export function DataTools({ family }: { family: Family }) {
           run(() => exportFamilyBundle(), {
             onSuccess: (data) => {
               if (!data) return;
-              downloadJson(`${family.name.replace(/\s+/g, "-").toLowerCase()}-questnest.json`, data);
+              downloadJson(`${family.name.replace(/\s+/g, "-").toLowerCase()}-chorehall.json`, data);
             },
           })
         }

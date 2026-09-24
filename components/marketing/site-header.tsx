@@ -7,34 +7,34 @@ import { getClaims } from "@/lib/supabase/server";
 export async function SiteHeader() {
   const claims = await getClaims();
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-nest-950/70 backdrop-blur">
+    <header className="qn-glass-panel sticky top-0 z-40 rounded-none border-x-0 border-t-0">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/">
-          <Logo tone="light" size="sm" />
+          <Logo size="sm" />
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
-          <a href="#how" className="hover:text-white">
+        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
+          <a href="#how" className="hover:text-foreground">
             How it works
           </a>
-          <a href="#features" className="hover:text-white">
+          <a href="#features" className="hover:text-foreground">
             Features
           </a>
-          <a href="#faq" className="hover:text-white">
+          <a href="#faq" className="hover:text-foreground">
             FAQ
           </a>
         </nav>
         <div className="flex items-center gap-2">
           <MarketingMobileNav />
           {claims ? (
-            <Button asChild className="bg-sun-500 text-nest-950 hover:bg-sun-400">
-              <Link href="/kids">Open my nest</Link>
+            <Button asChild>
+              <Link href="/kids">Open ChoreHall</Link>
             </Button>
           ) : (
             <>
-              <Button asChild variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
+              <Button asChild variant="ghost">
                 <Link href="/login">Sign in</Link>
               </Button>
-              <Button asChild className="bg-sun-500 text-nest-950 hover:bg-sun-400">
+              <Button asChild>
                 <Link href="/signup">Get started free</Link>
               </Button>
             </>

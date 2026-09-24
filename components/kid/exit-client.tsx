@@ -25,5 +25,5 @@ export function ExitClient({ next, hasPin, header }: { next: string; hasPin: boo
     );
   }
 
-  return <PinScreen header={header} variableLength onSubmit={(pin) => exitKidMode(pin, next)} hint="4 to 6 digits" />;
+  return <PinScreen header={header} variableLength onSubmit={(pin) => exitKidMode(pin, next)} />;
 }

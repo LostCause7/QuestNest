@@ -20,6 +20,7 @@ import { IconPicker } from "@/components/shared/icon-picker";
 import { useAction } from "@/hooks/use-action";
 import { createReward, updateReward, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_ICONS } from "@/lib/templates";
+import { suggestRewardCost } from "@/lib/suggested-points";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
@@ -77,6 +78,9 @@ function RewardForm({
   const [stock, setStock] = useState(String(initialStock ?? 1));
   const [category, setCategory] = useState<RewardInput["category"]>((src?.category as RewardInput["category"]) ?? "privilege");
   const [requiresApproval, setRequiresApproval] = useState(src?.requires_approval ?? true);
+  const [rarity, setRarity] = useState<NonNullable<RewardInput["rarity"]> | "common">(
+    reward?.rarity === "rare" || reward?.rarity === "epic" || reward?.rarity === "legendary" ? reward.rarity : "common"
+  );
   const [childIds, setChildIds] = useState<string[]>(
     reward?.child_ids?.length
       ? reward.child_ids
@@ -100,6 +104,7 @@ function RewardForm({
       stock: limited ? s : null,
       category,
       requires_approval: requiresApproval,
+      rarity: rarity === "common" ? null : rarity,
       child_ids: childIds,
     };
     await run(() => (editing && reward ? updateReward(reward.id, payload) : createReward(payload)), {
@@ -119,7 +124,17 @@ function RewardForm({
             <IconPicker value={icon} onChange={setIcon} options={REWARD_ICONS} />
             <div className="flex-1 space-y-2">
               <Label htmlFor="r-title">Reward name</Label>
-              <Input id="r-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Movie night pick" autoFocus />
+              <Input
+                id="r-title"
+                value={title}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setTitle(next);
+                  if (!editing && (!cost || cost === "50")) setCost(String(suggestRewardCost(next)));
+                }}
+                placeholder="Movie night pick"
+                autoFocus
+              />
             </div>
           </div>
 
@@ -135,6 +150,9 @@ function RewardForm({
                 <Input id="r-cost" type="number" min={0} value={cost} onChange={(e) => setCost(e.target.value)} className="pr-9" />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">{family.currency_emoji}</span>
               </div>
+              <p className="text-[11px] text-muted-foreground">
+                Put $ in the name (like $5) so kids can pick the amount in $5 steps. About 500 {family.currency_name.toLowerCase()} per $10.
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Type</Label>
@@ -149,6 +167,34 @@ function RewardForm({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Shine</Label>
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { key: "common", label: "Plain" },
+                  { key: "rare", label: "✨ Rare" },
+                  { key: "epic", label: "💜 Epic" },
+                  { key: "legendary", label: "🌟 Legendary" },
+                ] as const
+              ).map((r) => (
+                <button
+                  key={r.key}
+                  type="button"
+                  onClick={() => setRarity(r.key)}
+                  aria-pressed={rarity === r.key}
+                  className={cn(
+                    "rounded-full border-2 px-3 py-1.5 text-sm font-medium",
+                    rarity === r.key ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
+                  )}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground">Purely cosmetic: a foil shimmer on the shop card so big rewards feel big.</p>
           </div>
 
           <div className="flex items-center justify-between rounded-xl border p-3">

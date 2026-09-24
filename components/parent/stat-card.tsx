@@ -16,14 +16,14 @@ export function StatCard({
   className?: string;
 }) {
   const tones = {
-    default: "bg-card",
-    primary: "bg-nest-gradient text-white",
-    sun: "bg-sunrise-gradient text-white",
-    mint: "bg-mint-gradient text-white",
+    default: "qn-glass-panel",
+    primary: "qn-chrome text-slate-900",
+    sun: "qn-frost text-slate-900",
+    mint: "qn-mirror text-slate-900",
   }[tone];
-  const muted = tone === "default" ? "text-muted-foreground" : "text-white/75";
+  const muted = "text-muted-foreground";
   return (
-    <div className={cn("relative overflow-hidden rounded-2xl border p-4 shadow-sm", tones, tone !== "default" && "border-transparent", className)}>
+    <div className={cn("qn-lift relative overflow-hidden rounded-2xl p-4", tones, className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className={cn("text-xs font-medium uppercase tracking-wide", muted)}>{label}</div>

@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "QuestNest",
-    short_name: "QuestNest",
+    name: "ChoreHall",
+    short_name: "ChoreHall",
     description: "Chores become quests. Kids actually want to do.",
     start_url: "/kids",
     display: "standalone",

@@ -15,10 +15,44 @@ const choreSchema = z.object({
   recurrence: z.enum(["once", "daily", "weekly", "custom"]),
   days_of_week: z.array(z.number().int().min(0).max(6)).min(0).max(7),
   requires_approval: z.boolean(),
+  kind: z.enum(["quest", "kindness"]).optional(),
+  single_claim: z.boolean().optional(),
+  mandatory: z.boolean().optional(),
+  allow_skip: z.boolean().optional(),
   child_ids: z.array(z.uuid()).min(1, "Assign the quest to at least one kid."),
 });
 
 export type ChoreInput = z.infer<typeof choreSchema>;
+
+const MISSING_COLUMN = /column|schema cache|does not exist/i;
+
+function withoutKind<T extends { kind?: unknown }>(row: T) {
+  const next = { ...row };
+  delete next.kind;
+  return next;
+}
+
+function withoutSingleClaim<T extends { single_claim?: unknown }>(row: T) {
+  const next = { ...row };
+  delete next.single_claim;
+  return next;
+}
+
+function withoutMandatory<T extends { mandatory?: unknown }>(row: T) {
+  const next = { ...row };
+  delete next.mandatory;
+  return next;
+}
+
+function withoutAllowSkip<T extends { allow_skip?: unknown }>(row: T) {
+  const next = { ...row };
+  delete next.allow_skip;
+  return next;
+}
+
+function withoutOptionalColumns<T extends { kind?: unknown; single_claim?: unknown; mandatory?: unknown; allow_skip?: unknown }>(row: T) {
+  return withoutKind(withoutSingleClaim(withoutMandatory(withoutAllowSkip(row))));
+}
 
 function revalidate() {
   revalidatePath("/app", "layout");
@@ -38,11 +72,37 @@ export async function createChore(input: ChoreInput): Promise<ActionResult<Chore
   const supabase = await createClient();
 
   const { child_ids, ...rest } = parsed.data;
-  const { data, error } = await supabase
-    .from("chores")
-    .insert({ family_id: family.id, ...rest, description: rest.description || null, days_of_week: normalizeDays(parsed.data) })
-    .select()
-    .single();
+  const row = {
+    family_id: family.id,
+    ...rest,
+    kind: rest.kind ?? "quest",
+    single_claim: rest.single_claim ?? false,
+    mandatory: rest.mandatory ?? false,
+    allow_skip: rest.allow_skip ?? false,
+    description: rest.description || null,
+    days_of_week: normalizeDays(parsed.data),
+  };
+  let { data, error } = await supabase.from("chores").insert(row).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").insert(withoutAllowSkip(row)).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").insert(withoutMandatory(withoutAllowSkip(row))).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").insert(withoutSingleClaim(withoutMandatory(withoutAllowSkip(row)))).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").insert(withoutOptionalColumns(row)).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not create quest."));
 
   const { error: asgErr } = await supabase
@@ -63,12 +123,36 @@ export async function updateChore(id: string, input: ChoreInput): Promise<Action
   const supabase = await createClient();
 
   const { child_ids, ...rest } = parsed.data;
-  const { data, error } = await supabase
-    .from("chores")
-    .update({ ...rest, description: rest.description || null, days_of_week: normalizeDays(parsed.data) })
-    .eq("id", id)
-    .select()
-    .single();
+  const row = {
+    ...rest,
+    kind: rest.kind ?? "quest",
+    single_claim: rest.single_claim ?? false,
+    mandatory: rest.mandatory ?? false,
+    allow_skip: rest.allow_skip ?? false,
+    description: rest.description || null,
+    days_of_week: normalizeDays(parsed.data),
+  };
+  let { data, error } = await supabase.from("chores").update(row).eq("id", id).select().single();
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").update(withoutAllowSkip(row)).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").update(withoutMandatory(withoutAllowSkip(row))).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").update(withoutSingleClaim(withoutMandatory(withoutAllowSkip(row)))).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error && MISSING_COLUMN.test(error.message)) {
+    const retry = await supabase.from("chores").update(withoutOptionalColumns(row)).eq("id", id).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error || !data) return fail(friendlyError(error?.message ?? "Could not update quest."));
 
   // Sync assignments
@@ -136,31 +220,60 @@ export async function reviewCompletion(
 
   const { data: row, error: fetchErr } = await supabase
     .from("chore_completions")
-    .select("id, family_id, chore_id, child_id, status")
+    .select("id, family_id, chore_id, child_id, status, excuse")
     .eq("id", completionId)
     .eq("family_id", family.id)
     .maybeSingle();
+  if (fetchErr && MISSING_COLUMN.test(fetchErr.message)) {
+    const retry = await supabase
+      .from("chore_completions")
+      .select("id, family_id, chore_id, child_id, status")
+      .eq("id", completionId)
+      .eq("family_id", family.id)
+      .maybeSingle();
+    if (retry.error) return fail(friendlyError(retry.error.message));
+    if (!retry.data) return fail("That quest wasn't found.");
+    if (retry.data.status !== "pending") return fail("That one was already reviewed.");
+    return reviewDone(supabase, { ...retry.data, excuse: false }, approve, points, parentNote, userId);
+  }
   if (fetchErr) return fail(friendlyError(fetchErr.message));
   if (!row) return fail("That quest wasn't found.");
   if (row.status !== "pending") return fail("That one was already reviewed.");
+  return reviewDone(supabase, row, approve, points, parentNote, userId);
+}
 
+async function reviewDone(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  row: { id: string; family_id: string; chore_id: string; child_id: string; status: string; excuse?: boolean | null },
+  approve: boolean,
+  points: number | undefined,
+  parentNote: string | null,
+  userId: string | null
+): Promise<ActionResult> {
   const { data: chore } = await supabase.from("chores").select("title, points").eq("id", row.chore_id).maybeSingle();
-  const awarded = approve ? (typeof points === "number" ? points : (chore?.points ?? 0)) : 0;
+  const isExcuse = Boolean(row.excuse);
+  const awarded = approve && !isExcuse ? (typeof points === "number" ? points : (chore?.points ?? 0)) : 0;
+  const nextStatus = approve ? (isExcuse ? "excused" : "approved") : "rejected";
 
   const { error: updErr } = await supabase
     .from("chore_completions")
     .update({
-      status: approve ? "approved" : "rejected",
+      status: nextStatus,
       points_awarded: awarded,
       note: approve ? null : parentNote,
       reviewed_at: new Date().toISOString(),
       reviewed_by: userId,
     })
-    .eq("id", completionId)
+    .eq("id", row.id)
     .eq("status", "pending");
-  if (updErr) return fail(friendlyError(updErr.message));
+  if (updErr) {
+    if (isExcuse && /invalid input value|excused/i.test(updErr.message)) {
+      return fail("Skipping quests needs the latest nest update. Run 0012_skip_requests.sql.");
+    }
+    return fail(friendlyError(updErr.message));
+  }
 
-  if (approve) {
+  if (approve && !isExcuse) {
     const { error: txErr } = await supabase.from("point_transactions").insert({
       family_id: row.family_id,
       child_id: row.child_id,
@@ -174,5 +287,10 @@ export async function reviewCompletion(
   }
 
   revalidate();
-  return ok(undefined, approve ? "Approved! Points awarded." : "Sent back.");
+  const message = !approve
+    ? "Sent back."
+    : isExcuse
+      ? "Skipped — no points lost."
+      : "Approved! Points awarded.";
+  return ok(undefined, message);
 }

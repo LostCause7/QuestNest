@@ -39,7 +39,7 @@ function Feedback({ state, initialError }: { state: AuthState; initialError?: st
 export function LoginForm({ initialError }: { initialError?: string }) {
   const [state, action] = useActionState<AuthState, FormData>(signInWithPassword, undefined);
   return (
-    <div className="space-y-6">
+    <div className="qn-glass-panel space-y-6 rounded-3xl p-6 sm:p-8">
       <div className="space-y-1.5">
         <h1 className="font-display text-3xl font-semibold">Welcome back</h1>
         <p className="text-muted-foreground">Sign in to your family&apos;s nest.</p>
@@ -76,7 +76,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 export function SignupForm() {
   const [state, action] = useActionState<AuthState, FormData>(signUpWithPassword, undefined);
   return (
-    <div className="space-y-6">
+    <div className="qn-glass-panel space-y-6 rounded-3xl p-6 sm:p-8">
       <div className="space-y-1.5">
         <h1 className="font-display text-3xl font-semibold">Create your nest</h1>
         <p className="text-muted-foreground">Free for families. Takes about two minutes.</p>
@@ -124,7 +124,7 @@ export function SignupForm() {
 export function ForgotPasswordForm({ initialError }: { initialError?: string }) {
   const [state, action] = useActionState<AuthState, FormData>(requestPasswordReset, undefined);
   return (
-    <div className="space-y-6">
+    <div className="qn-glass-panel space-y-6 rounded-3xl p-6 sm:p-8">
       <div className="space-y-1.5">
         <h1 className="font-display text-3xl font-semibold">Reset your password</h1>
         <p className="text-muted-foreground">We&apos;ll email you a link to choose a new one.</p>
@@ -151,7 +151,7 @@ export function ForgotPasswordForm({ initialError }: { initialError?: string }) 
 export function ResetPasswordForm() {
   const [state, action] = useActionState<AuthState, FormData>(updatePassword, undefined);
   return (
-    <div className="space-y-6">
+    <div className="qn-glass-panel space-y-6 rounded-3xl p-6 sm:p-8">
       <div className="space-y-1.5">
         <h1 className="font-display text-3xl font-semibold">Choose a new password</h1>
         <p className="text-muted-foreground">Make it something the kids won&apos;t guess.</p>

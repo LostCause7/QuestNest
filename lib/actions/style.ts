@@ -4,15 +4,44 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily, requireUser } from "@/lib/data/family";
-import { unlockedFrames, unlockedStickers, unlockedTitles } from "@/lib/milestones";
-import { getFamilyMilestones } from "@/lib/data/parent";
+import { unlockedStickers, unlockedTitles } from "@/lib/milestones";
+import { familyToday, getApprovedCounts, getBadges, getChildGifts, getFamilyMilestones, getRewards } from "@/lib/data/parent";
 import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
+import {
+  isUnlocked,
+  itemsOf,
+  seasonWindow,
+  unlockContext,
+  unlockedItems,
+  type CosmeticKind,
+  type UnlockContext,
+} from "@/lib/cosmetics";
+import { BADGE_MAP } from "@/lib/badges";
 import { fail, friendlyError, guardAction, ok, type ActionResult } from "./result";
-import type { EquippedStyle } from "@/types/database";
+import type { Child, EquippedStyle, Family, FamilyStyle } from "@/types/database";
 
 function revalidate() {
   revalidatePath("/app", "layout");
   revalidatePath("/kids", "layout");
+}
+
+async function contextFor(child: Child, family: Family) {
+  const today = familyToday(family);
+  const season = seasonWindow(family.created_at, today);
+  const [extras, badges, gifts, counts] = await Promise.all([
+    getFamilyMilestones(family.id),
+    getBadges([child.id]),
+    getChildGifts(child.id),
+    getApprovedCounts(family.id, season.from, today < season.to ? today : season.to),
+  ]);
+  return { ctx: unlockContext(child, extras, badges, gifts, counts[child.id] ?? 0), extras };
+}
+
+function pick(kind: CosmeticKind, wanted: string | null | undefined, ctx: UnlockContext, fallback: string | null, locked: Set<string>) {
+  if (locked.has(kind)) return fallback;
+  if (!wanted) return fallback;
+  const allowed = unlockedItems(kind, ctx).map((i) => i.key);
+  return allowed.includes(wanted) ? wanted : fallback;
 }
 
 export async function saveChildStyle(childId: string, style: EquippedStyle): Promise<ActionResult> {
@@ -21,20 +50,71 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
     const supabase = await createClient();
     const { data: child } = await supabase.from("children").select("*").eq("id", childId).maybeSingle();
     if (!child || child.family_id !== family.id) return fail("Kid not found.");
-    const extras = await getFamilyMilestones(family.id);
+    const { ctx, extras } = await contextFor(child as Child, family);
+    const locked = new Set<string>(((family.style as FamilyStyle | null)?.lockedSlots ?? []) as string[]);
     const xp = child.lifetime_points ?? 0;
-    const titles = unlockedTitles(xp, extras);
-    const frames = unlockedFrames(xp, extras).map((f) => f.key);
-    const stickers = unlockedStickers(xp, extras);
+    const titles = [...new Set([...unlockedTitles(xp, extras), ...unlockedItems("title", ctx).map((i) => i.label)])];
+    const stickers = [...new Set([...unlockedStickers(xp, extras), ...unlockedItems("sticker", ctx).map((i) => i.emoji).filter(Boolean) as string[]])];
+    const badgeKeys = [...ctx.badges].filter((k) => BADGE_MAP[k]);
+
+    let savingFor: string | null = null;
+    if (style.savingFor) {
+      const rewards = await getRewards(family.id);
+      savingFor = rewards.some((r) => r.id === style.savingFor && r.is_active) ? style.savingFor : null;
+    }
+
     const next: EquippedStyle = {
-      title: style.title && titles.includes(style.title) ? style.title : titles[0],
-      frame: style.frame && frames.includes(style.frame) ? style.frame : "none",
-      sticker: style.sticker && stickers.includes(style.sticker) ? style.sticker : null,
+      title: locked.has("title") ? titles[0] : style.title && titles.includes(style.title) ? style.title : titles[0],
+      sticker: locked.has("sticker") ? null : style.sticker && stickers.includes(style.sticker) ? style.sticker : null,
+      frame: pick("frame", style.frame, ctx, "none", locked),
+      hat: pick("hat", style.hat, ctx, null, locked),
+      aura: pick("aura", style.aura, ctx, null, locked),
+      nameplate: pick("nameplate", style.nameplate, ctx, null, locked),
+      banner: pick("banner", style.banner, ctx, "none", locked),
+      room: pick("room", style.room, ctx, null, locked),
+      soundPack: pick("soundPack", style.soundPack, ctx, null, locked),
+      confetti: pick("confetti", style.confetti, ctx, null, locked),
+      showcase: (style.showcase ?? []).filter((k) => badgeKeys.includes(k)).slice(0, 3),
+      savingFor,
     };
     const { error } = await supabase.from("children").update({ style: next }).eq("id", childId);
     if (error && /column|schema cache|does not exist/i.test(error.message)) {
       return ok(undefined, "Saved on this device. Run the latest nest update to sync looks.");
     }
+    if (error) return fail(friendlyError(error.message));
+    revalidate();
+    return ok(undefined, "Look saved.");
+  });
+}
+
+/** Kid swaps their face or color from the Closet. Gated faces/colors must be unlocked. */
+export async function saveChildLook(childId: string, input: { avatar?: string; color?: string }): Promise<ActionResult> {
+  return guardAction(async () => {
+    const family = await requireFamily();
+    const supabase = await createClient();
+    const { data: child } = await supabase.from("children").select("*").eq("id", childId).maybeSingle();
+    if (!child || child.family_id !== family.id) return fail("Kid not found.");
+    const { ctx } = await contextFor(child as Child, family);
+    const locked = new Set<string>(((family.style as FamilyStyle | null)?.lockedSlots ?? []) as string[]);
+    const patch: { avatar?: string; color?: string } = {};
+
+    if (input.avatar) {
+      if (locked.has("face")) return fail("A parent locked faces for now.");
+      const gated = itemsOf("face").find((f) => f.key === input.avatar);
+      const okFace = AVATAR_KEYS.includes(input.avatar as (typeof AVATAR_KEYS)[number]) || (gated && isUnlocked(gated, ctx));
+      if (!okFace) return fail("That face isn't unlocked yet.");
+      patch.avatar = input.avatar;
+    }
+    if (input.color) {
+      if (locked.has("color")) return fail("A parent locked colors for now.");
+      const gated = itemsOf("color").find((c) => c.key === input.color);
+      const okColor = COLOR_KEYS.includes(input.color as (typeof COLOR_KEYS)[number]) || (gated && isUnlocked(gated, ctx));
+      if (!okColor) return fail("That color isn't unlocked yet.");
+      patch.color = input.color;
+    }
+    if (!patch.avatar && !patch.color) return ok(undefined);
+
+    const { error } = await supabase.from("children").update(patch).eq("id", childId);
     if (error) return fail(friendlyError(error.message));
     revalidate();
     return ok(undefined, "Look saved.");

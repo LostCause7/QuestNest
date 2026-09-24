@@ -68,7 +68,7 @@ const faqs = [
   },
   {
     q: "Is it free?",
-    a: "Yes. QuestNest is free for families.",
+    a: "Yes. ChoreHall is free for families.",
   },
 ];
 
@@ -80,47 +80,51 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-nest-950 text-white">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] -z-10">
+        <div className="absolute -top-32 left-1/3 size-[28rem] rounded-full bg-sky-500/15 blur-3xl" />
+        <div className="absolute top-20 right-0 size-[24rem] rounded-full bg-cyan-400/10 blur-3xl" />
+      </div>
       <SiteHeader />
 
       {/* Hero */}
       <section id="main" className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -top-40 left-1/2 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-nest-600/40 blur-3xl" />
-          <div className="absolute top-40 -right-40 size-[30rem] rounded-full bg-sun-500/20 blur-3xl" />
+          <div className="absolute -top-40 left-1/2 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/12 blur-3xl" />
+          <div className="absolute top-40 -right-40 size-[30rem] rounded-full bg-cyan-300/10 blur-3xl" />
         </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pt-16 pb-24 lg:grid-cols-2 lg:pt-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80">
-              <SparklesIcon className="size-3.5 text-sun-400" />
-              Chores, gamified for real families
+            <span className="qn-glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
+              <SparklesIcon className="size-3.5 text-sky-600" />
+              Frost, chrome, and quests
             </span>
             <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] text-balance sm:text-6xl">
               Chores become quests
               <br />
-              <span className="bg-gradient-to-r from-sun-300 to-sun-500 bg-clip-text text-transparent">Kids actually want to do.</span>
+              <span className="qn-chrome-text">Kids actually want to do.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-white/70">
-              QuestNest turns your family&apos;s to-do list into a game: points, streaks, a reward shop and trophies. You stay in control
+            <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+              ChoreHall turns your family&apos;s to-do list into a game: points, streaks, a reward shop and trophies. You stay in control
               of every rule. They stay motivated.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 bg-sun-500 px-6 text-base text-nest-950 hover:bg-sun-400">
+              <Button asChild size="lg" className="h-12 px-6 text-base">
                 <Link href="/signup">
-                  Start your nest - it&apos;s free
+                  Start ChoreHall — it&apos;s free
                   <ArrowRightIcon />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 border-white/20 bg-transparent px-6 text-base text-white hover:bg-white/10 hover:text-white">
+              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
                 <a href="#how">See how it works</a>
               </Button>
             </div>
-            <div className="mt-8 flex items-center gap-3 text-sm text-white/60">
+            <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
-                <KidAvatar avatar="fox" color="coral" size="xs" className="ring-2 ring-nest-950" />
-                <KidAvatar avatar="unicorn" color="bubblegum" size="xs" className="ring-2 ring-nest-950" />
-                <KidAvatar avatar="dino" color="mint" size="xs" className="ring-2 ring-nest-950" />
-                <KidAvatar avatar="robot" color="sky" size="xs" className="ring-2 ring-nest-950" />
+                <KidAvatar avatar="fox" color="coral" size="xs" className="ring-2 ring-white" />
+                <KidAvatar avatar="unicorn" color="bubblegum" size="xs" className="ring-2 ring-white" />
+                <KidAvatar avatar="dino" color="mint" size="xs" className="ring-2 ring-white" />
+                <KidAvatar avatar="robot" color="sky" size="xs" className="ring-2 ring-white" />
               </div>
               Set up in about two minutes. No app download.
             </div>
@@ -140,7 +144,7 @@ export default async function HomePage() {
           </div>
           <ol className="mt-12 grid gap-6 md:grid-cols-3">
             {steps.map((s) => (
-              <li key={s.n} className="relative rounded-3xl border bg-card p-6 shadow-sm">
+              <li key={s.n} className="qn-glass-panel qn-lift relative rounded-3xl p-6">
                 <div className="flex items-center justify-between">
                   <span className="text-4xl">{s.emoji}</span>
                   <span className="font-display text-sm font-semibold text-muted-foreground">{s.n}</span>
@@ -156,10 +160,10 @@ export default async function HomePage() {
       {/* Two modes */}
       <section className="bg-background text-foreground">
         <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 lg:grid-cols-2">
-          <div className="rounded-3xl bg-nest-gradient p-8 text-white shadow-lg">
-            <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Parent HQ</span>
+          <div className="qn-chrome rounded-3xl p-8">
+            <span className="inline-flex rounded-full bg-white/40 px-3 py-1 text-xs font-semibold">Parent HQ</span>
             <h3 className="mt-4 font-display text-2xl font-semibold">Run the family from one screen</h3>
-            <ul className="mt-5 space-y-3 text-white/85">
+            <ul className="mt-5 space-y-3 text-slate-800/85">
               {[
                 "Approval queue with one-tap approve or send back",
                 "Quests with points, schedules and per-kid assignment",
@@ -173,7 +177,7 @@ export default async function HomePage() {
               ))}
             </ul>
           </div>
-          <div className="kid-mode rounded-3xl bg-background p-8 text-foreground shadow-lg ring-1 ring-black/5">
+          <div className="kid-mode qn-glass-panel rounded-3xl p-8 text-foreground">
             <span className="inline-flex rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">Kid Mode</span>
             <h3 className="mt-4 font-display text-2xl font-semibold">Big buttons, bright colors, zero nagging</h3>
             <ul className="mt-5 space-y-3 text-foreground/80">
@@ -204,7 +208,7 @@ export default async function HomePage() {
             {features.map((f) => {
               const Icon = f.icon;
               return (
-                <li key={f.title} className="rounded-3xl border bg-card p-6 shadow-sm">
+                <li key={f.title} className="qn-glass-panel qn-lift rounded-3xl p-6">
                   <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <Icon className="size-5" />
                   </span>
@@ -221,7 +225,7 @@ export default async function HomePage() {
       <section id="faq" className="bg-background text-foreground">
         <div className="mx-auto max-w-3xl px-6 py-24">
           <h2 className="font-display text-3xl font-semibold sm:text-4xl">Questions parents ask</h2>
-          <div className="mt-10 divide-y rounded-3xl border bg-card">
+          <div className="qn-glass-panel mt-10 divide-y">
             {faqs.map((f) => (
               <details key={f.q} className="group p-6">
                 <summary className="cursor-pointer font-display text-lg font-semibold list-none [&::-webkit-details-marker]:hidden">
@@ -237,12 +241,12 @@ export default async function HomePage() {
       {/* CTA */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -bottom-40 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-nest-600/40 blur-3xl" />
+          <div className="absolute -bottom-40 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/15 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-4xl px-6 py-24 text-center">
           <h2 className="font-display text-4xl font-semibold text-balance sm:text-5xl">Ready to turn “did you do your chores?” into “look what I did!”</h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">Create your nest, add your kids, and hand them the tablet.</p>
-          <Button asChild size="lg" className="mt-8 h-12 bg-sun-500 px-6 text-base text-nest-950 hover:bg-sun-400">
+          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">Create your nest, add your kids, and hand them the tablet.</p>
+          <Button asChild size="lg" className="mt-8 h-12 px-6 text-base">
             <Link href="/signup">
               Get started free
               <ArrowRightIcon />
@@ -252,23 +256,23 @@ export default async function HomePage() {
       </section>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-white/50 sm:flex-row">
-          <Logo tone="light" size="sm" />
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
+          <Logo size="sm" />
           <div className="flex flex-wrap justify-center gap-6">
-            <Link href="/login" className="hover:text-white">
+            <Link href="/login" className="hover:text-foreground">
               Sign in
             </Link>
-            <Link href="/signup" className="hover:text-white">
+            <Link href="/signup" className="hover:text-foreground">
               Create account
             </Link>
-            <Link href="/privacy" className="hover:text-white">
+            <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-white">
+            <Link href="/terms" className="hover:text-foreground">
               Terms
             </Link>
           </div>
-          <div>© {new Date().getFullYear()} QuestNest</div>
+          <div>© {new Date().getFullYear()} ChoreHall</div>
         </div>
       </footer>
     </div>

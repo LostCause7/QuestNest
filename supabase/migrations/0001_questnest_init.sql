@@ -1,5 +1,5 @@
 -- ============================================================
--- QuestNest v1 schema  (run once in the Supabase SQL Editor)
+-- ChoreHall v1 schema  (run once in the Supabase SQL Editor)
 -- ============================================================
 create extension if not exists pgcrypto;
 create schema if not exists private;
