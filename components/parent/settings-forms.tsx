@@ -93,20 +93,25 @@ export function FamilySettingsForm({ family }: { family: Family }) {
           {CURRENCY_PRESETS.map((p) => {
             const on = p.name === currencyName && p.emoji === emoji;
             return (
-              <button
+              <label
                 key={p.name}
-                type="button"
-                onClick={() => {
-                  setCurrencyName(p.name);
-                  setEmoji(p.emoji);
-                }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium",
+                  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium",
                   on ? "border-primary bg-primary/5" : "border-border"
                 )}
               >
+                <input
+                  type="radio"
+                  name="currency-preset"
+                  className="sr-only"
+                  checked={on}
+                  onChange={() => {
+                    setCurrencyName(p.name);
+                    setEmoji(p.emoji);
+                  }}
+                />
                 {p.emoji} {p.name}
-              </button>
+              </label>
             );
           })}
         </div>

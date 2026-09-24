@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SkipLink } from "@/components/shared/skip-link";
+import { IosTapFix } from "@/components/shared/ios-tap-fix";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSupabaseEnv, supabaseEnvBootstrapScript } from "@/lib/supabase/env";
 import "./globals.css";
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           />
         ) : null}
         <SkipLink />
+        <IosTapFix />
         {children}
         <Toaster position="top-center" richColors closeButton />
       </body>

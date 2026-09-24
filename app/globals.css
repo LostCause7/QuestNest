@@ -435,8 +435,10 @@
       0 16px 36px rgba(2, 6, 23, 0.4);
   }
 }
-.qn-lift:active {
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .qn-lift:active {
+    transform: translateY(-1px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .qn-lift,
