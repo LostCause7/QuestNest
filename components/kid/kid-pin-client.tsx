@@ -1,8 +1,26 @@
-"use client";
-
+import type { ReactNode } from "react";
 import { PinScreen } from "@/components/kid/pin-screen";
-import { unlockChild } from "@/lib/actions/kid-mode";
 
-export function KidPinClient({ childId, header, color }: { childId: string; header: React.ReactNode; color?: string }) {
-  return <PinScreen header={header} color={color} onSubmit={(pin) => unlockChild(childId, pin)} />;
+export function KidPinClient({
+  childId,
+  header,
+  color,
+  draft,
+  error,
+}: {
+  childId: string;
+  header: ReactNode;
+  color?: string;
+  draft: string;
+  error?: string | null;
+}) {
+  return (
+    <PinScreen
+      header={header}
+      color={color}
+      draft={draft}
+      error={error}
+      hidden={{ role: "child", id: childId }}
+    />
+  );
 }

@@ -7,6 +7,7 @@ import { KidPinClient } from "@/components/kid/kid-pin-client";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren } from "@/lib/data/parent";
 import { getActiveChildId } from "@/lib/data/kid";
+import { consumePinDraft } from "@/lib/pin-draft";
 import { childLook, frameClass } from "@/lib/milestones";
 
 export const metadata: Metadata = { title: "Enter your PIN" };
@@ -18,6 +19,7 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
   const kid = kids.find((k) => k.id === childId);
   if (!kid) redirect("/kids");
   if ((await getActiveChildId()) === kid.id) redirect(`/kids/${kid.id}`);
+  const { draft, error } = await consumePinDraft("child", kid.id);
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-background">
@@ -35,6 +37,8 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
         <KidPinClient
           childId={kid.id}
           color={kid.color}
+          draft={draft}
+          error={error}
           header={
             <div className="flex flex-col items-center gap-3">
               <KidAvatar

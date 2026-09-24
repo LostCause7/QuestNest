@@ -6,6 +6,7 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { hasParentPin } from "@/lib/data/parent";
 import { createClient } from "@/lib/supabase/server";
+import { consumePinDraft } from "@/lib/pin-draft";
 import { safeNext } from "@/lib/origin";
 
 export const metadata: Metadata = { title: "Parent unlock" };
@@ -18,6 +19,7 @@ export default async function ParentUnlockPage(props: {
   const user = await requireUser();
   const family = await requireFamily();
   const pinSet = await hasParentPin(family.id);
+  const { draft, error } = await consumePinDraft("parent", "");
   let first = user.email?.split("@")[0] ?? "Parent";
   let avatarKey = "fox";
   let colorKey = "slate";
@@ -46,6 +48,9 @@ export default async function ParentUnlockPage(props: {
         <ExitClient
           next={next}
           hasPin={pinSet}
+          draft={draft}
+          error={error}
+          path="/kids/parent"
           header={
             <div className="flex flex-col items-center gap-3 text-center">
               <KidAvatar avatar={avatarKey} color={colorKey} size="xl" className="shadow-xl" />

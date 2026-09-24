@@ -1,8 +1,23 @@
-"use client";
-
+import type { ReactNode } from "react";
 import { PinScreen } from "@/components/kid/pin-screen";
-import { unlockExtraParent } from "@/lib/actions/kid-mode";
 
-export function ExtraParentPinClient({ parentId, header }: { parentId: string; header: React.ReactNode }) {
-  return <PinScreen header={header} onSubmit={(pin) => unlockExtraParent(parentId, pin)} />;
+export function ExtraParentPinClient({
+  parentId,
+  header,
+  draft,
+  error,
+}: {
+  parentId: string;
+  header: ReactNode;
+  draft: string;
+  error?: string | null;
+}) {
+  return (
+    <PinScreen
+      header={header}
+      draft={draft}
+      error={error}
+      hidden={{ role: "extra", id: parentId }}
+    />
+  );
 }

@@ -9,6 +9,8 @@ import { requireFamily } from "@/lib/data/family";
 import { familyToday } from "@/lib/data/parent";
 import { ACTIVE_CHILD_COOKIE, KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { safeNext } from "@/lib/origin";
+import { clearPinDraft, consumePinDraft, pinPagePath, writePinDraft, writePinError } from "@/lib/pin-draft";
+import { isNextRedirect } from "@/lib/errors";
 import { ok, fail, friendlyError, type ActionResult } from "./result";
 import type { ChoreCompletion, RewardRedemption } from "@/types/database";
 
@@ -310,4 +312,76 @@ export async function unlockExtraParent(parentId: string, pin: string): Promise<
   store.delete(ACTIVE_CHILD_COOKIE);
   store.delete(KID_MODE_COOKIE);
   redirect("/app");
+}
+
+/**
+ * Each keypad key is a real form submit — the same native navigation that
+ * makes profile tiles work on iPad, with no React click handlers.
+ */
+export async function pressPinKey(formData: FormData) {
+  const role = String(formData.get("role") ?? "");
+  const key = String(formData.get("key") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const next = safeNext(String(formData.get("next") ?? ""), "/app");
+  const path = pinPagePath(role, id, String(formData.get("path") ?? ""));
+  const backTo = role === "parent" || role === "parent-open" ? `${path}?next=${encodeURIComponent(next)}` : path;
+  const maxLen = role === "parent" ? 6 : 4;
+
+  if (role === "parent-open") {
+    await exitKidMode(null, next);
+    return;
+  }
+  if (role !== "child" && role !== "extra" && role !== "parent") {
+    redirect("/kids");
+  }
+
+  const { draft: existing } = await consumePinDraft(role, id);
+  let draft = existing;
+
+  if (key === "back") {
+    draft = draft.slice(0, -1);
+    await writePinDraft(role, id, draft);
+    redirect(backTo);
+  }
+  if (!/^\d$/.test(key)) redirect(backTo);
+  draft = (draft + key).slice(0, maxLen);
+
+  try {
+    if (role === "child" && draft.length === 4) {
+      await clearPinDraft();
+      const result = await unlockChild(id, draft);
+      if (result && !result.ok) {
+        await writePinError(role, id, result.error);
+        redirect(path);
+      }
+      return;
+    }
+    if (role === "extra" && draft.length === 4) {
+      await clearPinDraft();
+      const result = await unlockExtraParent(id, draft);
+      if (result && !result.ok) {
+        await writePinError(role, id, result.error);
+        redirect(path);
+      }
+      return;
+    }
+    if (role === "parent" && draft.length >= 4) {
+      const result = await exitKidMode(draft, next);
+      if (result && !result.ok) {
+        if (draft.length >= 6) {
+          await writePinError(role, id, result.error);
+        } else {
+          await writePinDraft(role, id, draft);
+        }
+        redirect(backTo);
+      }
+      return;
+    }
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    throw error;
+  }
+
+  await writePinDraft(role, id, draft);
+  redirect(backTo);
 }
