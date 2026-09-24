@@ -89,7 +89,7 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section id="main" className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="qn-backdrop pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -top-40 left-1/2 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/12 blur-3xl" />
           <div className="absolute top-40 -right-40 size-[30rem] rounded-full bg-cyan-300/10 blur-3xl" />
         </div>
@@ -250,7 +250,7 @@ export default async function HomePage() {
 
       {/* CTA */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="qn-backdrop pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -bottom-40 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/15 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-4xl px-6 py-24 text-center">

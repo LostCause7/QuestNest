@@ -396,6 +396,10 @@
 }
 
 /* Closet materials — chrome, glass, frost, holo */
+.qn-backdrop {
+  pointer-events: none !important;
+}
+
 .qn-picker-chrome {
   background:
     radial-gradient(90% 60% at 12% -8%, rgba(255, 255, 255, 0.22) 0%, transparent 52%),

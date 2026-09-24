@@ -43,7 +43,7 @@ export function RoomBackdrop({ room }: { room: string }) {
   const floaters = FLOATERS[room] ?? FLOATERS.nest;
 
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div className="qn-backdrop pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
       <div className="qn-kid-sky absolute inset-0" />
       <div className="qn-room-blob-a absolute -top-24 -left-16 size-[28rem] rounded-full opacity-90 blur-3xl" />
       <div className="qn-room-blob-b absolute top-1/4 -right-24 size-[32rem] rounded-full opacity-90 blur-3xl" />

@@ -55,7 +55,7 @@ export function Select({ value, defaultValue, onValueChange, disabled, name, chi
       defaultValue={defaultValue}
       onChange={(event) => onValueChange?.(event.target.value)}
       className={cn(SELECT_CLASS, acc.triggerClass)}
-      style={{ touchAction: "manipulation" }}
+      style={{ touchAction: "manipulation", WebkitAppearance: "menulist-button", appearance: "auto" }}
     >
       {acc.placeholder ? (
         <option value="" disabled>

@@ -13,7 +13,6 @@ import { saveParentLook } from "@/lib/actions/style";
 import { AvatarPicker, ColorPicker } from "@/components/shared/avatar-picker";
 import { CURRENCY_PRESETS } from "@/lib/templates";
 import { US_STATES } from "@/lib/places";
-import { cn } from "@/lib/utils";
 import type { Family } from "@/types/database";
 
 const TIMEZONES = [
@@ -88,33 +87,28 @@ export function FamilySettingsForm({ family }: { family: Family }) {
       </div>
 
       <div className="space-y-2">
-        <Label>Currency</Label>
-        <div className="flex flex-wrap gap-2">
-          {CURRENCY_PRESETS.map((p) => {
-            const on = p.name === currencyName && p.emoji === emoji;
-            return (
-              <label
-                key={p.name}
-                className={cn(
-                  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium",
-                  on ? "border-primary bg-primary/5" : "border-border"
-                )}
-              >
-                <input
-                  type="radio"
-                  name="currency-preset"
-                  className="sr-only"
-                  checked={on}
-                  onChange={() => {
-                    setCurrencyName(p.name);
-                    setEmoji(p.emoji);
-                  }}
-                />
-                {p.emoji} {p.name}
-              </label>
-            );
-          })}
-        </div>
+        <Label htmlFor="cur-preset">Currency</Label>
+        <select
+          id="cur-preset"
+          value={CURRENCY_PRESETS.some((p) => p.name === currencyName && p.emoji === emoji) ? `${emoji}|${currencyName}` : ""}
+          onChange={(event) => {
+            const [nextEmoji, ...rest] = event.target.value.split("|");
+            const nextName = rest.join("|");
+            if (!nextName) return;
+            setEmoji(nextEmoji);
+            setCurrencyName(nextName);
+          }}
+          className="h-8 w-full cursor-pointer rounded-lg border-2 border-slate-400/40 bg-slate-950/45 px-2.5 text-sm"
+        >
+          <option value="" disabled>
+            Choose a currency
+          </option>
+          {CURRENCY_PRESETS.map((p) => (
+            <option key={p.name} value={`${p.emoji}|${p.name}`}>
+              {p.emoji} {p.name}
+            </option>
+          ))}
+        </select>
         <div className="grid grid-cols-[5rem_1fr] gap-3 pt-1">
           <div className="space-y-1">
             <Label htmlFor="cur-emoji" className="text-xs">
