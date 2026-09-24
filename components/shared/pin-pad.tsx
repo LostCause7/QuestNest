@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type TouchEvent } from "react";
+import { useEffect, useRef } from "react";
 import { DeleteIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,63 +13,79 @@ type Props = {
 };
 
 const KEY_CLASS =
-  "h-16 touch-manipulation rounded-2xl bg-card text-2xl font-semibold shadow-sm select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] disabled:opacity-50";
+  "h-16 rounded-2xl bg-card text-2xl font-semibold shadow-sm select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] disabled:opacity-40";
 
-/** Big on-screen keypad for kids. */
+/**
+ * iPad / WebKit: React `onTouchEnd` + preventDefault is attached as a passive
+ * delegated listener, so the tap highlights but the digit never lands. Bind a
+ * real click/pointerup on the keypad node instead — no preventDefault.
+ */
 export function PinPad({ value, onChange, length = 4, disabled, className }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  const lastRef = useRef(0);
   valueRef.current = value;
-  const last = useRef(0);
+  onChangeRef.current = onChange;
 
-  const fire = (fn: () => void) => {
-    if (disabled) return;
-    const now = performance.now();
-    if (now - last.current < 80) return;
-    last.current = now;
-    fn();
-  };
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
 
-  const press = (d: string) => {
-    const current = valueRef.current;
-    if (current.length >= length) return;
-    onChange(current + d);
-  };
+    const run = (key: string) => {
+      if (disabled || !key) return;
+      const now = performance.now();
+      if (now - lastRef.current < 80) return;
+      lastRef.current = now;
+      const current = valueRef.current;
+      if (key === "back") {
+        if (!current) return;
+        onChangeRef.current(current.slice(0, -1));
+        return;
+      }
+      if (current.length >= length) return;
+      onChangeRef.current(current + key);
+    };
 
-  const back = () => {
-    const current = valueRef.current;
-    if (!current) return;
-    onChange(current.slice(0, -1));
-  };
+    const onTap = (event: Event) => {
+      const el = (event.target as Element | null)?.closest?.("[data-pin-key]");
+      if (!(el instanceof HTMLElement) || !root.contains(el)) return;
+      run(el.dataset.pinKey ?? "");
+    };
 
-  const bind = (fn: () => void) => ({
-    onTouchEnd: (e: TouchEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      fire(fn);
-    },
-    onClick: () => fire(fn),
-  });
+    root.addEventListener("click", onTap);
+    root.addEventListener("pointerup", onTap);
+    return () => {
+      root.removeEventListener("click", onTap);
+      root.removeEventListener("pointerup", onTap);
+    };
+  }, [disabled, length]);
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
   return (
-    <div className={cn("qn-pinpad mx-auto grid w-full max-w-xs grid-cols-3 gap-3", className)}>
+    <div
+      ref={rootRef}
+      className={cn("qn-pinpad mx-auto grid w-full max-w-xs grid-cols-3 gap-3", className)}
+      style={{ touchAction: "manipulation" }}
+    >
       {keys.map((k) => (
-        <button key={k} type="button" disabled={disabled} className={KEY_CLASS} {...bind(() => press(k))}>
+        <button key={k} type="button" data-pin-key={k} disabled={disabled} className={KEY_CLASS}>
           {k}
         </button>
       ))}
       <div />
-      <button type="button" disabled={disabled} className={KEY_CLASS} {...bind(() => press("0"))}>
+      <button type="button" data-pin-key="0" disabled={disabled} className={KEY_CLASS}>
         0
       </button>
       <button
         type="button"
+        data-pin-key="back"
         disabled={disabled || value.length === 0}
-        className={cn(KEY_CLASS, "flex items-center justify-center text-muted-foreground disabled:opacity-40")}
+        className={cn(KEY_CLASS, "flex items-center justify-center text-muted-foreground")}
         aria-label="Delete"
-        {...bind(back)}
       >
-        <DeleteIcon className="size-6" />
+        <DeleteIcon className="size-6 pointer-events-none" />
       </button>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PinPad } from "@/components/shared/pin-pad";
 import { play } from "@/lib/sound";
 import { colorTheme } from "@/lib/avatars";
@@ -10,27 +9,36 @@ import type { ActionResult } from "@/lib/actions/result";
 
 type Props = {
   length?: number;
-  /** Called when the PIN reaches `length` digits (or on submit for variable length). */
   onSubmit: (pin: string) => Promise<ActionResult | void>;
   header: React.ReactNode;
   hint?: string;
   variableLength?: boolean;
-  /** Kid color key; tints the PIN dots so the screen feels like theirs. */
   color?: string;
 };
+
+function beep(event: "pinDigit" | "pinUnlock" | "pinError") {
+  try {
+    play(event);
+  } catch {
+    /* Web Audio can throw on iPad before a user-gesture unlock. */
+  }
+}
 
 export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, color }: Props) {
   const dotGradient = color ? colorTheme(color).gradient : null;
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [shake, setShake] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [busy, setBusy] = useState(false);
   const [fails, setFails] = useState(0);
   const [lockedUntil, setLockedUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const locked = lockedUntil > now;
   const maxLen = variableLength ? 6 : length;
+  const pinRef = useRef("");
   const idleTimer = useRef<number | null>(null);
+  const submitting = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (lockedUntil <= Date.now()) return;
@@ -50,104 +58,118 @@ export function PinScreen({ length = 4, onSubmit, header, hint, variableLength, 
   const submit = useCallback(
     (value: string) => {
       clearIdle();
-      if (Date.now() < lockedUntil) {
-        setError("Too many tries. Wait a moment.");
-        return;
-      }
+      if (submitting.current || Date.now() < lockedUntil) return;
+      submitting.current = true;
+      setBusy(true);
       setError(null);
-      startTransition(async () => {
-        const res = await onSubmit(value);
-        if (res && !res.ok) {
-          try {
-            play("pinError");
-          } catch {
-            /* ignore */
+      void Promise.resolve(onSubmit(value))
+        .then((res) => {
+          if (res && !res.ok) {
+            submitting.current = false;
+            setBusy(false);
+            beep("pinError");
+            setError(res.error);
+            setShake((s) => s + 1);
+            pinRef.current = "";
+            setPin("");
+            setFails((n) => {
+              const next = n + 1;
+              if (next >= 5) setLockedUntil(Date.now() + 30_000);
+              return next;
+            });
+            return;
           }
-          setError(res.error);
-          setShake((s) => s + 1);
-          setPin("");
-          setFails((n) => {
-            const next = n + 1;
-            if (next >= 5) setLockedUntil(Date.now() + 30_000);
-            return next;
-          });
-        } else {
-          try {
-            play("pinUnlock");
-          } catch {
-            /* ignore */
-          }
+          beep("pinUnlock");
           setFails(0);
-        }
-      });
+        })
+        .catch((err: unknown) => {
+          // Server-action redirect throws; let Next navigate. Retry if it wasn't a redirect.
+          const digest = typeof err === "object" && err && "digest" in err ? String((err as { digest?: string }).digest) : "";
+          if (digest.includes("NEXT_REDIRECT")) return;
+          submitting.current = false;
+          setBusy(false);
+          throw err;
+        });
     },
     [onSubmit, lockedUntil, clearIdle]
   );
 
-  const change = useCallback(
-    (value: string) => {
-      if (pending || Date.now() < lockedUntil) return;
-      try {
-        play("pinDigit");
-      } catch {
-        /* iPad can reject Web Audio; PIN still has to register. */
-      }
-      const next = value.slice(0, maxLen);
+  const apply = useCallback(
+    (raw: string) => {
+      if (submitting.current || Date.now() < lockedUntil) return;
+      const next = raw.replace(/\D/g, "").slice(0, maxLen);
+      if (next === pinRef.current) return;
+      pinRef.current = next;
       setPin(next);
       clearIdle();
+      if (next.length > 0) beep("pinDigit");
       if (next.length === maxLen || (!variableLength && next.length === length)) {
         submit(next);
         return;
       }
-      // 4–6 digit parent PINs: unlock as soon as they pause after a complete PIN.
       if (variableLength && next.length >= 4) {
         idleTimer.current = window.setTimeout(() => submit(next), 400);
       }
     },
-    [pending, maxLen, variableLength, length, submit, lockedUntil, clearIdle]
+    [maxLen, variableLength, length, submit, lockedUntil, clearIdle]
   );
 
-  // Physical keyboard support
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (pending) return;
-      if (/^\d$/.test(e.key)) change(pin + e.key);
-      else if (e.key === "Backspace") change(pin.slice(0, -1));
+      if (submitting.current) return;
+      if (/^\d$/.test(e.key)) apply(pinRef.current + e.key);
+      else if (e.key === "Backspace") apply(pinRef.current.slice(0, -1));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pending, pin, change]);
+  }, [apply]);
+
+  const dots = variableLength ? Math.max(4, pin.length) : length;
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-8">
+    <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-8" style={{ touchAction: "manipulation" }}>
       {header}
-      <motion.div
-        key={shake}
-        animate={shake ? { x: [0, -12, 12, -8, 8, 0] } : undefined}
-        transition={{ duration: 0.4 }}
-        className="flex flex-col items-center gap-3"
-      >
-        <div className="flex gap-3" aria-label="PIN">
-          {Array.from({ length: variableLength ? Math.max(4, pin.length) : length }).map((_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "size-5 rounded-full border-2 transition-all",
-                i < pin.length
-                  ? dotGradient
-                    ? cn("scale-110 border-transparent bg-gradient-to-br", dotGradient)
-                    : "scale-110 border-primary bg-primary"
-                  : "border-foreground/30 bg-transparent",
-                pending && "animate-pulse"
-              )}
-            />
-          ))}
+      <div className={cn("relative flex flex-col items-center gap-3", shake ? "animate-wiggle" : "")}>
+        <div className="relative">
+          <div className="flex gap-3" aria-hidden="true">
+            {Array.from({ length: dots }).map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "size-5 rounded-full border-2 transition-all",
+                  i < pin.length
+                    ? dotGradient
+                      ? cn("scale-110 border-transparent bg-gradient-to-br", dotGradient)
+                      : "scale-110 border-primary bg-primary"
+                    : "border-foreground/30 bg-transparent",
+                  busy && "animate-pulse"
+                )}
+              />
+            ))}
+          </div>
+          <input
+            ref={inputRef}
+            id="qn-pin-input"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            pattern="[0-9]*"
+            maxLength={maxLen}
+            value={pin}
+            disabled={busy || locked}
+            aria-label="PIN"
+            onChange={(e) => apply(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-text opacity-0"
+          />
         </div>
         <p className={cn("h-5 text-sm font-medium", error || locked ? "text-destructive" : "text-muted-foreground")}>
           {locked ? `Too many tries. Wait ${Math.ceil((lockedUntil - now) / 1000)}s.` : (error ?? hint ?? "")}
         </p>
-      </motion.div>
-      <PinPad value={pin} onChange={change} length={maxLen} disabled={pending || locked} />
+      </div>
+      <PinPad value={pin} onChange={apply} length={maxLen} disabled={busy || locked} />
     </div>
   );
 }
