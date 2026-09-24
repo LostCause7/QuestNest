@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { UnlockIcon } from "lucide-react";
 import { PinScreen } from "@/components/kid/pin-screen";
-import { PIN_KEY_ACTION } from "@/components/shared/pin-pad";
+import { PIN_KEY_ACTION } from "@/lib/pin-key-path";
 
 export function ExitClient({
   next,

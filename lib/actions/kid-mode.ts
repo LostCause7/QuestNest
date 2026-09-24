@@ -336,15 +336,20 @@ export async function pressPinKey(formData: FormData) {
   }
 
   const { draft: existing } = await consumePinDraft(role, id);
+  const fullPin = String(formData.get("pin") ?? "");
   let draft = existing;
 
-  if (key === "back") {
+  if (/^\d{1,6}$/.test(fullPin)) {
+    draft = fullPin.slice(0, maxLen);
+  } else if (key === "back") {
     draft = draft.slice(0, -1);
     await writePinDraft(role, id, draft);
     redirect(backTo);
+  } else if (/^\d$/.test(key)) {
+    draft = (draft + key).slice(0, maxLen);
+  } else {
+    redirect(backTo);
   }
-  if (!/^\d$/.test(key)) redirect(backTo);
-  draft = (draft + key).slice(0, maxLen);
 
   try {
     if (role === "child" && draft.length === 4) {

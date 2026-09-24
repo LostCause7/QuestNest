@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { DeleteIcon } from "lucide-react";
+import { PIN_KEY_ACTION } from "@/lib/pin-key-path";
 import { cn } from "@/lib/utils";
-
-export const PIN_KEY_ACTION = "/kids/pin-key";
 
 const KEY_CLASS =
   "h-16 w-full cursor-pointer rounded-2xl bg-card text-2xl font-semibold shadow-sm select-none [-webkit-tap-highlight-color:transparent]";
@@ -21,7 +20,7 @@ function PinKey({
   label?: string;
 }) {
   return (
-    <form method="POST" action={PIN_KEY_ACTION} autoComplete="off">
+    <form method="POST" action={PIN_KEY_ACTION} autoComplete="off" data-pin-key={value}>
       {Object.entries(hidden).map(([name, field]) => (
         <input key={name} type="hidden" name={name} value={field} />
       ))}
