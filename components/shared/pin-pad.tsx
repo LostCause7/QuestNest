@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type MouseEvent, type PointerEvent } from "react";
+import { useRef, type TouchEvent } from "react";
 import { DeleteIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,36 +17,36 @@ const KEY_CLASS =
 
 /** Big on-screen keypad for kids. */
 export function PinPad({ value, onChange, length = 4, disabled, className }: Props) {
+  const valueRef = useRef(value);
+  valueRef.current = value;
   const last = useRef(0);
 
   const fire = (fn: () => void) => {
+    if (disabled) return;
     const now = performance.now();
-    if (now - last.current < 50) return;
+    if (now - last.current < 80) return;
     last.current = now;
     fn();
   };
 
   const press = (d: string) => {
-    if (disabled) return;
-    if (value.length >= length) return;
-    onChange(value + d);
+    const current = valueRef.current;
+    if (current.length >= length) return;
+    onChange(current + d);
   };
+
   const back = () => {
-    if (disabled) return;
-    onChange(value.slice(0, -1));
+    const current = valueRef.current;
+    if (!current) return;
+    onChange(current.slice(0, -1));
   };
 
   const bind = (fn: () => void) => ({
-    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
-      if (e.pointerType === "mouse" && e.button !== 0) return;
+    onTouchEnd: (e: TouchEvent<HTMLButtonElement>) => {
       e.preventDefault();
       fire(fn);
     },
-    onClick: (e: MouseEvent<HTMLButtonElement>) => {
-      // Keyboard / assistive click. Pointer already handled above.
-      if (e.detail > 0) return;
-      fire(fn);
-    },
+    onClick: () => fire(fn),
   });
 
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
