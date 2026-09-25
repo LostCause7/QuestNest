@@ -2,7 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient, getClaims } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
-import { settleMandatoryPenalties } from "@/lib/data/parent";
+import { clearKidNotices, settleMandatoryPenalties } from "@/lib/data/parent";
 import type { Family } from "@/types/database";
 
 export type CurrentUser = { id: string; email: string | null };
@@ -45,5 +45,6 @@ export async function requireFamily(): Promise<Family> {
   const family = await getFamily();
   if (!family) redirect("/onboarding");
   await settleMandatoryPenalties(family);
+  await clearKidNotices(family);
   return family;
 }

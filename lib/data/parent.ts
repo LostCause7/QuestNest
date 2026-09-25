@@ -186,19 +186,22 @@ export const getChildGifts = cache(async (childId: string): Promise<string[]> =>
   return (data ?? []).map((g) => g.item_key);
 });
 
-/** Kudos from the last 24 hours. Empty until 0009 is applied. */
-export const getRecentKudos = cache(async (childId: string): Promise<ChildKudos[]> => {
+/** Kudos from today in the nest timezone. Empty until 0009 is applied. */
+export const getRecentKudos = cache(async (childId: string, timezone?: string): Promise<ChildKudos[]> => {
   const supabase = await createClient();
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("child_kudos")
     .select("*")
     .eq("child_id", childId)
     .gte("created_at", since)
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(8);
   if (error) return [];
-  return (data ?? []) as ChildKudos[];
+  const rows = (data ?? []) as ChildKudos[];
+  if (!timezone) return rows.slice(0, 5);
+  const today = todayInTimezone(timezone);
+  return rows.filter((k) => todayInTimezone(timezone, new Date(k.created_at)) === today).slice(0, 5);
 });
 
 /** Approved kindness quests for a kid (all time). 0 until 0009 adds chores.kind. */
@@ -251,6 +254,17 @@ export const settleMandatoryPenalties = cache(async (family: Family): Promise<nu
     return 0;
   }
   return data ?? 0;
+});
+
+/** Drop yesterday's kid-only notices (miss banners, kudos). Points stay on the ledger. */
+export const clearKidNotices = cache(async (family: Family): Promise<void> => {
+  const supabase = await createClient();
+  const today = familyToday(family);
+  const { error } = await supabase.rpc("clear_kid_notices", {
+    p_family: family.id,
+    p_today: today,
+  });
+  if (error && !MISSING.test(error.message)) console.error("clear_kid_notices", error.message);
 });
 
 export const getRecentMisses = cache(async (childId: string, from: string, to: string): Promise<ChoreMissPenalty[]> => {
