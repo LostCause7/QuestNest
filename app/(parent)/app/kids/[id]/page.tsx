@@ -18,6 +18,7 @@ import { childLook, frameClass } from "@/lib/milestones";
 import { levelInfo } from "@/lib/levels";
 import { describeSchedule } from "@/lib/schedule";
 import { dateTime } from "@/lib/format";
+import { RewardIcon } from "@/components/shared/reward-icon";
 
 export const metadata: Metadata = { title: "Kid profile" };
 
@@ -88,7 +89,7 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
       <section className="mt-8">
         <h2 className="mb-3 font-display text-xl font-semibold">Closet</h2>
         <p className="mb-4 text-sm text-muted-foreground">
-          Parents can preview and equip every look. Kids still earn unlocks or spend Closet Points (1 CP per chore point).
+          Tap a locked look to gift it — that unlocks it in their Closet. Kids can still earn looks or buy them with Closet Points.
         </p>
         <Closet
           key={kid.id}
@@ -122,7 +123,7 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
             <ul className="divide-y rounded-2xl border bg-card">
               {myChores.map((c) => (
                 <li key={c.id} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="text-xl">{c.icon}</span>
+                  <RewardIcon icon={c.icon} className="size-6" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{c.title}</div>
                     <div className="text-xs text-muted-foreground">{describeSchedule(c)}</div>
@@ -152,7 +153,7 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
                 const reward = rewardMap.get(r.reward_id);
                 return (
                   <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
-                    <span className="text-xl">{reward?.icon ?? "🎁"}</span>
+                    <RewardIcon icon={reward?.icon ?? "🎁"} className="size-6" />
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{reward?.title ?? "Reward"}</div>
                       <div className="text-xs text-muted-foreground">{dateTime(r.requested_at)}</div>

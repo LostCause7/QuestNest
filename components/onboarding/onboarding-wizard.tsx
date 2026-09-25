@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AvatarPicker, ColorPicker, KidAvatar } from "@/components/shared/avatar-picker";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { PinInput } from "@/components/shared/pin-input";
 import { completeOnboarding, type OnboardingInput } from "@/lib/actions/onboarding";
 import {
@@ -281,7 +282,7 @@ export function OnboardingWizard({ defaultName }: Props) {
                       checked={!!choreSelection[c.title]}
                       onCheckedChange={(v) => setChoreSelection((s) => ({ ...s, [c.title]: v === true }))}
                     />
-                    <span className="text-xl">{c.icon}</span>
+                    <RewardIcon icon={c.icon} className="size-6" />
                     <label htmlFor={`c-${c.title}`} className="flex-1 cursor-pointer">
                       <div className="font-medium">{c.title}</div>
                       <div className="text-xs text-muted-foreground">{describeSchedule({ recurrence: c.recurrence, days_of_week: c.days_of_week ?? [0, 1, 2, 3, 4, 5, 6] })}</div>
@@ -316,7 +317,7 @@ export function OnboardingWizard({ defaultName }: Props) {
                           checked ? "border-primary bg-primary/5" : "border-border opacity-70"
                         )}
                       >
-                        <span className="text-2xl">{r.icon}</span>
+                        <RewardIcon icon={r.icon} className="size-8" />
                         <span className="flex-1">
                           <span className="block font-medium">{r.title}</span>
                           <span className="text-xs text-muted-foreground capitalize">{r.category}</span>

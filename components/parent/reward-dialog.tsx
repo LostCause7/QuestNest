@@ -20,6 +20,7 @@ import { IconPicker } from "@/components/shared/icon-picker";
 import { useAction } from "@/hooks/use-action";
 import { createReward, updateReward, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_ICONS } from "@/lib/templates";
+import { rewardIconSrc } from "@/lib/reward-icons";
 import { suggestRewardCost } from "@/lib/suggested-points";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { cn } from "@/lib/utils";
@@ -121,7 +122,7 @@ function RewardForm({
 
         <div className="space-y-5">
           <div className="flex gap-3">
-            <IconPicker value={icon} onChange={setIcon} options={REWARD_ICONS} />
+            <IconPicker value={icon} onChange={setIcon} options={REWARD_ICONS} art={rewardIconSrc} />
             <div className="flex-1 space-y-2">
               <Label htmlFor="r-title">Reward name</Label>
               <Input

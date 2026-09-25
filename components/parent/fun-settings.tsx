@@ -126,7 +126,7 @@ export function BonusRulesForm({ family }: { family: Family }) {
       <NumberRow
         id="bonus-surprise"
         label="Surprise chance (%)"
-        hint="Odds of a random nest egg (1 to the quest's points) on the first approval each day."
+        hint="Odds an approved quest pays double — the same points again, not just +1."
         value={surprise}
         onChange={setSurprise}
         max={100}

@@ -21,6 +21,7 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { useAction } from "@/hooks/use-action";
 import { createChore, updateChore, type ChoreInput } from "@/lib/actions/chores";
 import { CHORE_ICONS } from "@/lib/templates";
+import { rewardIconSrc } from "@/lib/reward-icons";
 import { suggestQuestPoints } from "@/lib/suggested-points";
 import { WEEKDAYS } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
@@ -123,7 +124,7 @@ function ChoreForm({
 
         <div className="space-y-5">
           <div className="flex gap-3">
-            <IconPicker value={icon} onChange={setIcon} options={CHORE_ICONS} />
+            <IconPicker value={icon} onChange={setIcon} options={CHORE_ICONS} art={rewardIconSrc} />
             <div className="flex-1 space-y-2">
               <Label htmlFor="q-title">Quest name</Label>
               <Input

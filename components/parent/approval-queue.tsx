@@ -13,6 +13,7 @@ import { resolveRedemption } from "@/lib/actions/rewards";
 import { timeAgo, longDate } from "@/lib/format";
 import { formatSpend } from "@/lib/suggested-points";
 import { play } from "@/lib/sound";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import type { Child, Chore, ChoreCompletion, Reward, RewardRedemption, Family } from "@/types/database";
 
 export type PendingItem =
@@ -124,11 +125,11 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                   <span className="font-medium">
                     {p.kind === "completion" ? (
                       <>
-                        {p.chore?.icon} {p.chore?.title ?? "a quest"}
+                        <RewardIcon icon={p.chore?.icon} className="size-5" /> {p.chore?.title ?? "a quest"}
                       </>
                     ) : (
                       <>
-                        {p.reward?.icon} {p.reward?.title ?? "a reward"}
+                        <RewardIcon icon={p.reward?.icon} className="size-5" /> {p.reward?.title ?? "a reward"}
                       </>
                     )}
                   </span>

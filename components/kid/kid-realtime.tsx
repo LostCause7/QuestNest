@@ -158,7 +158,7 @@ export function KidRealtime({
           if (a.kind === "perfect_day") {
             celebrate({ emoji: "🌅", title: "Perfect day!", subtitle: "Every quest done. Take a bow.", points: a.points, currencyEmoji, tone: "sunrise" });
           } else if (a.kind === "mystery") {
-            celebrate({ emoji: "🎲", title: "Mystery bonus!", subtitle: "Surprise! Extra treasure today.", points: a.points, currencyEmoji, tone: "gold" });
+            celebrate({ emoji: "🎲", title: "Double points!", subtitle: "Surprise! This quest paid twice.", points: a.points, currencyEmoji, tone: "gold" });
           } else if (a.kind === "comeback") {
             celebrate({ emoji: "👋", title: "Welcome back!", subtitle: "We missed you. Bonus for showing up.", points: a.points, currencyEmoji, tone: "comeback" });
           } else if (a.kind === "daily") {

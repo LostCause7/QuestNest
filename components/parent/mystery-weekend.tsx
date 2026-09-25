@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAction } from "@/hooks/use-action";
 import { createChore } from "@/lib/actions/chores";
 import { CHORE_PACKS, EXTRA_CHORE_PACKS, type ChoreTemplate } from "@/lib/templates";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import type { Child, Family } from "@/types/database";
 
 /**
@@ -58,7 +59,7 @@ export function MysteryWeekend({
       <div className="min-w-0 flex-1">
         <div className="text-xs font-semibold uppercase tracking-wide text-violet-700">Mystery weekend quest</div>
         <div className="font-display text-lg font-semibold">
-          {suggestion.icon} {suggestion.title} · +{points} {family.currency_emoji}
+          <RewardIcon icon={suggestion.icon} className="size-5" /> {suggestion.title} · +{points} {family.currency_emoji}
         </div>
         <p className="text-xs text-muted-foreground">A one-time bonus quest for today, for every kid. Worth 1.5x the usual.</p>
       </div>

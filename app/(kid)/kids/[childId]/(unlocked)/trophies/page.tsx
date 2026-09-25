@@ -4,7 +4,6 @@ import { KidPageHero } from "@/components/kid/page-hero";
 import { UnlockTrack } from "@/components/kid/unlock-track";
 import { SeasonPass } from "@/components/kid/season-pass";
 import { BadgeSets } from "@/components/kid/badge-sets";
-import { StampBook } from "@/components/kid/stamp-book";
 import { ReplayCelebration } from "@/components/kid/home-extras";
 import { BadgeGrid } from "@/components/shared/badge-grid";
 import { requireFamily } from "@/lib/data/family";
@@ -15,7 +14,6 @@ import {
   getBadges,
   getChildGifts,
   getCompletionsBetween,
-  getDayAwards,
   getFamilyMilestones,
   getTransactions,
   shiftDate,
@@ -23,6 +21,7 @@ import {
 import { levelInfo } from "@/lib/levels";
 import { lifetimeBadgeKeys } from "@/lib/badges";
 import { seasonWindow } from "@/lib/cosmetics";
+import { todayInTimezone } from "@/lib/schedule";
 import { dateTime, signed } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -34,20 +33,20 @@ export default async function KidTrophiesPage(props: PageProps<"/kids/[childId]/
   const child = await requireActiveChild(family, childId);
   const today = familyToday(family);
   const weekAgo = shiftDate(today, -6);
-  const monthAgo = shiftDate(today, -27);
   const season = seasonWindow(family.created_at, today);
-  const [badges, transactions, month, extras, gifts, seasonCounts, awards] = await Promise.all([
+  const [badges, transactions, week, extras, gifts, seasonCounts] = await Promise.all([
     getBadges([child.id]),
-    getTransactions(family.id, { childId: child.id, limit: 15 }),
-    getCompletionsBetween(family.id, monthAgo, today),
+    getTransactions(family.id, { childId: child.id, limit: 80 }),
+    getCompletionsBetween(family.id, weekAgo, today),
     getFamilyMilestones(family.id),
     getChildGifts(child.id),
     getApprovedCounts(family.id, season.from, today),
-    getDayAwards(child.id, monthAgo, today),
   ]);
   const lvl = levelInfo(child.lifetime_points);
-  const mine = month.filter((c) => c.child_id === child.id);
-  const mineThisWeek = mine.filter((c) => c.status === "approved" && c.for_date >= weekAgo).length;
+  const mineThisWeek = week.filter((c) => c.child_id === child.id && c.status === "approved").length;
+  const todayQuests = transactions.filter(
+    (t) => t.kind === "chore" && todayInTimezone(family.timezone, new Date(t.created_at)) === today
+  );
   const earnedKeys = new Set([...badges.map((b) => b.badge_key), ...lifetimeBadgeKeys(child.lifetime_points)]);
 
   return (
@@ -93,18 +92,14 @@ export default async function KidTrophiesPage(props: PageProps<"/kids/[childId]/
         <BadgeGrid earned={badges} lifetimePoints={child.lifetime_points} />
       </div>
 
-      <div className="mt-8">
-        <StampBook name={child.nickname?.trim() || child.name} today={today} completions={mine} awards={awards} currencyEmoji={family.currency_emoji} />
-      </div>
-
-      <h3 className="mt-8 mb-3 font-display text-xl font-semibold">Recent adventures</h3>
-      {transactions.length ? (
+      <h3 className="mt-8 mb-3 font-display text-xl font-semibold">Today&apos;s quests</h3>
+      {todayQuests.length ? (
         <ul className="qn-kid-surface divide-y rounded-3xl shadow-md ring-1 ring-black/5">
-          {transactions.map((t) => (
+          {todayQuests.map((t) => (
             <li key={t.id} className="flex items-center gap-3 px-4 py-3">
-              <span className="text-xl">{t.kind === "chore" ? "⚔️" : t.kind === "reward" ? "🎁" : t.kind === "bonus" ? "🌟" : t.kind === "refund" ? "↩️" : "⚠️"}</span>
+              <span className="text-xl">⚔️</span>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{t.note ?? t.kind}</div>
+                <div className="truncate text-sm font-medium">{t.note ?? "Quest"}</div>
                 <div className="text-xs text-muted-foreground">{dateTime(t.created_at)}</div>
               </div>
               <span className={cn("rounded-full px-2.5 py-1 text-sm font-bold tabular-nums", t.amount > 0 ? "bg-mint-300/60 text-emerald-800" : "bg-rose-100 text-rose-700")}>
@@ -114,7 +109,9 @@ export default async function KidTrophiesPage(props: PageProps<"/kids/[childId]/
           ))}
         </ul>
       ) : (
-        <div className="qn-kid-surface rounded-3xl p-8 text-center text-muted-foreground shadow-md ring-1 ring-black/5">Your story starts with your first quest!</div>
+        <div className="qn-kid-surface rounded-3xl p-8 text-center text-muted-foreground shadow-md ring-1 ring-black/5">
+          No quests from today yet — finish one and it will show up here.
+        </div>
       )}
     </>
   );

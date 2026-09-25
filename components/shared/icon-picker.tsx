@@ -10,11 +10,13 @@ export function IconPicker({
   onChange,
   options,
   className,
+  art,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: string[];
   className?: string;
+  art?: (option: string) => string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState("");
@@ -29,7 +31,7 @@ export function IconPicker({
           )}
           aria-label="Choose icon"
         >
-          {value || "❓"}
+          <PickerGlyph value={value || "❓"} art={art} className="size-10 text-3xl" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3" align="start">
@@ -48,7 +50,7 @@ export function IconPicker({
                 o === value && "bg-primary/15"
               )}
             >
-              {o}
+              <PickerGlyph value={o} art={art} className="size-7 text-xl" />
             </button>
           ))}
         </div>
@@ -76,4 +78,18 @@ export function IconPicker({
       </PopoverContent>
     </Popover>
   );
+}
+
+function PickerGlyph({
+  value,
+  art,
+  className,
+}: {
+  value: string;
+  art?: (option: string) => string | null;
+  className?: string;
+}) {
+  const src = art?.(value);
+  if (src) return <img src={src} alt="" draggable={false} className={cn("object-contain", className)} />;
+  return <span className={className}>{value}</span>;
 }

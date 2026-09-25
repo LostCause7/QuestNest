@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { useAction } from "@/hooks/use-action";
+import { ConfirmDialog } from "@/components/parent/confirm-dialog";
+import { giftLook } from "@/lib/actions/kudos";
 import { buyClosetItem, saveChildFlavor, saveChildLook, saveChildStyle } from "@/lib/actions/style";
 import { AVATARS, AVATAR_KEYS, COLORS, COLOR_KEYS } from "@/lib/avatars";
 import {
@@ -100,8 +102,10 @@ export function Closet({
     [child, extras, badges, ownedGifts, seasonQuests]
   );
   const locked = useMemo(() => new Set(allAccess ? [] : lockedSlots), [allAccess, lockedSlots]);
-  const owned = (item: CosmeticItem) => allAccess || isUnlocked(item, ctx);
+  const owned = (item: CosmeticItem) => isUnlocked(item, ctx);
   const [tab, setTab] = useState<Tab>("face");
+  const [giftTarget, setGiftTarget] = useState<CosmeticItem | null>(null);
+  const kidName = child.nickname?.trim() || child.name;
   const [avatar, setAvatar] = useState(child.avatar);
   const [color, setColor] = useState(child.color);
   const [motto, setMotto] = useState(child.motto ?? "");
@@ -219,6 +223,11 @@ export function Closet({
 
   const pickItem = (item: CosmeticItem) => {
     if (!owned(item)) {
+      if (allAccess) {
+        setGiftTarget(item);
+        play("tap");
+        return;
+      }
       if (preview?.kind === item.kind && preview.key === item.key) {
         setPreview(null);
         play("tap");
@@ -228,6 +237,18 @@ export function Closet({
       return;
     }
     wearItem(item);
+  };
+
+  const confirmGift = () => {
+    if (!giftTarget) return;
+    const item = giftTarget;
+    void run(() => giftLook(child.id, { kind: item.kind, key: item.key }), {
+      onSuccess: () => {
+        setOwnedGifts((cur) => [...new Set([...cur, giftKey(item)])]);
+        setGiftTarget(null);
+        wearItem(item);
+      },
+    });
   };
 
   const equip = (kind: SlotKind, key: string | null) => {
@@ -307,7 +328,7 @@ export function Closet({
           )}
         </div>
 
-        {preview && !owned(preview) ? (
+        {preview && !owned(preview) && !allAccess ? (
           <div className="flex flex-col gap-3 rounded-3xl bg-zinc-950 px-4 py-3 text-sm text-amber-50 shadow-sm ring-1 ring-amber-300/50 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-amber-100">Previewing {preview.label}</div>
@@ -512,6 +533,17 @@ export function Closet({
           </Grid>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(giftTarget)}
+        onOpenChange={(o) => !o && setGiftTarget(null)}
+        title={`Gift ${giftTarget?.label ?? "this look"}?`}
+        description={`This unlocks ${giftTarget?.label ?? "it"} in ${kidName}'s Closet.`}
+        confirmLabel={`Gift to ${kidName}`}
+        destructive={false}
+        pending={pending}
+        onConfirm={confirmGift}
+      />
     </div>
   );
 }

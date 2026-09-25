@@ -19,6 +19,7 @@ import { KidPageHero } from "@/components/kid/page-hero";
 import { cancelRedemptionAsKid, redeemRewardAsKid } from "@/lib/actions/kid-mode";
 import { cashStepOptions, formatDollars, isCashReward, pointsToDollars } from "@/lib/suggested-points";
 import { play } from "@/lib/sound";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { cn } from "@/lib/utils";
 import type { Child, Family, Reward, RewardRedemption } from "@/types/database";
 
@@ -155,7 +156,7 @@ export function Shop({
               return (
                 <li key={r.id} className="inline-flex items-center gap-2 rounded-full bg-card py-1 pr-1 pl-3 text-sm font-medium shadow-sm">
                   <span>
-                    {reward?.icon ?? "🎁"} {reward?.title ?? "Reward"}
+                    <RewardIcon icon={reward?.icon ?? "🎁"} className="size-5" /> {reward?.title ?? "Reward"}
                     {cashPick ? ` · ${formatDollars(pointsToDollars(r.cost_at_time))}` : ""}
                   </span>
                   <button
@@ -187,7 +188,7 @@ export function Shop({
             <TargetIcon className="size-4" /> {savingFor === nextGoal.id ? "Saving up for" : "Closest goal"}
           </div>
           <div className="mt-1 flex items-center gap-3">
-            <span className="text-3xl">{nextGoal.icon}</span>
+            <RewardIcon icon={nextGoal.icon} className="size-8" />
             <div className="flex-1">
               <div className="font-display text-lg font-semibold">{nextGoal.title}</div>
               <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-muted">
@@ -261,7 +262,7 @@ export function Shop({
                   </span>
                 ) : null}
                 <span className={cn("flex size-16 items-center justify-center rounded-2xl text-4xl shadow-inner", canAfford ? "bg-sun-300/45" : "bg-muted grayscale")}>
-                  {r.icon}
+                  <RewardIcon icon={r.icon} className="size-12" />
                 </span>
                 <span className="mt-3 line-clamp-2 font-display text-base font-semibold leading-tight">{r.title}</span>
                 <span
@@ -286,7 +287,9 @@ export function Shop({
           {selected ? (
             <>
               <DialogHeader className="items-center text-center">
-                <span className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-accent text-5xl">{selected.icon}</span>
+                <span className="mx-auto flex size-20 items-center justify-center rounded-3xl bg-accent text-5xl">
+                  <RewardIcon icon={selected.icon} className="size-16" />
+                </span>
                 <DialogTitle className="font-display text-2xl">{selected.title}</DialogTitle>
                 <DialogDescription>
                   {selected.description ?? (selected.requires_approval ? "A parent will approve this before it's yours." : "Redeem instantly!")}

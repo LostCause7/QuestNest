@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckIcon, FlameIcon } from "lucide-react";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { RewardIcon } from "@/components/shared/reward-icon";
 
 const STARTER = [
   { icon: "🛏️", title: "Make your bed", pts: 5, done: true },
@@ -53,7 +54,9 @@ export function HeroPreview() {
               transition={{ delay: 0.5 + i * 0.12 }}
               className={`qn-lift flex items-center gap-3 rounded-2xl p-3 ${q.done ? "bg-mint-300/30" : "qn-glass"}`}
             >
-              <span className={`flex size-10 items-center justify-center rounded-xl text-xl ${q.done ? "bg-mint-300/60" : "bg-accent"}`}>{q.icon}</span>
+              <span className={`flex size-10 items-center justify-center rounded-xl text-xl ${q.done ? "bg-mint-300/60" : "bg-accent"}`}>
+                <RewardIcon icon={q.icon} className="size-7" />
+              </span>
               <span className={`flex-1 font-display text-sm font-semibold ${q.done ? "text-muted-foreground line-through" : ""}`}>{q.title}</span>
               <span className="rounded-full bg-sun-300/50 px-2 py-0.5 text-[11px] font-bold">+{q.pts} ⭐</span>
               {q.done ? (

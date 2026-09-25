@@ -11,6 +11,7 @@ import { play } from "@/lib/sound";
 import { burstFrom } from "@/lib/confetti";
 import { longDate } from "@/lib/format";
 import { ALL_DONE, COMBO, PRAISE, pick } from "@/lib/copy";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { cn } from "@/lib/utils";
 import type { QuestCard, TakenQuest } from "@/lib/data/kid";
 import type { Family, Child } from "@/types/database";
@@ -158,12 +159,12 @@ export function QuestBoard({
         <div className="mb-4 flex flex-wrap gap-2">
           {takenToday.map((q) => (
             <span key={`${q.title}-${q.byName}`} className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-800">
-              {q.icon} {q.title} · {q.byName} claimed
+              <RewardIcon icon={q.icon} className="size-4" /> {q.title} · {q.byName} claimed
             </span>
           ))}
           {tomorrowPeek.map((q) => (
             <span key={q.title} className="inline-flex items-center gap-1.5 rounded-full bg-card/90 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">
-              Tomorrow · {q.icon} {q.title}
+              Tomorrow · <RewardIcon icon={q.icon} className="size-4" /> {q.title}
             </span>
           ))}
         </div>
@@ -284,7 +285,7 @@ function QuestItem({
             isDone ? "bg-mint-300/70" : isWaiting ? "bg-sun-300/70" : isKindness ? "bg-pink-100" : "bg-accent"
           )}
         >
-          {chore.icon}
+          <RewardIcon icon={chore.icon} className="size-10" />
         </span>
         <div className="min-w-0 flex-1">
           <h3 className={cn("font-display text-lg font-semibold leading-snug text-pretty", isDone && "text-muted-foreground line-through")}>

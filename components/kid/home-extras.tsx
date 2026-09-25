@@ -6,6 +6,7 @@ import Link from "next/link";
 import { HeartHandshakeIcon, RepeatIcon, TargetIcon } from "lucide-react";
 import { celebrate, lastCelebration, onCelebrate, type CelebrationPayload } from "@/lib/celebrate";
 import { timeAgo } from "@/lib/format";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { cn } from "@/lib/utils";
 import type { ChildKudos, ChoreMissPenalty, Reward } from "@/types/database";
 
@@ -93,7 +94,9 @@ export function SaveUpMeter({ reward, balance, currencyEmoji, childId }: { rewar
   const left = Math.max(0, reward.cost - balance);
   return (
     <Link href={`/kids/${childId}/shop`} className="mb-4 flex items-center gap-3 rounded-3xl bg-card/90 px-4 py-3 shadow-md ring-1 ring-black/5">
-      <span className="flex size-12 items-center justify-center rounded-2xl bg-sun-300/50 text-3xl">{reward.icon}</span>
+      <span className="flex size-12 items-center justify-center rounded-2xl bg-sun-300/50 text-3xl">
+        <RewardIcon icon={reward.icon} className="size-9" />
+      </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-sm font-semibold">
           <TargetIcon className="size-4 text-primary" /> Saving for {reward.title}

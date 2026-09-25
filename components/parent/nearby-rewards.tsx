@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { useAction } from "@/hooks/use-action";
 import { suggestNearbyRewards, addNearbyRewards } from "@/lib/actions/places";
 import { NEARBY_PAGE_SIZE } from "@/lib/places";
@@ -143,7 +144,7 @@ export function NearbyRewardsButton({ family, kids }: { family: Family; kids: Ch
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex items-start gap-3 rounded-2xl border bg-muted/30 p-4">
-                  <span className="text-4xl">{preview.icon}</span>
+                  <RewardIcon icon={preview.icon} className="size-14" />
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="font-medium">{preview.kind}</div>
                     <div className="text-sm text-muted-foreground">
@@ -245,7 +246,7 @@ export function NearbyRewardsButton({ family, kids }: { family: Family; kids: Ch
                               on ? "border-primary bg-primary/5" : "hover:bg-muted"
                             )}
                           >
-                            <span className="text-2xl">{p.icon}</span>
+                            <RewardIcon icon={p.icon} className="size-8" />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate font-medium">{p.name}</span>
                               <span className="text-xs text-muted-foreground">

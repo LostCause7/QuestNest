@@ -33,6 +33,7 @@ import { useAction } from "@/hooks/use-action";
 import { deleteChore, setChoreActive, type ChoreInput } from "@/lib/actions/chores";
 import { describeSchedule } from "@/lib/schedule";
 import { AGE_BANDS, CHORE_PACKS, EXTRA_CHORE_PACKS, type AgeBand } from "@/lib/templates";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 import type { ChoreWithKids } from "@/lib/data/parent";
@@ -236,7 +237,9 @@ function ChoreCard({
   return (
     <li className={cn("flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm", paused && "opacity-60")}>
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">{chore.icon}</span>
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">
+          <RewardIcon icon={chore.icon} className="size-8" />
+        </span>
         <div className="min-w-0 flex-1">
           <button type="button" onClick={onEdit} className="block truncate text-left font-medium hover:underline">
             {chore.title}
@@ -368,7 +371,7 @@ function QuestLibrary({
                   }
                   className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-muted"
                 >
-                  <span className="text-2xl">{t.icon}</span>
+                  <RewardIcon icon={t.icon} className="size-8" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{t.title}</span>
                     <span className="text-xs text-muted-foreground">

@@ -33,6 +33,7 @@ import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteReward, setRewardActive, resolveRedemption, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
+import { RewardIcon } from "@/components/shared/reward-icon";
 import { timeAgo } from "@/lib/format";
 import { formatSpend, isCashReward } from "@/lib/suggested-points";
 import { cn } from "@/lib/utils";
@@ -108,7 +109,7 @@ export function RewardsManager({
                     <div className="truncate">
                       <span className="font-medium">{kid?.name}</span> <span className="text-muted-foreground">redeemed</span>{" "}
                       <span className="font-medium">
-                        {reward?.icon} {reward?.title}
+                        <RewardIcon icon={reward?.icon} className="size-5" /> {reward?.title}
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -198,7 +199,7 @@ export function RewardsManager({
                 <li key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
                   {kid ? <KidAvatar avatar={kid.avatar} color={kid.color} size="xs" /> : null}
                   <span className="min-w-0 flex-1 truncate">
-                    <span className="font-medium">{kid?.name}</span> · {reward?.icon} {reward?.title}
+                    <span className="font-medium">{kid?.name}</span> · <RewardIcon icon={reward?.icon} className="size-4" /> {reward?.title}
                   </span>
                   <span className="text-xs text-muted-foreground">{timeAgo(r.resolved_at ?? r.requested_at)}</span>
                   <Badge variant={r.status === "rejected" ? "destructive" : "secondary"} className="capitalize">
@@ -230,7 +231,7 @@ export function RewardsManager({
                   }}
                   className="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-muted"
                 >
-                  <span className="text-2xl">{t.icon}</span>
+                  <RewardIcon icon={t.icon} className="size-8" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{t.title}</span>
                     <span className="text-xs text-muted-foreground capitalize">{t.category}</span>
@@ -278,7 +279,9 @@ function RewardCard({
   return (
     <li className={cn("flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm", hidden && "opacity-60")}>
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">{reward.icon}</span>
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">
+          <RewardIcon icon={reward.icon} className="size-8" />
+        </span>
         <div className="min-w-0 flex-1">
           <button type="button" onClick={onEdit} className="block truncate text-left font-medium hover:underline">
             {reward.title}
