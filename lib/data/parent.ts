@@ -256,7 +256,7 @@ export const settleMandatoryPenalties = cache(async (family: Family): Promise<nu
   return data ?? 0;
 });
 
-/** Drop yesterday's kid-only notices (miss banners, kudos). Points stay on the ledger. */
+/** Drop yesterday's kid kudos. Miss penalty rows stay so settle cannot charge twice. */
 export const clearKidNotices = cache(async (family: Family): Promise<void> => {
   const supabase = await createClient();
   const today = familyToday(family);
