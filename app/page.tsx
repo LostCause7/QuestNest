@@ -85,6 +85,16 @@ export default async function HomePage() {
         <div className="absolute -top-32 left-1/3 size-[28rem] rounded-full bg-sky-500/15 blur-3xl" />
         <div className="absolute top-20 right-0 size-[24rem] rounded-full bg-cyan-400/10 blur-3xl" />
       </div>
+      <div className="qn-glass-panel relative z-50 rounded-none border-x-0 border-t-0">
+        <div className="mx-auto flex h-9 max-w-6xl items-center justify-center gap-2.5 px-6">
+          <span className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            In development
+          </span>
+          <span className="qn-chrome rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.14em] text-slate-900 uppercase">
+            Open Beta
+          </span>
+        </div>
+      </div>
       <SiteHeader />
 
       {/* Hero */}
