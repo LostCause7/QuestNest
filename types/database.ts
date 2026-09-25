@@ -488,6 +488,10 @@ export type Database = {
         Args: { p_tx: string };
         Returns: undefined;
       };
+      clear_kid_notices: {
+        Args: { p_family: string; p_today: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       recurrence: Recurrence;
