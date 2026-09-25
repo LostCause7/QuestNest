@@ -10,6 +10,39 @@ export const WEEKDAYS = [
   { value: 6, short: "Sat", long: "Saturday" },
 ];
 
+/** Local hour (0-23) and minute in the given IANA timezone. */
+export function clockInTimezone(timezone: string, now = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+    return { hour: get("hour"), minute: get("minute") };
+  } catch {
+    return { hour: now.getHours(), minute: now.getMinutes() };
+  }
+}
+
+/**
+ * Day to settle mandatory misses, or null if it is not time yet.
+ * 11:50pm–midnight: today. Midnight–noon: yesterday (if nobody was on at 11:50).
+ * Afternoon: do not check.
+ */
+export function mandatorySettleThrough(timezone: string, now = new Date()): string | null {
+  const today = todayInTimezone(timezone, now);
+  const { hour, minute } = clockInTimezone(timezone, now);
+  const mins = hour * 60 + minute;
+  if (mins >= 23 * 60 + 50) return today;
+  if (mins < 12 * 60) {
+    const [y, m, d] = today.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
+  }
+  return null;
+}
+
 /** YYYY-MM-DD for "today" in the given IANA timezone. */
 export function todayInTimezone(timezone: string, now = new Date()) {
   try {

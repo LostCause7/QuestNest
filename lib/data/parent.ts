@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { todayInTimezone } from "@/lib/schedule";
+import { mandatorySettleThrough, todayInTimezone } from "@/lib/schedule";
 import type {
   Child,
   Chore,
@@ -241,10 +241,11 @@ export const getApprovedCounts = cache(async (familyId: string, from: string, to
 
 const MISSING = /does not exist|schema cache|column/i;
 
-/** Apply missed-mandatory deductions for days before today. Safe no-op if 0011 is not applied. */
+/** Apply missed-mandatory deductions after 11:50pm local (or yesterday before noon as catch-up). */
 export const settleMandatoryPenalties = cache(async (family: Family): Promise<number> => {
+  const through = mandatorySettleThrough(family.timezone);
+  if (!through) return 0;
   const supabase = await createClient();
-  const through = shiftDate(familyToday(family), -1);
   const { data, error } = await supabase.rpc("settle_mandatory_penalties", {
     p_family: family.id,
     p_through: through,
