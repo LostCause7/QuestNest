@@ -478,6 +478,10 @@ export type Database = {
         Args: { p_child: string; p_item_key: string; p_cost: number };
         Returns: number;
       };
+      erase_activity: {
+        Args: { p_tx: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       recurrence: Recurrence;

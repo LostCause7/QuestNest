@@ -23,7 +23,7 @@ export function avatarEmoji(key: string) {
   return AVATARS[key as AvatarKey]?.emoji ?? gatedFaceEmoji(key) ?? "🙂";
 }
 
-const FACE_CACHE = "5";
+const FACE_CACHE = "7";
 
 export function avatarSrc(key: string) {
   if (AVATARS[key as AvatarKey] || gatedFaceEmoji(key)) return `/faces/${key}.png?v=${FACE_CACHE}`;

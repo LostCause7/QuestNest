@@ -9,17 +9,16 @@ import { Label } from "@/components/ui/label";
 import { useAction } from "@/hooks/use-action";
 import { updateFamilyBonuses, updateFamilyStyle } from "@/lib/actions/family";
 import { CREST_COLORS, CREST_LETTERS, resolveCrestColor, resolveCrestLetter } from "@/lib/crests";
-import { ROOM_ITEMS, STYLE_SLOTS } from "@/lib/cosmetics";
+import { STYLE_SLOTS } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 import type { Family } from "@/types/database";
 
-const LOCKABLE = STYLE_SLOTS.map((s) => ({ key: s.kind, label: s.label }));
+const LOCKABLE = STYLE_SLOTS.filter((s) => s.kind !== "room").map((s) => ({ key: s.kind, label: s.label }));
 
 export function NestLookForm({ family }: { family: Family }) {
   const { run, pending } = useAction();
   const s = family.style ?? {};
-  const [room, setRoom] = useState<string | null>(s.room ?? null);
-  const [locked, setLocked] = useState<string[]>(s.lockedSlots ?? []);
+  const [locked, setLocked] = useState<string[]>((s.lockedSlots ?? []).filter((k) => k !== "room"));
   const [crestEmoji, setCrestEmoji] = useState(resolveCrestLetter(s.crestEmoji) ?? "");
   const [crestColor, setCrestColor] = useState(resolveCrestColor(s.crestColor));
 
@@ -30,7 +29,7 @@ export function NestLookForm({ family }: { family: Family }) {
         e.preventDefault();
         run(() =>
           updateFamilyStyle({
-            room,
+            room: null,
             sky: null,
             seasonalStickers: false,
             lockedSlots: locked,
@@ -77,37 +76,6 @@ export function NestLookForm({ family }: { family: Family }) {
             >
               <span className={cn("size-4 rounded-full bg-gradient-to-br ring-1 ring-slate-500/40", c.fill)} />
               {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <Label>Nest room</Label>
-          <p className="text-xs text-muted-foreground">
-            Default backdrop for kids. Lock the Room slot below if you want this look for everyone.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <button type="button" aria-pressed={room === null} onClick={() => setRoom(null)} className="qn-choice qn-lift overflow-hidden rounded-2xl text-left">
-            <div className="h-16 bg-[linear-gradient(135deg,#e2e8f0,#94a3b8,#cbd5e1)]" />
-            <div className="px-2.5 py-2 text-sm font-semibold">Kid&apos;s choice</div>
-          </button>
-          {ROOM_ITEMS.map((r) => (
-            <button
-              key={r.key}
-              type="button"
-              aria-pressed={room === r.key}
-              onClick={() => setRoom(r.key)}
-              className="qn-choice qn-lift overflow-hidden rounded-2xl text-left"
-            >
-              <div className="kid-mode relative h-16 overflow-hidden" data-room={r.key}>
-                <div className="qn-kid-sky absolute inset-0" />
-                <div className="qn-room-blob-a absolute -top-6 -left-4 size-16 rounded-full opacity-90 blur-xl" />
-                <div className="qn-room-blob-b absolute -right-4 top-1 size-14 rounded-full opacity-80 blur-xl" />
-              </div>
-              <div className="px-2.5 py-2 text-sm font-semibold">{r.label}</div>
             </button>
           ))}
         </div>

@@ -4,7 +4,6 @@ import { FamilySettingsForm, ParentPinForm, ProfileForm } from "@/components/par
 import { MilestoneManager } from "@/components/parent/milestone-manager";
 import { BonusRulesForm, NestLookForm } from "@/components/parent/fun-settings";
 import { DataTools, DevicePrefsForm, InstallHowTo, WhatsNew } from "@/components/parent/nest-extras";
-import { NetworkAccessCard } from "@/components/parent/network-access";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { getFamilyMilestones, hasParentPin } from "@/lib/data/parent";
 import { createClient } from "@/lib/supabase/server";
@@ -48,7 +47,7 @@ export default async function SettingsPage() {
           <Section title="Bonus rules" description="Free little surprises that keep kids coming back. Everything is 0 (off) until you turn it on.">
             <BonusRulesForm family={family} />
           </Section>
-          <Section title="Nest look" description="Family letter crest, default room, and which Closet slots kids may change.">
+          <Section title="Nest look" description="Family letter crest and which Closet slots kids may change.">
             <NestLookForm family={family} />
           </Section>
         </div>
@@ -62,9 +61,6 @@ export default async function SettingsPage() {
             />
             <p className="mt-3 text-xs text-muted-foreground">Signed in as {user.email}</p>
           </Section>
-          <Section title="This network" description="Open the same nest from any device on your Wi‑Fi.">
-            <NetworkAccessCard />
-          </Section>
           <Section title="This device" description="Sounds, contrast, quiet hours, and how to install the app.">
             <DevicePrefsForm />
             <div className="mt-4 border-t pt-4">
@@ -76,11 +72,6 @@ export default async function SettingsPage() {
           </Section>
           <Section title="Your data">
             <DataTools family={family} />
-          </Section>
-          <Section title="Account">
-            <form action="/auth/signout" method="post">
-              <button className="text-sm font-medium text-destructive hover:underline">Sign out</button>
-            </form>
           </Section>
         </div>
       </div>

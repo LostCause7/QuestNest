@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { LockIcon, SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
   isUnlocked,
   itemsOf,
   bannerClassName,
+  cosmeticThumb,
   nameplateClassName,
   unlockContext,
   unlockHint,
@@ -165,7 +167,9 @@ export function Closet({
       /* ignore */
     }
     play("tap");
-    void run(() => saveChildStyle(child.id, next), { silent: true });
+    void saveChildStyle(child.id, next).then((res) => {
+      if (!res.ok) toast.error(res.error);
+    });
   };
 
   const persistLook = (next: { avatar?: string; color?: string }) => {
@@ -173,7 +177,9 @@ export function Closet({
     if (next.avatar) setAvatar(next.avatar);
     if (next.color) setColor(next.color);
     play("tap");
-    void run(() => saveChildLook(child.id, next), { silent: true });
+    void saveChildLook(child.id, next).then((res) => {
+      if (!res.ok) toast.error(res.error);
+    });
   };
 
   const previewEffects = (item: CosmeticItem) => {
@@ -213,6 +219,11 @@ export function Closet({
 
   const pickItem = (item: CosmeticItem) => {
     if (!owned(item)) {
+      if (preview?.kind === item.kind && preview.key === item.key) {
+        setPreview(null);
+        play("tap");
+        return;
+      }
       showPreview(item);
       return;
     }
@@ -287,11 +298,6 @@ export function Closet({
               ) : null}
             </div>
             <div className="text-sm text-muted-foreground">{look.title || "Rookie"}</div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {allAccess
-                ? "Parents can preview and equip every look."
-                : "Tap a locked look to preview it. Earn it, or buy it with Closet Points."}
-            </p>
           </div>
           {allAccess ? null : (
             <div className="shrink-0 rounded-2xl bg-card/80 px-3 py-2 text-right shadow-sm ring-1 ring-black/5">
@@ -302,15 +308,15 @@ export function Closet({
         </div>
 
         {preview && !owned(preview) ? (
-          <div className="flex flex-col gap-3 rounded-3xl bg-amber-50 px-4 py-3 text-sm shadow-sm ring-1 ring-amber-200 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 rounded-3xl bg-zinc-950 px-4 py-3 text-sm text-amber-50 shadow-sm ring-1 ring-amber-300/50 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
-              <div className="font-semibold">Previewing {preview.label}</div>
-              <p className="text-muted-foreground">
+              <div className="font-semibold text-amber-100">Previewing {preview.label}</div>
+              <p className="text-amber-100/80">
                 Unlock with {unlockHint(preview, currency).toLowerCase()}, or buy for {previewCost} CP.
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <Button type="button" variant="outline" disabled={pending} onClick={() => setPreview(null)}>
+              <Button type="button" variant="outline" onClick={() => setPreview(null)}>
                 Clear
               </Button>
               <Button type="button" disabled={pending || cp < previewCost} onClick={buyPreview}>
@@ -347,7 +353,7 @@ export function Closet({
               <Tile
                 key={key}
                 selected={shownAvatar === key && !preview}
-                disabled={pending || locked.has("face")}
+                disabled={locked.has("face")}
                 label={AVATARS[key].label}
                 onClick={() => persistLook({ avatar: key })}
               >
@@ -361,7 +367,7 @@ export function Closet({
                 unlocked={owned(item)}
                 selected={shownAvatar === item.key}
                 fresh={fresh.has(giftKey(item))}
-                disabled={pending || (owned(item) && locked.has("face"))}
+                disabled={owned(item) && locked.has("face")}
                 currency={currency}
                 onClick={() => pickItem(item)}
               >
@@ -377,7 +383,7 @@ export function Closet({
               <Tile
                 key={key}
                 selected={shownColor === key && !preview}
-                disabled={pending || locked.has("color")}
+                disabled={locked.has("color")}
                 label={COLORS[key].label}
                 onClick={() => persistLook({ color: key })}
               >
@@ -391,11 +397,11 @@ export function Closet({
                 unlocked={owned(item)}
                 selected={shownColor === item.key}
                 fresh={fresh.has(giftKey(item))}
-                disabled={pending || (owned(item) && locked.has("color"))}
+                disabled={owned(item) && locked.has("color")}
                 currency={currency}
                 onClick={() => pickItem(item)}
               >
-                <span className={cn("size-10 rounded-full bg-gradient-to-br", item.className)} />
+                <span className={cn("size-10 overflow-hidden rounded-full bg-gradient-to-br shadow-inner", item.className)} />
               </CatalogTile>
             ))}
           </Grid>
@@ -413,7 +419,7 @@ export function Closet({
                     type="button"
                     size="sm"
                     variant={on ? "default" : "outline"}
-                    disabled={pending || (open && locked.has("title"))}
+                    disabled={open && locked.has("title")}
                     title={open ? item.label : `${unlockHint(item, currency)} · ${closetPrice(item)} CP`}
                     onClick={() => pickItem(item)}
                   >
@@ -429,7 +435,7 @@ export function Closet({
                     type="button"
                     size="sm"
                     variant={(look.title ?? titles[0]) === t ? "default" : "outline"}
-                    disabled={pending || locked.has("title")}
+                    disabled={locked.has("title")}
                     onClick={() => persistStyle({ ...style, title: t })}
                   >
                     {t}
@@ -468,7 +474,7 @@ export function Closet({
                   <Tile
                     key={k}
                     selected={on}
-                    disabled={pending || (!on && (style.showcase?.length ?? 0) >= 3)}
+                    disabled={!on && (style.showcase?.length ?? 0) >= 3}
                     label={b.name}
                     onClick={() => {
                       const cur = style.showcase ?? [];
@@ -495,7 +501,7 @@ export function Closet({
                   unlocked={owned(item)}
                   selected={equipped === item.key}
                   fresh={fresh.has(giftKey(item))}
-                  disabled={pending || (owned(item) && locked.has(tab))}
+                  disabled={owned(item) && locked.has(tab)}
                   currency={currency}
                   onClick={() => pickItem(item)}
                 >
@@ -617,6 +623,13 @@ function CatalogTile({
   );
 }
 
+function ClosetImage({ item }: { item: CosmeticItem }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={cosmeticThumb(item)} alt="" className="size-10 rounded-xl object-cover shadow-inner" />
+  );
+}
+
 function Preview({ item, avatar, color }: { item: CosmeticItem; avatar: string; color: string }) {
   switch (item.kind) {
     case "frame":
@@ -624,14 +637,27 @@ function Preview({ item, avatar, color }: { item: CosmeticItem; avatar: string; 
     case "aura":
       return <KidAvatar avatar={avatar} color={color} size="sm" aura={item.key === "none" ? null : item.key} />;
     case "nameplate":
-      return <span className={cn("font-display text-base font-semibold", item.className)}>Name</span>;
+      return (
+        <span className="relative inline-flex items-center justify-center">
+          <ClosetImage item={item} />
+          <span className={cn("absolute inset-x-0.5 truncate text-center text-[10px] font-semibold", item.className)}>Aa</span>
+        </span>
+      );
     case "banner":
-      return <span className={cn("h-10 w-14 rounded-xl shadow-inner", item.className || "bg-muted")} />;
+      return <ClosetImage item={item} />;
+    case "color":
+      return <span className={cn("size-10 overflow-hidden rounded-full bg-gradient-to-br shadow-inner", item.className)} />;
     case "room":
+      return (
+        <span className="kid-mode relative size-10 overflow-hidden rounded-xl" data-room={item.key}>
+          <span className="qn-kid-sky absolute inset-0" />
+          <span className="qn-room-fx absolute inset-0" />
+        </span>
+      );
     case "soundPack":
     case "confetti":
-      return <span className="text-3xl">{item.emoji}</span>;
+      return <ClosetImage item={item} />;
     default:
-      return <span className="text-3xl">{item.emoji ?? "•"}</span>;
+      return item.emoji ? <span className="text-3xl">{item.emoji}</span> : <ClosetImage item={item} />;
   }
 }

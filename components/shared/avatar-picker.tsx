@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji, avatarSrc } from "@/lib/avatars";
 import { auraClassName, itemsOf } from "@/lib/cosmetics";
+import { AuraFx, FrameOrnament, isDesignAura, ornamentFromClass } from "@/components/shared/look-fx";
 import { cn } from "@/lib/utils";
 
 export function KidAvatar({
@@ -29,6 +30,8 @@ export function KidAvatar({
     xl: "size-28 text-7xl",
   }[size];
   const auraClass = auraClassName(aura);
+  const designed = isDesignAura(aura);
+  const ornament = ornamentFromClass(frameClassName);
   const src = avatarSrc(avatar);
   const [broken, setBroken] = useState(false);
   useEffect(() => {
@@ -36,19 +39,20 @@ export function KidAvatar({
   }, [src]);
 
   const face = (
-    <span className={cn("relative inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)} aria-hidden="true">
+    <span className={cn("relative z-[1] isolate inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)} aria-hidden="true">
       <span
         className={cn(
-          "absolute inset-0 rounded-full bg-gradient-to-br shadow-inner ring-2 ring-white/70",
+          "absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br shadow-inner ring-2 ring-white/70",
           theme.gradient,
           frameClassName
         )}
       />
+      {ornament ? <FrameOrnament kind={ornament} /> : null}
       {src && !broken ? (
         <img
           src={src}
           alt=""
-          className="relative z-[1] size-[132%] max-w-none object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+          className="relative z-[1] size-[132%] max-w-none object-contain mix-blend-normal drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
           onError={() => setBroken(true)}
         />
       ) : (
@@ -57,10 +61,13 @@ export function KidAvatar({
     </span>
   );
 
-  if (!auraClass) return face;
+  if (!designed && !auraClass) return face;
   return (
-    <span className="relative inline-flex shrink-0" aria-hidden="true">
-      <span className={cn("absolute -inset-3 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />
+    <span className="relative inline-flex shrink-0 overflow-visible" aria-hidden="true">
+      {designed && aura ? <AuraFx aura={aura} /> : null}
+      {!designed && auraClass ? (
+        <span className={cn("absolute -inset-3 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />
+      ) : null}
       {face}
     </span>
   );
@@ -164,7 +171,7 @@ export function ColorPicker({ value, onChange, catalog = false }: { value: strin
             title={item.label}
             onClick={() => onChange(item.key)}
             className={cn(
-              "size-11 rounded-full bg-gradient-to-br transition-all hover:scale-110",
+              "size-11 overflow-hidden rounded-full bg-gradient-to-br transition-all hover:scale-110",
               item.className,
               selected ? "ring-3 ring-offset-2 ring-offset-background ring-foreground/60" : ""
             )}

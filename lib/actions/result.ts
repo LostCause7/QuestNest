@@ -18,6 +18,7 @@ export function friendlyError(message: string) {
   if (/already claimed today/i.test(message)) return "A sibling already claimed that quest today.";
   if (/not enough points/i.test(message)) return "Not enough points for that reward yet.";
   if (/not enough closet points/i.test(message)) return "Not enough Closet Points yet.";
+  if (/that activity was not found/i.test(message)) return "That activity wasn't found.";
   if (/amount must be in \$5 steps/i.test(message)) return "Pick an amount in $5 steps.";
   if (/that amount is too big/i.test(message)) return "That's more than this reward allows.";
   if (/pick an amount/i.test(message)) return "Pick how many dollars you want.";

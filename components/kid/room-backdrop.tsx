@@ -55,6 +55,8 @@ export function RoomBackdrop({ room: initial }: { room: string }) {
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
       <div className="qn-kid-sky absolute inset-0" />
+      <div className="qn-room-fx absolute inset-0" />
+      <div className="qn-room-fx-2 absolute inset-0" />
       <div className="qn-room-blob-a absolute -top-24 -left-16 size-[28rem] rounded-full opacity-90 blur-3xl" />
       <div className="qn-room-blob-b absolute top-1/4 -right-24 size-[32rem] rounded-full opacity-90 blur-3xl" />
       <div className="qn-room-blob-c absolute -bottom-28 left-[20%] size-[30rem] rounded-full opacity-90 blur-3xl" />

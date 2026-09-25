@@ -107,9 +107,46 @@ export const getTransactions = cache(
       .limit(opts.limit ?? 50);
     if (opts.childId) q = q.eq("child_id", opts.childId);
     const { data } = await q;
-    return data ?? [];
+    return omitReversedLedger(familyId, data ?? []);
   }
 );
+
+/** Hide leftover undo/refund pairs from the previous Activity undo (those are now erased instead). */
+async function omitReversedLedger(familyId: string, txs: PointTransaction[]): Promise<PointTransaction[]> {
+  if (!txs.length) return txs;
+  const supabase = await createClient();
+  const ids = txs.map((t) => t.id);
+  const hide = new Set<string>();
+
+  const { data: pointing } = await supabase
+    .from("point_transactions")
+    .select("id, ref_id")
+    .eq("family_id", familyId)
+    .eq("kind", "refund")
+    .in("ref_id", ids);
+  for (const row of pointing ?? []) {
+    hide.add(row.id);
+    if (row.ref_id) hide.add(row.ref_id);
+  }
+
+  const refundRefs = txs.filter((t) => t.kind === "refund" && t.ref_id).map((t) => t.ref_id as string);
+  if (refundRefs.length) {
+    const { data: originals } = await supabase
+      .from("point_transactions")
+      .select("id")
+      .eq("family_id", familyId)
+      .in("id", refundRefs);
+    const originalIds = new Set((originals ?? []).map((r) => r.id));
+    for (const t of txs) {
+      if (t.kind === "refund" && t.ref_id && originalIds.has(t.ref_id)) {
+        hide.add(t.id);
+        hide.add(t.ref_id);
+      }
+    }
+  }
+
+  return txs.filter((t) => !hide.has(t.id));
+}
 
 export const getBadges = cache(async (childIds: string[]): Promise<ChildBadge[]> => {
   if (!childIds.length) return [];

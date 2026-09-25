@@ -20,9 +20,7 @@ export default async function KidShellLayout({ children, params }: LayoutProps<"
   const kids = await getChildren(family.id);
   const siblings = kids.filter((k) => k.id !== child.id).map((k) => ({ id: k.id, name: k.nickname?.trim() || k.name }));
 
-  // Family room overrides a kid's pick when the parent has locked the slot; otherwise kid's choice wins.
-  const lockedRoom = family.style?.lockedSlots?.includes("room");
-  const roomKey = (lockedRoom ? family.style?.room : child.style?.room) || family.style?.room || DEFAULT_ROOM;
+  const roomKey = child.style?.room || DEFAULT_ROOM;
   const room = findItem("room", roomKey)?.key ?? DEFAULT_ROOM;
 
   return (

@@ -177,3 +177,107 @@ export async function adjustPoints(childId: string, amount: number, note?: strin
   return ok(undefined, parsed.data.amount > 0 ? "Bonus awarded!" : "Points deducted.");
   });
 }
+
+export async function undoTransaction(txId: string): Promise<ActionResult> {
+  return guardAction(async () => {
+    if (await kidModeBlocksManage()) return fail("Ask a parent to undo that.");
+    const parsed = z.string().uuid().safeParse(txId);
+    if (!parsed.success) return fail("That activity wasn't found.");
+
+    const family = await requireFamily();
+    const supabase = await createClient();
+    const { data: original } = await supabase
+      .from("point_transactions")
+      .select("*")
+      .eq("id", parsed.data)
+      .maybeSingle();
+    if (!original || original.family_id !== family.id) return fail("That activity wasn't found.");
+
+    const erased = await supabase.rpc("erase_activity", { p_tx: parsed.data });
+    let eraseError = erased.error?.message ?? null;
+    if (eraseError && /could not find|schema cache|does not exist/i.test(eraseError)) {
+      eraseError = await eraseActivityFallback(supabase, original);
+    }
+    if (eraseError && /row-level security|permission|0016/i.test(eraseError)) {
+      eraseError = await hideWithRefund(supabase, original);
+    }
+    if (eraseError) return fail(friendlyError(eraseError));
+
+    revalidate();
+    return ok(undefined, "Removed.");
+  });
+}
+
+async function eraseActivityFallback(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  original: { id: string; family_id: string; child_id: string; kind: string; ref_id: string | null }
+) {
+  const { data: claims } = await supabase.auth.getClaims();
+  if (original.kind === "chore" && original.ref_id) {
+    await supabase
+      .from("chore_completions")
+      .update({ status: "rejected", points_awarded: 0, note: null })
+      .eq("id", original.ref_id)
+      .eq("status", "approved");
+  }
+  if (original.kind === "reward" && original.ref_id) {
+    const { data: red } = await supabase
+      .from("reward_redemptions")
+      .select("id, status, reward_id")
+      .eq("id", original.ref_id)
+      .maybeSingle();
+    if (red && red.status !== "rejected") {
+      await supabase
+        .from("reward_redemptions")
+        .update({
+          status: "rejected",
+          resolved_at: new Date().toISOString(),
+          resolved_by: (claims?.claims.sub as string | undefined) ?? null,
+        })
+        .eq("id", red.id);
+      const { data: reward } = await supabase.from("rewards").select("id, stock").eq("id", red.reward_id).maybeSingle();
+      if (reward && reward.stock != null) {
+        await supabase.from("rewards").update({ stock: reward.stock + 1 }).eq("id", reward.id);
+      }
+    }
+  }
+
+  await supabase.from("point_transactions").delete().eq("family_id", original.family_id).eq("kind", "refund").eq("ref_id", original.id);
+  if (original.ref_id) {
+    await supabase
+      .from("point_transactions")
+      .delete()
+      .eq("family_id", original.family_id)
+      .eq("kind", "refund")
+      .eq("ref_id", original.ref_id)
+      .neq("id", original.id);
+  }
+  const { error } = await supabase.from("point_transactions").delete().eq("id", original.id);
+  if (error) return error.message;
+  return null;
+}
+
+async function hideWithRefund(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  original: { id: string; family_id: string; child_id: string; amount: number; kind: string; ref_id: string | null; note: string | null }
+) {
+  const { data: claims } = await supabase.auth.getClaims();
+  const { error } = await supabase.from("point_transactions").insert({
+    family_id: original.family_id,
+    child_id: original.child_id,
+    amount: -original.amount,
+    kind: "refund",
+    ref_id: original.id,
+    note: original.note ? `Undo: ${original.note}` : "Undo",
+    created_by: (claims?.claims.sub as string | undefined) ?? null,
+  });
+  if (error) return error.message;
+  if (original.kind === "chore" && original.ref_id) {
+    await supabase
+      .from("chore_completions")
+      .update({ status: "rejected", points_awarded: 0, note: null })
+      .eq("id", original.ref_id)
+      .eq("status", "approved");
+  }
+  return null;
+}

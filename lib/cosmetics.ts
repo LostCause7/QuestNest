@@ -1,5 +1,5 @@
 import { completedSets, lifetimeBadgeKeys } from "@/lib/badges";
-import { levelFromXp, xpForLevel } from "@/lib/levels";
+import { levelFromXp } from "@/lib/levels";
 import type { Child, ChildBadge, FamilyMilestone } from "@/types/database";
 
 /**
@@ -41,6 +41,8 @@ export type CosmeticItem = {
   /** Tailwind classes applied where the item renders. */
   className?: string;
   unlock: UnlockRule;
+  /** Closet Points to buy this look. Independent of unlock rules. */
+  cost?: number;
 };
 
 export const STYLE_SLOTS: { kind: CosmeticKind; label: string }[] = [
@@ -87,14 +89,13 @@ import {
 /* Season pass rewards: unlocked by approved quests inside the current 4-week season, then kept via a claim (gift row). */
 const season = (value: number): UnlockRule => ({ by: "season", value });
 export const SEASON_ITEMS: CosmeticItem[] = [
-  { key: "sparkler", kind: "confetti", label: "Sparkler", emoji: "✨", unlock: season(3) },
-  { key: "season", kind: "frame", label: "Season", className: "ring-4 ring-teal-300 shadow-[0_0_0_7px_rgba(94,234,212,0.35)]", unlock: season(6) },
-  { key: "seafoam", kind: "aura", label: "Seafoam", className: "from-teal-200 to-cyan-400", unlock: season(10) },
-  { key: "ticket", kind: "nameplate", label: "Ticket", className: "rounded-sm border-2 border-dashed border-orange-400 bg-orange-50 px-2 text-orange-800", unlock: season(15) },
-  { key: "sunset", kind: "color", label: "Sunset", className: "from-orange-400 via-rose-400 to-purple-500", unlock: season(20) },
-  { key: "boardwalk", kind: "banner", label: "Boardwalk", className: "bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200", unlock: season(28) },
-  { key: "dragon", kind: "face", label: "Dragon", emoji: "🐲", unlock: season(36) },
-  { key: "champion", kind: "frame", label: "Champion", className: "ring-4 ring-yellow-400 shadow-[0_0_22px_rgba(250,204,21,0.9)] qn-frame-shimmer", unlock: season(45) },
+  { key: "season", kind: "frame", label: "Season", className: "ring-4 ring-teal-300 shadow-[0_0_0_7px_rgba(94,234,212,0.35)]", unlock: season(6), cost: 48 },
+  { key: "seafoam", kind: "aura", label: "Seafoam", className: "from-teal-200 to-cyan-400", unlock: season(10), cost: 60 },
+  { key: "ticket", kind: "nameplate", label: "Ticket", className: "rounded-sm border-2 border-dashed border-orange-400 bg-orange-50 px-2 text-orange-800", unlock: season(15), cost: 72 },
+  { key: "sunset", kind: "color", label: "Sunset", className: "from-orange-400 via-rose-400 to-purple-500", unlock: season(20), cost: 88 },
+  { key: "boardwalk", kind: "banner", label: "Boardwalk", className: "bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200", unlock: season(28), cost: 110 },
+  { key: "dragon", kind: "face", label: "Dragon", emoji: "🐲", unlock: season(36), cost: 140 },
+  { key: "champion", kind: "frame", label: "Champion", className: "ring-4 ring-yellow-400 shadow-[0_0_22px_rgba(250,204,21,0.9)] qn-frame-shimmer", unlock: season(45), cost: 180 },
 ];
 
 export const SEASON_NODES = SEASON_ITEMS.map((item) => ({ quests: (item.unlock as { value: number }).value, item }));
@@ -115,7 +116,12 @@ export const CATALOG: CosmeticItem[] = [
 ];
 
 export function itemsOf(kind: CosmeticKind) {
-  return CATALOG.filter((i) => i.kind === kind);
+  const seen = new Set<string>();
+  return CATALOG.filter((i) => {
+    if (i.kind !== kind || seen.has(i.key)) return false;
+    seen.add(i.key);
+    return true;
+  });
 }
 
 export function findItem(kind: CosmeticKind, key: string | null | undefined) {
@@ -204,10 +210,7 @@ export function giftKey(item: Pick<CosmeticItem, "kind" | "key">) {
   return `${item.kind}:${item.key}`;
 }
 
-export function isUnlocked(item: CosmeticItem, ctx: UnlockContext) {
-  if (ctx.gifts.has(giftKey(item))) return true;
-  if (item.kind === "frame" && item.key === "gold" && ctx.customUnlocked) return true;
-  const u = item.unlock;
+function meetsUnlock(u: UnlockRule, ctx: UnlockContext) {
   switch (u.by) {
     case "free":
       return true;
@@ -226,6 +229,12 @@ export function isUnlocked(item: CosmeticItem, ctx: UnlockContext) {
     case "gift":
       return false;
   }
+}
+
+export function isUnlocked(item: CosmeticItem, ctx: UnlockContext) {
+  if (ctx.gifts.has(giftKey(item))) return true;
+  if (item.kind === "frame" && item.key === "gold" && ctx.customUnlocked) return true;
+  return CATALOG.some((other) => other.kind === item.kind && other.key === item.key && meetsUnlock(other.unlock, ctx));
 }
 
 export function unlockedItems(kind: CosmeticKind, ctx: UnlockContext) {
@@ -254,27 +263,32 @@ export function unlockHint(item: CosmeticItem, currency = "points") {
   }
 }
 
-/** CP cost to buy a locked look without waiting for its unlock. */
+/** CP cost to buy a locked look. Priced on its own — not lifetime points. */
 export function closetPrice(item: CosmeticItem) {
+  if (item.unlock.by === "free") return 0;
+  if (typeof item.cost === "number" && item.cost > 0) return item.cost;
   const u = item.unlock;
   switch (u.by) {
-    case "free":
-      return 0;
     case "lifetime":
-      return u.value;
-    case "streak":
-      return Math.max(25, u.value * 20);
     case "level":
-      return Math.max(30, xpForLevel(u.value));
-    case "badge":
-      return 50;
-    case "set":
-      return 120;
-    case "season":
-      return Math.max(30, u.value * 10);
-    case "gift":
       return 80;
+    case "streak":
+      return 20 + u.value * 4;
+    case "badge":
+      return 45;
+    case "set":
+      return 90;
+    case "season":
+      return 24 + u.value * 3;
+    case "gift":
+      return 70;
   }
+}
+
+/** Image for a Closet tile. Faces use portraits; everything else uses a generated thumb. */
+export function cosmeticThumb(item: Pick<CosmeticItem, "kind" | "key">) {
+  if (item.kind === "face") return `/faces/${item.key}.png`;
+  return `/closet/${item.kind}/${item.key}.svg`;
 }
 
 /** Month-based sticker shown when the kid has not equipped one. */

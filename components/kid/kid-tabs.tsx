@@ -15,23 +15,26 @@ export function KidTabs({ childId }: { childId: string }) {
     { href: `${base}/closet`, label: "Closet", icon: ShirtIcon },
   ];
   return (
-    <nav className="qn-glass-panel fixed inset-x-0 bottom-0 z-40 sm:static sm:border-0 sm:bg-transparent sm:shadow-none sm:backdrop-blur-none">
-      <ul className="mx-auto flex max-w-3xl justify-around gap-2 px-2 sm:justify-center sm:px-0" style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}>
+    <nav
+      className="qn-glass-panel fixed inset-x-3 z-40 rounded-full sm:static sm:inset-auto"
+      style={{ bottom: "max(0.7rem, env(safe-area-inset-bottom))" }}
+    >
+      <ul className="mx-auto flex h-14 max-w-3xl items-center justify-around gap-1 px-1.5 sm:h-12 sm:justify-center sm:gap-2 sm:px-2">
         {tabs.map((t) => {
           const active = t.exact ? pathname === t.href : pathname.startsWith(t.href);
           const Icon = t.icon;
           return (
-            <li key={t.href} className="flex-1 sm:flex-none">
+            <li key={t.href} className="flex h-full flex-1 items-center sm:flex-none">
               <Link
                 href={t.href}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all sm:min-h-0 sm:flex-row sm:gap-2 sm:px-5 sm:text-sm",
+                  "flex h-11 w-full items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:w-auto sm:gap-2 sm:px-5 sm:text-sm",
                   active
                     ? "qn-chrome text-slate-900 shadow-md"
                     : "bg-white/8 text-foreground/70 hover:bg-white/16 hover:text-foreground"
                 )}
               >
-                <Icon className={cn("size-6 sm:size-5", active && "animate-pop")} />
+                <Icon className={cn("size-5 shrink-0 sm:size-4", active && "animate-pop")} />
                 {t.label}
               </Link>
             </li>
