@@ -121,7 +121,7 @@ export default async function HomePage() {
             </div>
             <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
-                <KidAvatar avatar="fox" color="coral" size="xs" className="ring-2 ring-white" />
+                <KidAvatar avatar="luna" color="coral" size="xs" className="ring-2 ring-white" />
                 <KidAvatar avatar="unicorn" color="bubblegum" size="xs" className="ring-2 ring-white" />
                 <KidAvatar avatar="dino" color="mint" size="xs" className="ring-2 ring-white" />
                 <KidAvatar avatar="robot" color="sky" size="xs" className="ring-2 ring-white" />

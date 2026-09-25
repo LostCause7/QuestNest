@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { BadgeGrid } from "@/components/shared/badge-grid";
 import { UnlockTrack } from "@/components/kid/unlock-track";
+import { Closet } from "@/components/kid/closet";
 import { ActivityList } from "@/components/parent/activity-list";
 import { StatCard } from "@/components/parent/stat-card";
 import { requireFamily } from "@/lib/data/family";
-import { getBadges, getChildren, getChores, getFamilyMilestones, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
+import { familyToday, getApprovedCounts, getBadges, getChildGifts, getChildren, getChores, getFamilyMilestones, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
+import { seasonWindow } from "@/lib/cosmetics";
 import { childLook, frameClass } from "@/lib/milestones";
 import { levelInfo } from "@/lib/levels";
 import { describeSchedule } from "@/lib/schedule";
@@ -26,13 +28,17 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
   const kid = kids.find((k) => k.id === id);
   if (!kid) notFound();
 
-  const [badges, chores, transactions, redemptions, rewards, extras] = await Promise.all([
+  const today = familyToday(family);
+  const season = seasonWindow(family.created_at, today);
+  const [badges, chores, transactions, redemptions, rewards, extras, gifts, counts] = await Promise.all([
     getBadges([kid.id]),
     getChores(family.id),
     getTransactions(family.id, { childId: kid.id, limit: 30 }),
     getRedemptions(family.id, undefined, 20),
     getRewards(family.id),
     getFamilyMilestones(family.id),
+    getChildGifts(kid.id),
+    getApprovedCounts(family.id, season.from, today),
   ]);
   const look = childLook(kid.style);
   const myChores = chores.filter((c) => c.child_ids.includes(kid.id) && c.is_active);
@@ -71,12 +77,31 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:w-80">
+        <div className="grid grid-cols-2 gap-2 sm:w-80">
           <StatCard label="Balance" value={kid.points_balance} icon={family.currency_emoji} tone="primary" className="p-3" />
           <StatCard label="Streak" value={kid.current_streak} hint={`best ${kid.longest_streak}`} icon={<FlameIcon className="size-5" />} tone="sun" className="p-3" />
           <StatCard label="Lifetime" value={kid.lifetime_points} icon={<TrophyIcon className="size-5" />} tone="mint" className="p-3" />
+          <StatCard label="Closet Points" value={kid.closet_points ?? 0} hint="1 CP per chore point" icon="👕" tone="primary" className="p-3" />
         </div>
       </div>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-xl font-semibold">Closet</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Parents can preview and equip every look. Kids still earn unlocks or spend Closet Points (1 CP per chore point).
+        </p>
+        <Closet
+          key={kid.id}
+          child={kid}
+          family={family}
+          extras={extras}
+          badges={badges}
+          gifts={gifts}
+          lockedSlots={[]}
+          seasonQuests={counts[kid.id] ?? 0}
+          allAccess
+        />
+      </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_1fr]">
         <section>

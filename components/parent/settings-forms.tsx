@@ -258,7 +258,7 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
 export function ProfileForm({
   name: initialName,
   motto: initialMotto = "",
-  avatarKey: initialAvatar = "fox",
+  avatarKey: initialAvatar = "luna",
   colorKey: initialColor = "sky",
 }: {
   name: string;
@@ -269,7 +269,7 @@ export function ProfileForm({
   const { run, pending } = useAction();
   const [name, setName] = useState(initialName);
   const [motto, setMotto] = useState(initialMotto ?? "");
-  const [avatar, setAvatar] = useState(initialAvatar || "fox");
+  const [avatar, setAvatar] = useState(initialAvatar || "luna");
   const [color, setColor] = useState(initialColor || "sky");
   return (
     <form
@@ -302,11 +302,11 @@ export function ProfileForm({
       </div>
       <div className="space-y-2">
         <Label>Your face</Label>
-        <AvatarPicker value={avatar} onChange={setAvatar} color={color} />
+        <AvatarPicker value={avatar} onChange={setAvatar} color={color} catalog />
       </div>
       <div className="space-y-2">
         <Label>Color</Label>
-        <ColorPicker value={color} onChange={setColor} />
+        <ColorPicker value={color} onChange={setColor} catalog />
       </div>
       <Button type="submit" variant="outline" disabled={pending || !name.trim()}>
         {pending ? <Loader2Icon className="animate-spin" /> : null}

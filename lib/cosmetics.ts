@@ -1,10 +1,11 @@
 import { completedSets, lifetimeBadgeKeys } from "@/lib/badges";
-import { levelFromXp } from "@/lib/levels";
+import { levelFromXp, xpForLevel } from "@/lib/levels";
 import type { Child, ChildBadge, FamilyMilestone } from "@/types/database";
 
 /**
- * Every free, in-app cosmetic. Nothing here costs spendable points: items open
- * from lifetime points, streaks, levels, badges, badge sets, or a parent gift.
+ * Closet cosmetics. Kids unlock them by lifetime points, streaks, levels,
+ * badges, sets, seasons, or a parent gift — and can also buy a locked item
+ * with Closet Points (CP), earned 1:1 with chore points.
  */
 
 export type CosmeticKind =
@@ -250,6 +251,29 @@ export function unlockHint(item: CosmeticItem, currency = "points") {
       return `${u.value} quests this season`;
     case "gift":
       return "A parent can gift this";
+  }
+}
+
+/** CP cost to buy a locked look without waiting for its unlock. */
+export function closetPrice(item: CosmeticItem) {
+  const u = item.unlock;
+  switch (u.by) {
+    case "free":
+      return 0;
+    case "lifetime":
+      return u.value;
+    case "streak":
+      return Math.max(25, u.value * 20);
+    case "level":
+      return Math.max(30, xpForLevel(u.value));
+    case "badge":
+      return 50;
+    case "set":
+      return 120;
+    case "season":
+      return Math.max(30, u.value * 10);
+    case "gift":
+      return 80;
   }
 }
 

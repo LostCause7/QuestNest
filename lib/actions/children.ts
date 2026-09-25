@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
-import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
-import { itemsOf } from "@/lib/cosmetics";
+import { ALL_COLOR_KEYS, ALL_FACE_KEYS } from "@/lib/looks-keys";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Child } from "@/types/database";
@@ -15,8 +14,8 @@ async function kidModeBlocksManage() {
   return (await cookies()).get(KID_MODE_COOKIE)?.value === "1";
 }
 
-const FACE_KEYS = [...AVATAR_KEYS, ...itemsOf("face").map((f) => f.key)];
-const COLOR_ALL = [...COLOR_KEYS, ...itemsOf("color").map((c) => c.key)];
+const FACE_KEYS = ALL_FACE_KEYS;
+const COLOR_ALL = ALL_COLOR_KEYS;
 
 const childSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(40),

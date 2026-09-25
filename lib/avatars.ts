@@ -1,56 +1,20 @@
 import { gatedColorGradient, gatedFaceEmoji } from "@/lib/cosmetics";
 
-export type AvatarKey =
-  | "fox"
-  | "owl"
-  | "dino"
-  | "robot"
-  | "unicorn"
-  | "cat"
-  | "dog"
-  | "panda"
-  | "dragon"
-  | "astronaut"
-  | "frog"
-  | "koala"
-  | "lion"
-  | "bunny"
-  | "penguin"
-  | "octopus"
-  | "bee"
-  | "owlkid"
-  | "tiger"
-  | "whale"
-  | "fairy"
-  | "ninja"
-  | "wizard"
-  | "phoenix";
+export type AvatarKey = "luna" | "ivy" | "zoe" | "max" | "nico" | "ash" | "phoenix" | "wolf" | "cat" | "dog";
+
+export const DEFAULT_AVATAR: AvatarKey = "luna";
 
 export const AVATARS: Record<AvatarKey, { emoji: string; label: string; src: string }> = {
-  fox: { emoji: "🦊", label: "Fox", src: "/faces/fox.png" },
-  owl: { emoji: "🦉", label: "Owl", src: "/faces/owl.png" },
-  dino: { emoji: "🦖", label: "Dino", src: "/faces/dino.png" },
-  robot: { emoji: "🤖", label: "Robot", src: "/faces/robot.png" },
-  unicorn: { emoji: "🦄", label: "Unicorn", src: "/faces/unicorn.png" },
+  luna: { emoji: "👧", label: "Luna", src: "/faces/luna.png" },
+  ivy: { emoji: "👧", label: "Ivy", src: "/faces/ivy.png" },
+  zoe: { emoji: "👧", label: "Zoe", src: "/faces/zoe.png" },
+  max: { emoji: "👦", label: "Max", src: "/faces/max.png" },
+  nico: { emoji: "👦", label: "Nico", src: "/faces/nico.png" },
+  ash: { emoji: "👦", label: "Ash", src: "/faces/ash.png" },
+  phoenix: { emoji: "🦅", label: "Phoenix", src: "/faces/phoenix.png" },
+  wolf: { emoji: "🐺", label: "Wolf", src: "/faces/wolf.png" },
   cat: { emoji: "🐱", label: "Cat", src: "/faces/cat.png" },
   dog: { emoji: "🐶", label: "Dog", src: "/faces/dog.png" },
-  panda: { emoji: "🐼", label: "Panda", src: "/faces/panda.png" },
-  dragon: { emoji: "🐲", label: "Dragon", src: "/faces/dragon.png" },
-  astronaut: { emoji: "🧑‍🚀", label: "Astronaut", src: "/faces/astronaut.png" },
-  frog: { emoji: "🐸", label: "Frog", src: "/faces/frog.png" },
-  koala: { emoji: "🐨", label: "Koala", src: "/faces/koala.png" },
-  lion: { emoji: "🦁", label: "Lion", src: "/faces/lion.png" },
-  bunny: { emoji: "🐰", label: "Bunny", src: "/faces/bunny.png" },
-  penguin: { emoji: "🐧", label: "Penguin", src: "/faces/penguin.png" },
-  octopus: { emoji: "🐙", label: "Octopus", src: "/faces/octopus.png" },
-  bee: { emoji: "🐝", label: "Bee", src: "/faces/bee.png" },
-  owlkid: { emoji: "🦝", label: "Raccoon", src: "/faces/owlkid.png" },
-  tiger: { emoji: "🐯", label: "Tiger", src: "/faces/tiger.png" },
-  whale: { emoji: "🐋", label: "Whale", src: "/faces/whale.png" },
-  fairy: { emoji: "🧚", label: "Fairy", src: "/faces/fairy.png" },
-  ninja: { emoji: "🥷", label: "Ninja", src: "/faces/ninja.png" },
-  wizard: { emoji: "🧙", label: "Wizard", src: "/faces/wizard.png" },
-  phoenix: { emoji: "🦅", label: "Phoenix", src: "/faces/phoenix.png" },
 };
 
 export const AVATAR_KEYS = Object.keys(AVATARS) as AvatarKey[];
@@ -59,7 +23,7 @@ export function avatarEmoji(key: string) {
   return AVATARS[key as AvatarKey]?.emoji ?? gatedFaceEmoji(key) ?? "🙂";
 }
 
-const FACE_CACHE = "2";
+const FACE_CACHE = "5";
 
 export function avatarSrc(key: string) {
   if (AVATARS[key as AvatarKey] || gatedFaceEmoji(key)) return `/faces/${key}.png?v=${FACE_CACHE}`;

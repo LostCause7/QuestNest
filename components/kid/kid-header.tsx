@@ -23,7 +23,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
   return (
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
       <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 rounded-3xl p-3 sm:gap-4 sm:p-4")}>
-        <span className="relative">
+        <span className="relative overflow-visible">
           <KidAvatar
             avatar={child.avatar}
             color={child.color}
@@ -81,6 +81,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
           <div className="text-xs font-medium text-muted-foreground">
             {family.currency_emoji} {family.currency_name}
           </div>
+          <div className="text-[11px] font-semibold text-muted-foreground">{child.closet_points ?? 0} CP</div>
         </div>
         <form action={switchChild} className="hidden sm:block">
           <button

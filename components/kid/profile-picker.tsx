@@ -33,7 +33,7 @@ function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
   }
   return (
     <KidAvatar
-      avatar={avatarKey || "fox"}
+      avatar={avatarKey || "luna"}
       color={colorKey || "slate"}
       size="xl"
       className="relative shadow-xl ring-4 ring-white/40 sm:size-32 sm:text-8xl"

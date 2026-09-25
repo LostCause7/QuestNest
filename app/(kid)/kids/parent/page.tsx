@@ -19,7 +19,7 @@ export default async function ParentUnlockPage(props: {
   const family = await requireFamily();
   const pinSet = await hasParentPin(family.id);
   let first = user.email?.split("@")[0] ?? "Parent";
-  let avatarKey = "fox";
+  let avatarKey = "luna";
   let colorKey = "slate";
   try {
     const supabase = await createClient();

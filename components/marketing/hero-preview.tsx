@@ -24,7 +24,7 @@ export function HeroPreview() {
         className="kid-mode qn-glass-panel rounded-[2rem] p-4 text-foreground"
       >
         <div className="qn-glass flex items-center gap-3 rounded-3xl p-3">
-          <KidAvatar avatar="fox" color="coral" size="md" />
+          <KidAvatar avatar="luna" color="coral" size="md" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <div className="font-display text-lg font-semibold">Maya</div>

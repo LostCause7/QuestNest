@@ -94,6 +94,7 @@ export type Child = {
   color: string;
   points_balance: number;
   lifetime_points: number;
+  closet_points?: number;
   current_streak: number;
   longest_streak: number;
   last_streak_date: string | null;
@@ -302,6 +303,7 @@ export type Database = {
           | "color"
           | "points_balance"
           | "lifetime_points"
+          | "closet_points"
           | "current_streak"
           | "longest_streak"
           | "last_streak_date"
@@ -470,6 +472,10 @@ export type Database = {
       };
       settle_mandatory_penalties: {
         Args: { p_family: string; p_through: string };
+        Returns: number;
+      };
+      buy_closet_item: {
+        Args: { p_child: string; p_item_key: string; p_cost: number };
         Returns: number;
       };
     };

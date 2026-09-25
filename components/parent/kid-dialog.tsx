@@ -41,7 +41,7 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
   const { run, pending } = useAction();
 
   const [name, setName] = useState(child?.name ?? "");
-  const [avatar, setAvatar] = useState(child?.avatar ?? "fox");
+  const [avatar, setAvatar] = useState(child?.avatar ?? "luna");
   const [color, setColor] = useState(child?.color ?? "sky");
   const [pin, setPin] = useState("");
   const [changePin, setChangePin] = useState(false);
@@ -101,11 +101,11 @@ function KidForm({ child, onClose }: { child: Child | null; onClose: () => void 
         </div>
         <div className="space-y-2">
           <Label>Avatar</Label>
-          <AvatarPicker value={avatar} onChange={setAvatar} color={color} />
+          <AvatarPicker value={avatar} onChange={setAvatar} color={color} catalog />
         </div>
         <div className="space-y-2">
           <Label>Color</Label>
-          <ColorPicker value={color} onChange={setColor} />
+          <ColorPicker value={color} onChange={setColor} catalog />
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">

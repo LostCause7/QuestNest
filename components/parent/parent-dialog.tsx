@@ -31,7 +31,7 @@ export function ParentDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 function ParentForm({ onClose }: { onClose: () => void }) {
   const { run, pending } = useAction();
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState("fox");
+  const [avatar, setAvatar] = useState("luna");
   const [color, setColor] = useState("slate");
   const [motto, setMotto] = useState("");
   const [pin, setPin] = useState("");
@@ -66,11 +66,11 @@ function ParentForm({ onClose }: { onClose: () => void }) {
         </div>
         <div className="space-y-2">
           <Label>Avatar</Label>
-          <AvatarPicker value={avatar} onChange={setAvatar} color={color} />
+          <AvatarPicker value={avatar} onChange={setAvatar} color={color} catalog />
         </div>
         <div className="space-y-2">
           <Label>Color</Label>
-          <ColorPicker value={color} onChange={setColor} />
+          <ColorPicker value={color} onChange={setColor} catalog />
         </div>
         <div className="space-y-2">
           <Label>Their 4-digit PIN</Label>

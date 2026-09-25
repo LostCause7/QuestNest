@@ -25,7 +25,7 @@ export default async function SettingsPage() {
     : null;
   const profile = profileRes.data ?? fallback;
   const motto = profile && "motto" in profile && typeof profile.motto === "string" ? profile.motto : "";
-  const avatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" ? profile.avatar_key : "fox";
+  const avatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" ? profile.avatar_key : "luna";
   const colorKey = profile && "color_key" in profile && typeof profile.color_key === "string" ? profile.color_key : "sky";
 
   return (

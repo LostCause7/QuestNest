@@ -5,15 +5,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
-import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
+import { ALL_COLOR_KEYS, ALL_FACE_KEYS } from "@/lib/looks-keys";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { fail, friendlyError, guardAction, ok, type ActionResult } from "./result";
 import type { ParentProfile } from "@/types/database";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(40),
-  avatar: z.enum(AVATAR_KEYS as [string, ...string[]]),
-  color: z.enum(COLOR_KEYS as [string, ...string[]]),
+  avatar: z.enum(ALL_FACE_KEYS as [string, ...string[]]),
+  color: z.enum(ALL_COLOR_KEYS as [string, ...string[]]),
   motto: z.string().trim().max(80).optional().nullable(),
 });
 

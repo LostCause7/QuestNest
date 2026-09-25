@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export default async function KidLayout({ children }: LayoutProps<"/kids">) {
   await requireFamily();
   return (
-    <div className="kid-mode relative min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="kid-mode relative min-h-screen overflow-x-clip bg-background text-foreground">
       {/* playful background */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-32 -left-24 size-96 rounded-full bg-sun-400/70 blur-3xl" />

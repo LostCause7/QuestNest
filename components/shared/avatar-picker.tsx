@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AVATAR_KEYS, AVATARS, COLOR_KEYS, COLORS, colorTheme, avatarEmoji, avatarSrc } from "@/lib/avatars";
-import { auraClassName } from "@/lib/cosmetics";
+import { auraClassName, itemsOf } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 
 export function KidAvatar({
@@ -36,20 +36,23 @@ export function KidAvatar({
   }, [src]);
 
   const face = (
-    <span
-      className={cn(
-        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br text-white shadow-inner ring-2 ring-white/70",
-        theme.gradient,
-        sizes,
-        frameClassName,
-        className
-      )}
-      aria-hidden="true"
-    >
+    <span className={cn("relative inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)} aria-hidden="true">
+      <span
+        className={cn(
+          "absolute inset-0 rounded-full bg-gradient-to-br shadow-inner ring-2 ring-white/70",
+          theme.gradient,
+          frameClassName
+        )}
+      />
       {src && !broken ? (
-        <img src={src} alt="" className="relative z-[1] size-[92%] object-contain" onError={() => setBroken(true)} />
+        <img
+          src={src}
+          alt=""
+          className="relative z-[1] size-[132%] max-w-none object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+          onError={() => setBroken(true)}
+        />
       ) : (
-        <span className="drop-shadow-sm">{avatarEmoji(avatar)}</span>
+        <span className="relative z-[1] drop-shadow-sm">{avatarEmoji(avatar)}</span>
       )}
     </span>
   );
@@ -67,13 +70,16 @@ export function AvatarPicker({
   value,
   onChange,
   color,
+  catalog = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   color: string;
+  catalog?: boolean;
 }) {
+  const extras = catalog ? itemsOf("face") : [];
   return (
-    <div className="grid grid-cols-6 gap-2 sm:grid-cols-8">
+    <div className={cn("grid grid-cols-6 gap-2 sm:grid-cols-8", catalog && "max-h-72 overflow-y-auto pr-1")}>
       {AVATAR_KEYS.map((key) => {
         const selected = key === value;
         return (
@@ -84,7 +90,7 @@ export function AvatarPicker({
             aria-label={AVATARS[key].label}
             onClick={() => onChange(key)}
             className={cn(
-              "qn-lift flex aspect-square items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl",
+              "qn-lift flex aspect-square items-center justify-center overflow-visible rounded-2xl border-2 text-2xl",
               selected
                 ? cn("border-white/80 bg-gradient-to-br text-white shadow-md", colorTheme(color).gradient)
                 : "qn-glass-panel hover:border-primary/40"
@@ -92,7 +98,34 @@ export function AvatarPicker({
             aria-pressed={selected}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarSrc(key) ?? AVATARS[key].src} alt="" className="size-[88%] object-contain" />
+            <img src={avatarSrc(key) ?? AVATARS[key].src} alt="" className="size-[118%] max-w-none object-contain drop-shadow-md" />
+          </button>
+        );
+      })}
+      {extras.map((item) => {
+        const selected = item.key === value;
+        const src = avatarSrc(item.key);
+        return (
+          <button
+            key={item.key}
+            type="button"
+            title={item.label}
+            aria-label={item.label}
+            onClick={() => onChange(item.key)}
+            className={cn(
+              "qn-lift flex aspect-square items-center justify-center overflow-visible rounded-2xl border-2 text-2xl",
+              selected
+                ? cn("border-white/80 bg-gradient-to-br text-white shadow-md", colorTheme(color).gradient)
+                : "qn-glass-panel hover:border-primary/40"
+            )}
+            aria-pressed={selected}
+          >
+            {src ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={src} alt="" className="size-[118%] max-w-none object-contain drop-shadow-md" />
+            ) : (
+              <span>{item.emoji}</span>
+            )}
           </button>
         );
       })}
@@ -100,9 +133,10 @@ export function AvatarPicker({
   );
 }
 
-export function ColorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function ColorPicker({ value, onChange, catalog = false }: { value: string; onChange: (v: string) => void; catalog?: boolean }) {
+  const extras = catalog ? itemsOf("color") : [];
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={cn("flex flex-wrap gap-2", catalog && "max-h-40 overflow-y-auto")}>
       {COLOR_KEYS.map((key) => {
         const selected = key === value;
         return (
@@ -118,6 +152,24 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (v: 
             )}
             aria-pressed={selected}
             aria-label={COLORS[key].label}
+          />
+        );
+      })}
+      {extras.map((item) => {
+        const selected = item.key === value;
+        return (
+          <button
+            key={item.key}
+            type="button"
+            title={item.label}
+            onClick={() => onChange(item.key)}
+            className={cn(
+              "size-11 rounded-full bg-gradient-to-br transition-all hover:scale-110",
+              item.className,
+              selected ? "ring-3 ring-offset-2 ring-offset-background ring-foreground/60" : ""
+            )}
+            aria-pressed={selected}
+            aria-label={item.label}
           />
         );
       })}

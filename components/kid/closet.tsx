@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { useAction } from "@/hooks/use-action";
-import { saveChildFlavor, saveChildLook, saveChildStyle } from "@/lib/actions/style";
+import { buyClosetItem, saveChildFlavor, saveChildLook, saveChildStyle } from "@/lib/actions/style";
 import { AVATARS, AVATAR_KEYS, COLORS, COLOR_KEYS } from "@/lib/avatars";
 import {
   CATALOG,
+  closetPrice,
   giftKey,
   isUnlocked,
   itemsOf,
@@ -64,6 +65,12 @@ function isSlot(tab: Tab): tab is SlotKind {
   return tab in SLOT_DEFAULTS;
 }
 
+function unlockedFirst<T>(items: T[], isOpen: (item: T) => boolean) {
+  const open = items.filter(isOpen);
+  const shut = items.filter((item) => !isOpen(item));
+  return [...open, ...shut];
+}
+
 export function Closet({
   child,
   family,
@@ -72,6 +79,7 @@ export function Closet({
   gifts,
   lockedSlots,
   seasonQuests = 0,
+  allAccess = false,
 }: {
   child: Child;
   family: Family;
@@ -80,14 +88,22 @@ export function Closet({
   gifts: string[];
   lockedSlots: string[];
   seasonQuests?: number;
+  allAccess?: boolean;
 }) {
   const { run, pending } = useAction();
-  const ctx = useMemo(() => unlockContext(child, extras, badges, gifts, seasonQuests), [child, extras, badges, gifts, seasonQuests]);
-  const locked = useMemo(() => new Set(lockedSlots), [lockedSlots]);
+  const [ownedGifts, setOwnedGifts] = useState(gifts);
+  const [cp, setCp] = useState(child.closet_points ?? 0);
+  const ctx = useMemo(
+    () => unlockContext(child, extras, badges, ownedGifts, seasonQuests),
+    [child, extras, badges, ownedGifts, seasonQuests]
+  );
+  const locked = useMemo(() => new Set(allAccess ? [] : lockedSlots), [allAccess, lockedSlots]);
+  const owned = (item: CosmeticItem) => allAccess || isUnlocked(item, ctx);
   const [tab, setTab] = useState<Tab>("face");
   const [avatar, setAvatar] = useState(child.avatar);
   const [color, setColor] = useState(child.color);
   const [motto, setMotto] = useState(child.motto ?? "");
+  const [preview, setPreview] = useState<CosmeticItem | null>(null);
   const [style, setStyle] = useState<EquippedStyle>(() => {
     if (typeof window === "undefined") return child.style ?? {};
     try {
@@ -119,11 +135,29 @@ export function Closet({
     }
   }, [child.id, ctx]);
 
-  const titles = unlockedTitles(child.lifetime_points, extras);
+  useEffect(() => {
+    if (preview?.kind === "room") {
+      setRoom(preview.key);
+      return () => setRoom(style.room ?? null);
+    }
+    setRoom(style.room ?? null);
+  }, [preview, style.room]);
+
+  useEffect(() => {
+    if (preview?.kind === "soundPack") {
+      setSoundPack(preview.key);
+      return () => setSoundPack(style.soundPack ?? "classic");
+    }
+  }, [preview, style.soundPack]);
+
+  const titles = allAccess
+    ? [...new Set([...unlockedTitles(child.lifetime_points, extras), ...itemsOf("title").map((i) => i.label)])]
+    : unlockedTitles(child.lifetime_points, extras);
   const badgeKeys = [...ctx.badges].filter((k) => BADGE_MAP[k]);
 
   const persistStyle = (next: EquippedStyle) => {
     next = { ...next, hat: null, sticker: null };
+    setPreview(null);
     setStyle(next);
     try {
       window.localStorage.setItem(styleStorageKey(child.id), JSON.stringify(next));
@@ -132,6 +166,57 @@ export function Closet({
     }
     play("tap");
     void run(() => saveChildStyle(child.id, next), { silent: true });
+  };
+
+  const persistLook = (next: { avatar?: string; color?: string }) => {
+    setPreview(null);
+    if (next.avatar) setAvatar(next.avatar);
+    if (next.color) setColor(next.color);
+    play("tap");
+    void run(() => saveChildLook(child.id, next), { silent: true });
+  };
+
+  const previewEffects = (item: CosmeticItem) => {
+    if (item.kind === "soundPack") {
+      setSoundPack(item.key);
+      setTimeout(() => previewPack(item.key as SoundPack), 80);
+    }
+    if (item.kind === "confetti") {
+      setConfettiStyle(item.key);
+      setTimeout(() => burst("small"), 80);
+    }
+  };
+
+  const showPreview = (item: CosmeticItem) => {
+    setPreview(item);
+    play("tap");
+    previewEffects(item);
+  };
+
+  const wearItem = (item: CosmeticItem) => {
+    if (item.kind === "face") {
+      persistLook({ avatar: item.key });
+      return;
+    }
+    if (item.kind === "color") {
+      persistLook({ color: item.key });
+      return;
+    }
+    if (item.kind === "title") {
+      persistStyle({ ...style, title: item.label });
+      return;
+    }
+    if (isSlot(item.kind)) {
+      equip(item.kind, item.key === "none" ? null : item.key);
+    }
+  };
+
+  const pickItem = (item: CosmeticItem) => {
+    if (!owned(item)) {
+      showPreview(item);
+      return;
+    }
+    wearItem(item);
   };
 
   const equip = (kind: SlotKind, key: string | null) => {
@@ -149,59 +234,104 @@ export function Closet({
     persistStyle({ ...style, [kind]: key });
   };
 
-  const look = childLook(style);
+  const buyPreview = () => {
+    if (!preview || allAccess) return;
+    const item = preview;
+    void run(() => buyClosetItem(child.id, { kind: item.kind, key: item.key }), {
+      onSuccess: (data) => {
+        setOwnedGifts((cur) => [...new Set([...cur, giftKey(item)])]);
+        if (typeof data?.closet_points === "number") setCp(data.closet_points);
+        wearItem(item);
+      },
+    });
+  };
+
+  const previewStyle: EquippedStyle = {
+    ...style,
+    ...(preview?.kind === "title" ? { title: preview.label } : {}),
+    ...(preview && isSlot(preview.kind) ? { [preview.kind]: preview.key === "none" ? null : preview.key } : {}),
+  };
+  const look = childLook(previewStyle);
+  const shownAvatar = preview?.kind === "face" ? preview.key : avatar;
+  const shownColor = preview?.kind === "color" ? preview.key : color;
   const currency = family.currency_name.toLowerCase();
+  const previewCost = preview ? closetPrice(preview) : 0;
 
   return (
-    <div className="space-y-5">
-      <div className={cn(bannerClassName(look.banner) || "qn-kid-surface", "flex items-center gap-4 rounded-3xl p-4 shadow-md ring-1 ring-black/5")}>
-        <KidAvatar
-          avatar={avatar}
-          color={color}
-          size="lg"
-          aura={look.aura}
-          frameClassName={frameClass(look.frame)}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <div className={cn("truncate font-display text-2xl font-semibold", nameplateClassName(look.nameplate))}>
-              {child.nickname?.trim() || child.name}
+    <div className="space-y-4">
+      <div className="sticky top-[5px] z-30 space-y-3 overflow-visible rounded-[1.75rem] bg-background/80 px-1.5 pb-1.5 shadow-[0_12px_28px_-16px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <div className={cn(bannerClassName(look.banner) || "qn-kid-surface", "flex items-center gap-4 overflow-visible rounded-3xl p-4 shadow-md ring-1 ring-black/5")}>
+          <KidAvatar
+            avatar={shownAvatar}
+            color={shownColor}
+            size="lg"
+            aura={look.aura}
+            frameClassName={frameClass(look.frame)}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <div className={cn("truncate font-display text-2xl font-semibold", nameplateClassName(look.nameplate))}>
+                {child.nickname?.trim() || child.name}
+              </div>
+              {(style.showcase ?? []).length ? (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/90 px-2 py-0.5 text-lg ring-1 ring-amber-300/60">
+                  {(style.showcase ?? []).map((k) => {
+                    const b = BADGE_MAP[k];
+                    return b ? (
+                      <span key={k} title={b.name}>
+                        {b.emoji}
+                      </span>
+                    ) : null;
+                  })}
+                </span>
+              ) : null}
             </div>
-            {(style.showcase ?? []).length ? (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/90 px-2 py-0.5 text-lg ring-1 ring-amber-300/60">
-                {(style.showcase ?? []).map((k) => {
-                  const b = BADGE_MAP[k];
-                  return b ? (
-                    <span key={k} title={b.name}>
-                      {b.emoji}
-                    </span>
-                  ) : null;
-                })}
-              </span>
-            ) : null}
+            <div className="text-sm text-muted-foreground">{look.title || "Rookie"}</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {allAccess
+                ? "Parents can preview and equip every look."
+                : "Tap a locked look to preview it. Earn it, or buy it with Closet Points."}
+            </p>
           </div>
-          <div className="text-sm text-muted-foreground">{look.title || "Rookie"}</div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pin trophies next to your name. Rooms change the whole page backdrop.
-          </p>
+          {allAccess ? null : (
+            <div className="shrink-0 rounded-2xl bg-card/80 px-3 py-2 text-right shadow-sm ring-1 ring-black/5">
+              <div className="font-display text-2xl font-bold tabular-nums">{cp}</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Closet Points</div>
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors",
-              tab === t.key ? "bg-primary text-primary-foreground shadow" : "bg-card/80 text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <span aria-hidden="true">{t.emoji}</span>
-            {t.label}
-          </button>
-        ))}
+        {preview && !owned(preview) ? (
+          <div className="flex flex-col gap-3 rounded-3xl bg-amber-50 px-4 py-3 text-sm shadow-sm ring-1 ring-amber-200 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold">Previewing {preview.label}</div>
+              <p className="text-muted-foreground">
+                Unlock with {unlockHint(preview, currency).toLowerCase()}, or buy for {previewCost} CP.
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button type="button" variant="outline" disabled={pending} onClick={() => setPreview(null)}>
+                Clear
+              </Button>
+              <Button type="button" disabled={pending || cp < previewCost} onClick={buyPreview}>
+                Buy · {previewCost} CP
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex flex-col items-center gap-1.5 pb-1">
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {TABS.slice(0, 7).map((t) => (
+              <TabChip key={t.key} tab={t} active={tab === t.key} onClick={() => setTab(t.key)} />
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {TABS.slice(7).map((t) => (
+              <TabChip key={t.key} tab={t} active={tab === t.key} onClick={() => setTab(t.key)} />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="qn-kid-surface rounded-3xl p-4 shadow-md ring-1 ring-black/5">
@@ -216,34 +346,26 @@ export function Closet({
             {AVATAR_KEYS.map((key) => (
               <Tile
                 key={key}
-                selected={avatar === key}
+                selected={shownAvatar === key && !preview}
                 disabled={pending || locked.has("face")}
                 label={AVATARS[key].label}
-                onClick={() => {
-                  setAvatar(key);
-                  play("tap");
-                  void run(() => saveChildLook(child.id, { avatar: key }), { silent: true });
-                }}
+                onClick={() => persistLook({ avatar: key })}
               >
-                <KidAvatar avatar={key} color={color} size="sm" />
+                <KidAvatar avatar={key} color={shownColor} size="sm" />
               </Tile>
             ))}
-            {itemsOf("face").map((item) => (
+            {unlockedFirst(itemsOf("face"), owned).map((item) => (
               <CatalogTile
                 key={item.key}
                 item={item}
-                unlocked={isUnlocked(item, ctx)}
-                selected={avatar === item.key}
+                unlocked={owned(item)}
+                selected={shownAvatar === item.key}
                 fresh={fresh.has(giftKey(item))}
-                disabled={pending || locked.has("face")}
+                disabled={pending || (owned(item) && locked.has("face"))}
                 currency={currency}
-                onClick={() => {
-                  setAvatar(item.key);
-                  play("tap");
-                  void run(() => saveChildLook(child.id, { avatar: item.key }), { silent: true });
-                }}
+                onClick={() => pickItem(item)}
               >
-                <KidAvatar avatar={item.key} color={color} size="sm" />
+                <KidAvatar avatar={item.key} color={shownColor} size="sm" />
               </CatalogTile>
             ))}
           </Grid>
@@ -254,32 +376,24 @@ export function Closet({
             {COLOR_KEYS.map((key) => (
               <Tile
                 key={key}
-                selected={color === key}
+                selected={shownColor === key && !preview}
                 disabled={pending || locked.has("color")}
                 label={COLORS[key].label}
-                onClick={() => {
-                  setColor(key);
-                  play("tap");
-                  void run(() => saveChildLook(child.id, { color: key }), { silent: true });
-                }}
+                onClick={() => persistLook({ color: key })}
               >
                 <span className={cn("size-10 rounded-full bg-gradient-to-br", COLORS[key].gradient)} />
               </Tile>
             ))}
-            {itemsOf("color").map((item) => (
+            {unlockedFirst(itemsOf("color"), owned).map((item) => (
               <CatalogTile
                 key={item.key}
                 item={item}
-                unlocked={isUnlocked(item, ctx)}
-                selected={color === item.key}
+                unlocked={owned(item)}
+                selected={shownColor === item.key}
                 fresh={fresh.has(giftKey(item))}
-                disabled={pending || locked.has("color")}
+                disabled={pending || (owned(item) && locked.has("color"))}
                 currency={currency}
-                onClick={() => {
-                  setColor(item.key);
-                  play("tap");
-                  void run(() => saveChildLook(child.id, { color: item.key }), { silent: true });
-                }}
+                onClick={() => pickItem(item)}
               >
                 <span className={cn("size-10 rounded-full bg-gradient-to-br", item.className)} />
               </CatalogTile>
@@ -290,20 +404,20 @@ export function Closet({
         {tab === "title" ? (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {itemsOf("title").map((item) => {
-                const open = isUnlocked(item, ctx);
-                const on = (style.title ?? "Rookie") === item.label;
+              {unlockedFirst(itemsOf("title"), owned).map((item) => {
+                const open = owned(item);
+                const on = (look.title ?? "Rookie") === item.label;
                 return (
                   <Button
                     key={item.key}
                     type="button"
                     size="sm"
                     variant={on ? "default" : "outline"}
-                    disabled={pending || locked.has("title") || !open}
-                    title={open ? item.label : unlockHint(item, currency)}
-                    onClick={() => persistStyle({ ...style, title: item.label })}
+                    disabled={pending || (open && locked.has("title"))}
+                    title={open ? item.label : `${unlockHint(item, currency)} · ${closetPrice(item)} CP`}
+                    onClick={() => pickItem(item)}
                   >
-                    {open ? item.label : `${item.label} · locked`}
+                    {open ? item.label : `${item.label} · ${closetPrice(item)} CP`}
                   </Button>
                 );
               })}
@@ -314,7 +428,7 @@ export function Closet({
                     key={t}
                     type="button"
                     size="sm"
-                    variant={(style.title ?? titles[0]) === t ? "default" : "outline"}
+                    variant={(look.title ?? titles[0]) === t ? "default" : "outline"}
                     disabled={pending || locked.has("title")}
                     onClick={() => persistStyle({ ...style, title: t })}
                   >
@@ -372,20 +486,20 @@ export function Closet({
 
         {isSlot(tab) ? (
           <Grid>
-            {itemsOf(tab).map((item) => {
-              const equipped = style[tab] ?? SLOT_DEFAULTS[tab];
+            {unlockedFirst(itemsOf(tab), owned).map((item) => {
+              const equipped = (preview?.kind === tab ? preview.key : style[tab]) ?? SLOT_DEFAULTS[tab];
               return (
                 <CatalogTile
                   key={item.key}
                   item={item}
-                  unlocked={isUnlocked(item, ctx)}
+                  unlocked={owned(item)}
                   selected={equipped === item.key}
                   fresh={fresh.has(giftKey(item))}
-                  disabled={pending || locked.has(tab)}
+                  disabled={pending || (owned(item) && locked.has(tab))}
                   currency={currency}
-                  onClick={() => equip(tab, item.key === "none" ? null : item.key)}
+                  onClick={() => pickItem(item)}
                 >
-                  <Preview item={item} avatar={avatar} color={color} />
+                  <Preview item={item} avatar={shownAvatar} color={shownColor} />
                 </CatalogTile>
               );
             })}
@@ -393,6 +507,30 @@ export function Closet({
         ) : null}
       </div>
     </div>
+  );
+}
+
+function TabChip({
+  tab,
+  active,
+  onClick,
+}: {
+  tab: { key: Tab; label: string; emoji: string };
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors sm:gap-1.5 sm:px-3 sm:text-sm",
+        active ? "bg-primary text-primary-foreground shadow" : "bg-card/80 text-muted-foreground hover:text-foreground"
+      )}
+    >
+      <span aria-hidden="true">{tab.emoji}</span>
+      {tab.label}
+    </button>
   );
 }
 
@@ -424,7 +562,7 @@ function Tile({
         onClick={onClick}
         aria-pressed={selected}
         className={cn(
-          "flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl border-2 p-3 text-center transition-all",
+          "relative flex h-full w-full flex-col items-center justify-center gap-1.5 overflow-visible rounded-2xl border-2 p-3 pt-5 text-center transition-all",
           selected ? "qn-chrome border-white/70" : "qn-glass-panel qn-lift hover:border-white/80",
           disabled && "opacity-60",
           className
@@ -456,27 +594,25 @@ function CatalogTile({
   onClick: () => void;
   children: React.ReactNode;
 }) {
-  if (!unlocked) {
-    return (
-      <li>
-        <div
-          className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed bg-muted/40 p-3 text-center opacity-70 grayscale"
-          title={unlockHint(item, currency)}
-        >
-          <span className="relative">
-            {children}
-            <LockIcon className="absolute -right-2 -bottom-1 size-4 rounded-full bg-card p-0.5 text-muted-foreground" />
-          </span>
-          <span className="text-[11px] font-semibold leading-tight">{item.label}</span>
-          <span className="text-[10px] leading-tight text-muted-foreground">{unlockHint(item, currency)}</span>
-        </div>
-      </li>
-    );
-  }
+  const price = closetPrice(item);
   return (
-    <Tile selected={selected} disabled={disabled} label={item.label} onClick={onClick} className={cn(fresh && "qn-shiny")}>
-      {fresh ? <SparklesIcon className="absolute top-1.5 right-1.5 size-3.5 text-sun-500" /> : null}
-      {children}
+    <Tile
+      selected={selected}
+      disabled={disabled}
+      label={item.label}
+      onClick={onClick}
+      className={cn(!unlocked && "border-dashed bg-muted/30 opacity-80", fresh && unlocked && "qn-shiny")}
+    >
+      {fresh && unlocked ? <SparklesIcon className="absolute top-1.5 right-1.5 size-3.5 text-sun-500" /> : null}
+      <span className={cn("relative", !unlocked && "grayscale")}>
+        {children}
+        {!unlocked ? <LockIcon className="absolute -right-2 -bottom-1 size-4 rounded-full bg-card p-0.5 text-muted-foreground" /> : null}
+      </span>
+      {!unlocked ? (
+        <span className="text-[10px] leading-tight text-muted-foreground">
+          {unlockHint(item, currency)} · {price} CP
+        </span>
+      ) : null}
     </Tile>
   );
 }

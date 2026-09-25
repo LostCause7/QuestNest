@@ -26,7 +26,7 @@ export default async function KidClosetPage(props: PageProps<"/kids/[childId]/cl
       <KidPageHero
         emoji="👕"
         title="Closet"
-        subtitle={`Dress up your nest self. Nothing here costs ${family.currency_name.toLowerCase()}.`}
+        subtitle={`Dress up your nest self. Locked looks can be previewed, earned, or bought with Closet Points — one CP for every chore ${family.currency_name.toLowerCase()}.`}
       />
       <Closet
         key={child.id}

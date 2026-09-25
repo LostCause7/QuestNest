@@ -18,7 +18,7 @@ export default async function KidPickerPage() {
   const canAdd = (await cookies()).get(KID_MODE_COOKIE)?.value !== "1";
   let parentName = user.email?.split("@")[0] ?? "Parent";
   let parentAvatar: string | null = null;
-  let parentAvatarKey: string | null = "fox";
+  let parentAvatarKey: string | null = "luna";
   let parentColorKey: string | null = "slate";
   let parentMotto: string | null = null;
   try {
@@ -36,7 +36,7 @@ export default async function KidPickerPage() {
     parentAvatar = profile?.avatar_url ?? null;
     parentAvatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" && profile.avatar_key
       ? profile.avatar_key
-      : "fox";
+      : "luna";
     parentColorKey = profile && "color_key" in profile && typeof profile.color_key === "string" && profile.color_key
       ? profile.color_key
       : "slate";

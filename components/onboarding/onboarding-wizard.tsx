@@ -36,7 +36,7 @@ export function OnboardingWizard({ defaultName }: Props) {
   const [customCurrency, setCustomCurrency] = useState(false);
 
   const [kidName, setKidName] = useState("");
-  const [avatar, setAvatar] = useState("fox");
+  const [avatar, setAvatar] = useState("luna");
   const [color, setColor] = useState("sky");
   const [pin, setPin] = useState("");
 
@@ -233,11 +233,11 @@ export function OnboardingWizard({ defaultName }: Props) {
               </div>
               <div className="space-y-2">
                 <Label>Avatar</Label>
-                <AvatarPicker value={avatar} onChange={setAvatar} color={color} />
+                <AvatarPicker value={avatar} onChange={setAvatar} color={color} catalog />
               </div>
               <div className="space-y-2">
                 <Label>Favorite color</Label>
-                <ColorPicker value={color} onChange={setColor} />
+                <ColorPicker value={color} onChange={setColor} catalog />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pin">4-digit PIN</Label>

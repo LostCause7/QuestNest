@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
+import { ALL_COLOR_KEYS, ALL_FACE_KEYS } from "@/lib/looks-keys";
 
 const schema = z.object({
   familyName: z.string().trim().min(1, "Give your nest a name.").max(60),
@@ -12,8 +12,8 @@ const schema = z.object({
   timezone: z.string().min(1).max(64),
   child: z.object({
     name: z.string().trim().min(1, "What's your kid's name?").max(40),
-    avatar: z.enum(AVATAR_KEYS as [string, ...string[]]),
-    color: z.enum(COLOR_KEYS as [string, ...string[]]),
+    avatar: z.enum(ALL_FACE_KEYS as [string, ...string[]]),
+    color: z.enum(ALL_COLOR_KEYS as [string, ...string[]]),
     pin: z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits."),
   }),
   chores: z
