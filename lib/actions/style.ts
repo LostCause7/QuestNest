@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily, requireUser } from "@/lib/data/family";
+import { getActiveParentLook } from "@/lib/data/active-parent";
 import { unlockedTitles } from "@/lib/milestones";
 import { familyToday, getApprovedCounts, getBadges, getChildGifts, getFamilyMilestones, getRewards } from "@/lib/data/parent";
 import { isKnownColor, isKnownFace } from "@/lib/looks-keys";
@@ -230,7 +231,24 @@ export async function saveParentLook(input: {
       return fail("Pick a nest color.");
     }
     const user = await requireUser();
+    const family = await requireFamily();
     const supabase = await createClient();
+    const active = await getActiveParentLook(family.id);
+    if (active.source === "extra") {
+      const { error } = await supabase
+        .from("parent_profiles")
+        .update({
+          name: parsed.data.name,
+          motto: parsed.data.motto || null,
+          avatar: parsed.data.avatar_key || "luna",
+          color: parsed.data.color_key || "sky",
+        })
+        .eq("id", active.id)
+        .eq("family_id", family.id);
+      if (error) return fail(friendlyError(error.message));
+      revalidate();
+      return ok(undefined, "Look saved.");
+    }
     const { error } = await supabase
       .from("profiles")
       .update({

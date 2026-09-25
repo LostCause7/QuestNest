@@ -10,8 +10,8 @@ import { SidebarNav, MobileNav } from "@/components/parent/nav";
 import { UserMenu } from "@/components/parent/user-menu";
 import { ParentRealtime } from "@/components/parent/parent-realtime";
 import { requireFamily, requireUser } from "@/lib/data/family";
+import { getActiveParentLook } from "@/lib/data/active-parent";
 import { getPendingCompletions, getRedemptions } from "@/lib/data/parent";
-import { createClient } from "@/lib/supabase/server";
 import { isNextRedirect } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -37,15 +37,13 @@ async function ParentLayoutGuarded(props: LayoutProps<"/app">) {
 async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
   const user = await requireUser();
   const family = await requireFamily();
-  const supabase = await createClient();
 
-  const [{ data: profile }, pendingCompletions, pendingRedemptions] = await Promise.all([
-    supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle(),
+  const [look, pendingCompletions, pendingRedemptions] = await Promise.all([
+    getActiveParentLook(family.id),
     getPendingCompletions(family.id),
     getRedemptions(family.id, ["pending"]),
   ]);
   const pendingCount = pendingCompletions.length + pendingRedemptions.length;
-  const displayName = profile?.display_name ?? user.email?.split("@")[0] ?? "Parent";
 
   return (
     <div className="flex min-h-screen">
@@ -100,7 +98,13 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
                 Profiles
               </Link>
             </Button>
-            <UserMenu name={displayName} email={user.email} avatarUrl={profile?.avatar_url ?? null} />
+            <UserMenu
+              name={look.name}
+              email={user.email}
+              avatarUrl={look.avatarUrl}
+              avatarKey={look.avatarKey}
+              colorKey={look.colorKey}
+            />
           </div>
         </header>
         <main id="main" className="flex-1 px-4 py-6 pb-24 sm:px-6 md:pb-8 lg:px-8">

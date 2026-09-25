@@ -10,6 +10,8 @@ const PARENT_ONLY_PREFIXES = ["/app", "/onboarding"];
 
 export const KID_MODE_COOKIE = "qn_kid_mode";
 export const ACTIVE_CHILD_COOKIE = "qn_active_child";
+/** Extra parent face currently using Parent HQ (parent_profiles.id). Absent = nest owner. */
+export const ACTIVE_PARENT_COOKIE = "qn_active_parent";
 
 /**
  * Refreshes the Supabase session cookie on every matched request and applies

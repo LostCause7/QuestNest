@@ -5,27 +5,19 @@ import { MilestoneManager } from "@/components/parent/milestone-manager";
 import { BonusRulesForm, NestLookForm } from "@/components/parent/fun-settings";
 import { DataTools, DevicePrefsForm, InstallHowTo, WhatsNew } from "@/components/parent/nest-extras";
 import { requireFamily, requireUser } from "@/lib/data/family";
+import { getActiveParentLook } from "@/lib/data/active-parent";
 import { getFamilyMilestones, hasParentPin } from "@/lib/data/parent";
-import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const user = await requireUser();
   const family = await requireFamily();
-  const supabase = await createClient();
-  const [profileRes, pinSet, extras] = await Promise.all([
-    supabase.from("profiles").select("display_name, motto, avatar_key, color_key").eq("id", user.id).maybeSingle(),
+  const [look, pinSet, extras] = await Promise.all([
+    getActiveParentLook(family.id),
     hasParentPin(family.id),
     getFamilyMilestones(family.id),
   ]);
-  const fallback = profileRes.error && /column|schema cache|does not exist/i.test(profileRes.error.message)
-    ? (await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle()).data
-    : null;
-  const profile = profileRes.data ?? fallback;
-  const motto = profile && "motto" in profile && typeof profile.motto === "string" ? profile.motto : "";
-  const avatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" ? profile.avatar_key : "luna";
-  const colorKey = profile && "color_key" in profile && typeof profile.color_key === "string" ? profile.color_key : "sky";
 
   return (
     <>
@@ -54,12 +46,17 @@ export default async function SettingsPage() {
         <div className="space-y-6">
           <Section title="Your profile">
             <ProfileForm
-              name={profile?.display_name ?? ""}
-              motto={motto}
-              avatarKey={avatarKey}
-              colorKey={colorKey}
+              key={look.id}
+              name={look.name}
+              motto={look.motto}
+              avatarKey={look.avatarKey}
+              colorKey={look.colorKey}
             />
-            <p className="mt-3 text-xs text-muted-foreground">Signed in as {user.email}</p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              {look.source === "extra"
+                ? `Using ${look.name}'s profile${user.email ? ` · nest account ${user.email}` : ""}`
+                : `Signed in as ${user.email}`}
+            </p>
           </Section>
           <Section title="This device" description="Sounds, contrast, quiet hours, and how to install the app.">
             <DevicePrefsForm />

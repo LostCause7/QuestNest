@@ -7,7 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { familyToday } from "@/lib/data/parent";
-import { ACTIVE_CHILD_COOKIE, KID_MODE_COOKIE } from "@/lib/supabase/proxy";
+import { ACTIVE_CHILD_COOKIE, ACTIVE_PARENT_COOKIE, KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { safeNext } from "@/lib/origin";
 import { ok, fail, friendlyError, type ActionResult } from "./result";
 import type { ChoreCompletion, RewardRedemption } from "@/types/database";
@@ -39,6 +39,7 @@ export async function unlockChild(childId: string, pin: string): Promise<ActionR
   const store = await cookies();
   store.set(ACTIVE_CHILD_COOKIE, childId, cookieOpts);
   store.set(KID_MODE_COOKIE, "1", { ...cookieOpts, maxAge: 60 * 60 * 24 * 365 });
+  store.delete(ACTIVE_PARENT_COOKIE);
   redirect(`/kids/${childId}`);
 }
 
@@ -287,6 +288,7 @@ export async function exitKidMode(pin: string | null, next?: string): Promise<Ac
   const store = await cookies();
   store.delete(ACTIVE_CHILD_COOKIE);
   store.delete(KID_MODE_COOKIE);
+  store.delete(ACTIVE_PARENT_COOKIE);
   redirect(safeNext(next, "/app"));
 }
 
@@ -309,5 +311,6 @@ export async function unlockExtraParent(parentId: string, pin: string): Promise<
   const store = await cookies();
   store.delete(ACTIVE_CHILD_COOKIE);
   store.delete(KID_MODE_COOKIE);
+  store.set(ACTIVE_PARENT_COOKIE, parsed.data.parentId, cookieOpts);
   redirect("/app");
 }

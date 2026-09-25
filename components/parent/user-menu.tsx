@@ -11,16 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { KidAvatar } from "@/components/shared/avatar-picker";
 import { Button } from "@/components/ui/button";
 
 type Props = {
   name: string;
   email: string | null;
   avatarUrl: string | null;
+  avatarKey?: string | null;
+  colorKey?: string | null;
   compact?: boolean;
 };
 
-export function UserMenu({ name, email, avatarUrl, compact }: Props) {
+export function UserMenu({ name, email, avatarUrl, avatarKey, colorKey, compact }: Props) {
   const initials = name
     .split(" ")
     .map((p) => p[0])
@@ -31,10 +34,14 @@ export function UserMenu({ name, email, avatarUrl, compact }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-auto gap-2 px-2 py-1.5">
-          <Avatar className="size-7">
-            {avatarUrl ? <AvatarImage src={avatarUrl} alt={name} /> : null}
-            <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">{initials || "?"}</AvatarFallback>
-          </Avatar>
+          {avatarUrl ? (
+            <Avatar className="size-7">
+              <AvatarImage src={avatarUrl} alt={name} />
+              <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">{initials || "?"}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <KidAvatar avatar={avatarKey || "luna"} color={colorKey || "sky"} size="xs" />
+          )}
           {!compact ? <span className="hidden text-sm font-medium sm:inline">{name}</span> : null}
           <ChevronDownIcon className="size-3.5 opacity-60" />
         </Button>
