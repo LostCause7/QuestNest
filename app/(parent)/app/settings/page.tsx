@@ -27,8 +27,15 @@ export default async function SettingsPage() {
           <Section title="Family" description="Name, currency, timezone and home area for nearby rewards.">
             <FamilySettingsForm family={family} />
           </Section>
-          <Section title="Parent PIN" description="Locks Kid Mode so kids can't wander into your dashboard.">
-            <ParentPinForm hasPin={pinSet} />
+          <Section
+            title={look.source === "extra" ? "Your PIN" : "Parent PIN"}
+            description={
+              look.source === "extra"
+                ? `Unlocks ${look.name} on the profile picker. The first parent's nest lock stays the same.`
+                : "Locks Kid Mode so kids can't wander into your dashboard."
+            }
+          >
+            <ParentPinForm hasPin={look.source === "extra" ? true : pinSet} extraParent={look.source === "extra"} />
           </Section>
           <Section
             title="Lifetime unlocks"

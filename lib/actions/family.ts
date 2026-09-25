@@ -1,11 +1,15 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
+import { ACTIVE_PARENT_COOKIE } from "@/lib/supabase/proxy";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { FamilyStyle } from "@/types/database";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const settingsSchema = z.object({
   name: z.string().trim().min(1, "Family name is required.").max(60),
@@ -140,10 +144,33 @@ export async function updateFamilyBonuses(input: FamilyBonusInput): Promise<Acti
 }
 
 export async function setParentPin(pin: string): Promise<ActionResult> {
-  const parsed = z.string().regex(/^\d{4,6}$/, "PIN must be 4-6 digits.").safeParse(pin);
-  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid PIN.");
   const family = await requireFamily();
   const supabase = await createClient();
+  const extraId = (await cookies()).get(ACTIVE_PARENT_COOKIE)?.value;
+
+  if (extraId && UUID.test(extraId)) {
+    const { data: extra } = await supabase
+      .from("parent_profiles")
+      .select("id")
+      .eq("id", extraId)
+      .eq("family_id", family.id)
+      .maybeSingle();
+    if (extra) {
+      const parsed = z.string().regex(/^\d{4}$/, "PIN must be exactly 4 digits.").safeParse(pin);
+      if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid PIN.");
+      const { error } = await supabase.rpc("set_parent_profile_pin", {
+        p_parent: extra.id,
+        p_pin: parsed.data,
+      });
+      if (error) return fail(friendlyError(error.message));
+      revalidatePath("/app/settings");
+      revalidatePath("/kids", "layout");
+      return ok(undefined, "Your PIN is saved.");
+    }
+  }
+
+  const parsed = z.string().regex(/^\d{4,6}$/, "PIN must be 4-6 digits.").safeParse(pin);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid PIN.");
   const { error } = await supabase.rpc("set_parent_pin", { p_family: family.id, p_pin: parsed.data });
   if (error) return fail(friendlyError(error.message));
   revalidatePath("/app/settings");

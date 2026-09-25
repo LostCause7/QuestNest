@@ -200,11 +200,11 @@ export function FamilySettingsForm({ family }: { family: Family }) {
   );
 }
 
-export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
+export function ParentPinForm({ hasPin, extraParent = false }: { hasPin: boolean; extraParent?: boolean }) {
   const { run, pending } = useAction();
   const [pin, setPin] = useState("");
   const [editing, setEditing] = useState(!hasPin);
-  const valid = /^\d{4,6}$/.test(pin);
+  const valid = extraParent ? /^\d{4}$/.test(pin) : /^\d{4,6}$/.test(pin);
 
   if (!editing) {
     return (
@@ -212,8 +212,12 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
         <div className="flex items-center gap-3">
           <ShieldCheckIcon className="size-5 text-emerald-600" />
           <div>
-            <div className="text-sm font-medium">Parent PIN is set</div>
-            <div className="text-xs text-muted-foreground">Required to open Parent HQ from the profile picker.</div>
+            <div className="text-sm font-medium">{extraParent ? "Your PIN is set" : "Parent PIN is set"}</div>
+            <div className="text-xs text-muted-foreground">
+              {extraParent
+                ? "This unlocks your face on the profile picker."
+                : "Required to open Parent HQ from the profile picker."}
+            </div>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
@@ -237,7 +241,9 @@ export function ParentPinForm({ hasPin }: { hasPin: boolean }) {
       }}
     >
       <p className="text-sm text-muted-foreground">
-        Kids pick their own profile with their PIN. This PIN keeps them out of Parent HQ. Without one, anyone can open the parent tile.
+        {extraParent
+          ? "This is the PIN for your face on the picker. It does not change the first parent's nest lock."
+          : "Kids pick their own profile with their PIN. This PIN keeps them out of Parent HQ. Without one, anyone can open the parent tile."}
       </p>
       <PinInput value={pin} onChange={setPin} length={4} masked={false} className="mx-auto w-fit" />
       <div className="flex justify-center gap-2">
