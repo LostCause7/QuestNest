@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { ROOM_EVENT } from "@/lib/room";
+
 const FLOATERS: Record<string, string[]> = {
   nest: ["🪺", "🍃", "✨", "🌸"],
   sunrise: ["☀️", "🐦", "☁️", "🌈"],
@@ -39,11 +42,18 @@ const SPOTS = [
 ];
 
 /** Background layer for the kid's equipped room. */
-export function RoomBackdrop({ room }: { room: string }) {
+export function RoomBackdrop({ room: initial }: { room: string }) {
+  const [room, setRoom] = useState(initial);
+  useEffect(() => setRoom(initial), [initial]);
+  useEffect(() => {
+    const onRoom = (event: Event) => setRoom((event as CustomEvent<string>).detail);
+    window.addEventListener(ROOM_EVENT, onRoom);
+    return () => window.removeEventListener(ROOM_EVENT, onRoom);
+  }, []);
   const floaters = FLOATERS[room] ?? FLOATERS.nest;
 
   return (
-    <div className="qn-backdrop pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
       <div className="qn-kid-sky absolute inset-0" />
       <div className="qn-room-blob-a absolute -top-24 -left-16 size-[28rem] rounded-full opacity-90 blur-3xl" />
       <div className="qn-room-blob-b absolute top-1/4 -right-24 size-[32rem] rounded-full opacity-90 blur-3xl" />

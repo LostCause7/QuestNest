@@ -259,7 +259,7 @@ export function WhatsNew() {
         <strong className="text-foreground">Profiles.</strong> Kids pick their face. Parents pick theirs and enter a PIN.
       </li>
       <li>
-        <strong className="text-foreground">Lifetime unlocks.</strong> Titles, frames, and stickers open from total points earned — spending never takes them away. Add nest unlocks in Settings.
+        <strong className="text-foreground">Lifetime unlocks.</strong> Titles and frames open from total points earned — spending never takes them away. Add nest unlocks in Settings.
       </li>
       <li>
         <strong className="text-foreground">Nearby shop.</strong> Suggest parks, ice cream, and more from OpenStreetMap.

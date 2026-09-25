@@ -41,14 +41,14 @@ export default async function SettingsPage() {
           </Section>
           <Section
             title="Lifetime unlocks"
-            description="Achievements from total points earned — not the spendable bank. Kids dress up with titles, frames, and stickers."
+            description="Achievements from total points earned — not the spendable bank. Kids dress up with titles and frames."
           >
             <MilestoneManager family={family} extras={extras} />
           </Section>
           <Section title="Bonus rules" description="Free little surprises that keep kids coming back. Everything is 0 (off) until you turn it on.">
             <BonusRulesForm family={family} />
           </Section>
-          <Section title="Nest look" description="Family letter crest, default room, seasonal stickers and which Closet slots kids may change.">
+          <Section title="Nest look" description="Family letter crest, default room, and which Closet slots kids may change.">
             <NestLookForm family={family} />
           </Section>
         </div>

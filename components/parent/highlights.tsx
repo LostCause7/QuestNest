@@ -64,8 +64,6 @@ export function Highlights({
               avatar={hero.avatar}
               color={hero.color}
               size="lg"
-              sticker={childLook(hero.style).sticker}
-              hat={childLook(hero.style).hat}
               aura={childLook(hero.style).aura}
               frameClassName={frameClass(childLook(hero.style).frame)}
             />

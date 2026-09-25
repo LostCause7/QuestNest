@@ -89,23 +89,13 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section id="main" className="relative overflow-hidden">
-        <div className="qn-backdrop pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -top-40 left-1/2 h-[40rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/12 blur-3xl" />
           <div className="absolute top-40 -right-40 size-[30rem] rounded-full bg-cyan-300/10 blur-3xl" />
         </div>
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pt-16 pb-24 lg:grid-cols-2 lg:pt-24">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-amber-100">
-                <span className="size-1.5 rounded-full bg-amber-400" aria-hidden="true" />
-                In Development
-              </span>
-              <span className="qn-frost inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-cyan-100">
-                <span className="size-1.5 rounded-full bg-cyan-300" aria-hidden="true" />
-                Open Beta
-              </span>
-            </div>
-            <span className="qn-glass mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="qn-glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
               <SparklesIcon className="size-3.5 text-sky-600" />
               Frost, chrome, and quests
             </span>
@@ -250,7 +240,7 @@ export default async function HomePage() {
 
       {/* CTA */}
       <section className="relative overflow-hidden">
-        <div className="qn-backdrop pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -bottom-40 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-sky-500/15 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-4xl px-6 py-24 text-center">

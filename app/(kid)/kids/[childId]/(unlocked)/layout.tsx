@@ -26,19 +26,20 @@ export default async function KidShellLayout({ children, params }: LayoutProps<"
   const room = findItem("room", roomKey)?.key ?? DEFAULT_ROOM;
 
   return (
-    <div className="kid-mode relative flex min-h-dvh flex-col bg-background pb-24 text-foreground" data-room={room}>
+    <div className="kid-mode relative flex min-h-screen flex-col bg-background pb-24 text-foreground sm:pb-8" data-room={room}>
       <RoomBackdrop room={room} />
       <KidDeviceChrome />
       <SoundPackSync pack={child.style?.soundPack} room={room} confetti={child.style?.confetti} />
       <KidCelebrations />
       <KidRealtime childId={child.id} familyId={family.id} siblings={siblings} currencyEmoji={family.currency_emoji} />
       <div className="qn-no-print mx-auto flex w-full max-w-3xl items-center justify-between px-4 pt-3 text-xs sm:px-6">
-        <form action={switchChild}>
+        <form action={switchChild} className="sm:hidden">
           <button type="submit" className="qn-glass inline-flex items-center gap-1 rounded-full px-3 py-1.5 font-medium text-foreground">
             <UsersIcon className="size-3.5" />
             Switch profile
           </button>
         </form>
+        <span className="hidden sm:block" />
         <Link href="/kids/parent" className="qn-glass qn-lift inline-flex items-center gap-1 rounded-full px-3 py-1.5 font-medium text-foreground">
           <LockIcon className="size-3.5" />
           Parents

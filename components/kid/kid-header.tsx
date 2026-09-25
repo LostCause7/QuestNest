@@ -14,7 +14,7 @@ import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
   const lvl = levelInfo(child.lifetime_points);
-  const look = childLook(child.style, { seasonal: family.style?.seasonalStickers !== false });
+  const look = childLook(child.style);
   const shownName = child.nickname?.trim() || child.name;
   const plate = nameplateClassName(look.nameplate);
   const banner = bannerClassName(look.banner);
@@ -28,8 +28,6 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
             avatar={child.avatar}
             color={child.color}
             size="md"
-            sticker={look.sticker}
-            hat={look.hat}
             aura={look.aura}
             frameClassName={frameClass(look.frame)}
             className="shadow-md sm:size-16 sm:text-4xl"
@@ -39,10 +37,13 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
           </span>
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className={cn("truncate font-display text-xl font-semibold sm:text-2xl", plate)}>{shownName}</h1>
             {showcase.length ? (
-              <span className="hidden items-center gap-0.5 text-base sm:inline-flex" aria-label="Showcase trophies">
+              <span
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/90 px-2 py-0.5 text-lg shadow-sm ring-1 ring-amber-300/60"
+                aria-label="Pinned trophies"
+              >
                 {showcase.map((b) => (
                   <span key={b.key} title={b.name}>
                     {b.emoji}

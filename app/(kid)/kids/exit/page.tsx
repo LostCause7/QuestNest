@@ -4,7 +4,6 @@ import { ArrowLeftIcon, ShieldIcon } from "lucide-react";
 import { ExitClient } from "@/components/kid/exit-client";
 import { requireFamily } from "@/lib/data/family";
 import { hasParentPin } from "@/lib/data/parent";
-import { consumePinDraft } from "@/lib/pin-draft";
 import { safeNext } from "@/lib/origin";
 
 export const metadata: Metadata = { title: "Parents only" };
@@ -14,10 +13,9 @@ export default async function ExitKidModePage(props: PageProps<"/kids/exit">) {
   const next = safeNext(typeof sp.next === "string" ? sp.next : undefined, "/app");
   const family = await requireFamily();
   const pinSet = await hasParentPin(family.id);
-  const { draft, error } = await consumePinDraft("parent", "");
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-screen flex-col">
       <header className="flex items-center px-6 py-5">
         <Link href="/kids" className="qn-glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeftIcon className="size-4" />
@@ -28,9 +26,6 @@ export default async function ExitKidModePage(props: PageProps<"/kids/exit">) {
         <ExitClient
           next={next}
           hasPin={pinSet}
-          draft={draft}
-          error={error}
-          path="/kids/exit"
           header={
             <div className="flex flex-col items-center gap-3 text-center">
               <span className="qn-chrome flex size-20 items-center justify-center rounded-3xl">

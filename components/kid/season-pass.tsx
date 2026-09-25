@@ -98,8 +98,6 @@ function Preview({ item, avatar, color }: { item: CosmeticItem; avatar: string; 
   switch (item.kind) {
     case "frame":
       return <KidAvatar avatar={avatar} color={color} size="sm" frameClassName={item.className} />;
-    case "hat":
-      return <KidAvatar avatar={avatar} color={color} size="sm" hat={item.key} />;
     case "aura":
       return <KidAvatar avatar={avatar} color={color} size="sm" aura={item.key} />;
     case "color":

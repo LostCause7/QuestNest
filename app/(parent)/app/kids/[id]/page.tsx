@@ -54,7 +54,7 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
           avatar={kid.avatar}
           color={kid.color}
           size="xl"
-          sticker={look.sticker}
+          aura={look.aura}
           frameClassName={frameClass(look.frame)}
         />
         <div className="flex-1">

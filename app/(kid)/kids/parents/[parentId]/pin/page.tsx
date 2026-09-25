@@ -6,7 +6,6 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { ExtraParentPinClient } from "@/components/kid/extra-parent-pin-client";
 import { requireFamily } from "@/lib/data/family";
 import { getParentProfiles } from "@/lib/data/parent";
-import { consumePinDraft } from "@/lib/pin-draft";
 
 export const metadata: Metadata = { title: "Enter your PIN" };
 
@@ -16,10 +15,9 @@ export default async function ExtraParentPinPage(props: { params: Promise<{ pare
   const parents = await getParentProfiles(family.id);
   const parent = parents.find((p) => p.id === parentId);
   if (!parent) redirect("/kids");
-  const { draft, error } = await consumePinDraft("extra", parent.id);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-screen flex-col">
       <header className="flex items-center px-6 py-5">
         <Link
           href="/kids"
@@ -32,8 +30,6 @@ export default async function ExtraParentPinPage(props: { params: Promise<{ pare
       <main className="flex flex-1 flex-col items-center justify-center px-6 pb-16">
         <ExtraParentPinClient
           parentId={parent.id}
-          draft={draft}
-          error={error}
           header={
             <div className="flex flex-col items-center gap-3">
               <KidAvatar

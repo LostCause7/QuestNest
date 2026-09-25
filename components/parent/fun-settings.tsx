@@ -6,7 +6,6 @@ import { FamilyCrest } from "@/components/brand/family-crest";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useAction } from "@/hooks/use-action";
 import { updateFamilyBonuses, updateFamilyStyle } from "@/lib/actions/family";
 import { CREST_COLORS, CREST_LETTERS, resolveCrestColor, resolveCrestLetter } from "@/lib/crests";
@@ -20,7 +19,6 @@ export function NestLookForm({ family }: { family: Family }) {
   const { run, pending } = useAction();
   const s = family.style ?? {};
   const [room, setRoom] = useState<string | null>(s.room ?? null);
-  const [seasonal, setSeasonal] = useState(s.seasonalStickers !== false);
   const [locked, setLocked] = useState<string[]>(s.lockedSlots ?? []);
   const [crestEmoji, setCrestEmoji] = useState(resolveCrestLetter(s.crestEmoji) ?? "");
   const [crestColor, setCrestColor] = useState(resolveCrestColor(s.crestColor));
@@ -34,7 +32,7 @@ export function NestLookForm({ family }: { family: Family }) {
           updateFamilyStyle({
             room,
             sky: null,
-            seasonalStickers: seasonal,
+            seasonalStickers: false,
             lockedSlots: locked,
             crestEmoji: crestEmoji || null,
             crestColor: crestColor || null,
@@ -113,14 +111,6 @@ export function NestLookForm({ family }: { family: Family }) {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="qn-choice flex items-start justify-between gap-3 rounded-2xl px-3 py-3">
-        <div>
-          <div className="text-sm font-medium">Seasonal stickers</div>
-          <div className="text-xs text-muted-foreground">A month-themed sticker on kids who haven&apos;t picked one.</div>
-        </div>
-        <Switch checked={seasonal} onCheckedChange={setSeasonal} />
       </div>
 
       <div className="space-y-2">

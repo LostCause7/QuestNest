@@ -18,7 +18,7 @@ export function UnlockTrack({
   extras: FamilyMilestone[];
 }) {
   const next = nextMilestone(child.lifetime_points, extras);
-  const look = childLook(child.style, { seasonal: family.style?.seasonalStickers !== false });
+  const look = childLook(child.style);
 
   return (
     <div className="space-y-6">
@@ -36,8 +36,6 @@ export function UnlockTrack({
             color={child.color}
             size="lg"
             frameClassName={frameClass(look.frame)}
-            sticker={look.sticker}
-            hat={look.hat}
             aura={look.aura}
           />
         </div>

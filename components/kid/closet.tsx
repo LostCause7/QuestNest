@@ -23,25 +23,23 @@ import {
   type CosmeticKind,
 } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
-import { childLook, frameClass, styleStorageKey, unlockedStickers, unlockedTitles } from "@/lib/milestones";
+import { childLook, frameClass, styleStorageKey, unlockedTitles } from "@/lib/milestones";
 import { play, previewPack, setSoundPack, type SoundPack } from "@/lib/sound";
 import { burst, setConfettiStyle } from "@/lib/confetti";
 import { setRoom } from "@/lib/room";
 import { cn } from "@/lib/utils";
 import type { Child, ChildBadge, EquippedStyle, Family, FamilyMilestone } from "@/types/database";
 
-type Tab = "face" | "color" | "title" | "sticker" | CosmeticKind | "showcase";
+type Tab = "face" | "color" | "title" | CosmeticKind | "showcase";
 
 const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: "face", label: "Face", emoji: "🙂" },
   { key: "color", label: "Color", emoji: "🎨" },
   { key: "frame", label: "Frame", emoji: "⭕" },
-  { key: "hat", label: "Hat", emoji: "🎩" },
   { key: "aura", label: "Aura", emoji: "✨" },
   { key: "nameplate", label: "Name", emoji: "🏷️" },
   { key: "banner", label: "Banner", emoji: "🪟" },
   { key: "title", label: "Title", emoji: "🎖️" },
-  { key: "sticker", label: "Sticker", emoji: "⭐" },
   { key: "showcase", label: "Trophies", emoji: "🏆" },
   { key: "room", label: "Room", emoji: "🏠" },
   { key: "soundPack", label: "Sound", emoji: "🔔" },
@@ -52,10 +50,9 @@ function seenKey(childId: string) {
   return `qn_seen_${childId}`;
 }
 
-type SlotKind = Exclude<CosmeticKind, "face" | "color" | "title" | "sticker">;
+type SlotKind = Exclude<CosmeticKind, "face" | "color" | "title" | "sticker" | "hat">;
 const SLOT_DEFAULTS: Record<SlotKind, string> = {
   frame: "none",
-  hat: "none",
   aura: "none",
   nameplate: "none",
   banner: "none",
@@ -123,10 +120,10 @@ export function Closet({
   }, [child.id, ctx]);
 
   const titles = unlockedTitles(child.lifetime_points, extras);
-  const stickers = unlockedStickers(child.lifetime_points, extras);
   const badgeKeys = [...ctx.badges].filter((k) => BADGE_MAP[k]);
 
   const persistStyle = (next: EquippedStyle) => {
+    next = { ...next, hat: null, sticker: null };
     setStyle(next);
     try {
       window.localStorage.setItem(styleStorageKey(child.id), JSON.stringify(next));
@@ -152,7 +149,7 @@ export function Closet({
     persistStyle({ ...style, [kind]: key });
   };
 
-  const look = childLook(style, { seasonal: family.style?.seasonalStickers !== false });
+  const look = childLook(style);
   const currency = family.currency_name.toLowerCase();
 
   return (
@@ -162,18 +159,30 @@ export function Closet({
           avatar={avatar}
           color={color}
           size="lg"
-          sticker={look.sticker}
-          hat={look.hat}
           aura={look.aura}
           frameClassName={frameClass(look.frame)}
         />
         <div className="min-w-0 flex-1">
-          <div className={cn("truncate font-display text-2xl font-semibold", nameplateClassName(look.nameplate))}>
-            {child.nickname?.trim() || child.name}
+          <div className="flex items-center gap-1.5">
+            <div className={cn("truncate font-display text-2xl font-semibold", nameplateClassName(look.nameplate))}>
+              {child.nickname?.trim() || child.name}
+            </div>
+            {(style.showcase ?? []).length ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/90 px-2 py-0.5 text-lg ring-1 ring-amber-300/60">
+                {(style.showcase ?? []).map((k) => {
+                  const b = BADGE_MAP[k];
+                  return b ? (
+                    <span key={k} title={b.name}>
+                      {b.emoji}
+                    </span>
+                  ) : null;
+                })}
+              </span>
+            ) : null}
           </div>
           <div className="text-sm text-muted-foreground">{look.title || "Rookie"}</div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Mix frames, banners, rooms, and titles. New looks open from lifetime {currency}, streaks, and trophies.
+            Pin trophies next to your name. Rooms change the whole page backdrop.
           </p>
         </div>
       </div>
@@ -332,38 +341,11 @@ export function Closet({
           </div>
         ) : null}
 
-        {tab === "sticker" ? (
-          <Grid>
-            <Tile selected={!style.sticker} disabled={pending} label="Seasonal" onClick={() => persistStyle({ ...style, sticker: null })}>
-              <span className="text-3xl">📅</span>
-            </Tile>
-            {itemsOf("sticker").map((item) => (
-              <CatalogTile
-                key={item.key}
-                item={item}
-                unlocked={isUnlocked(item, ctx)}
-                selected={style.sticker === item.emoji}
-                fresh={fresh.has(giftKey(item))}
-                disabled={pending || locked.has("sticker")}
-                currency={currency}
-                onClick={() => persistStyle({ ...style, sticker: item.emoji ?? null })}
-              >
-                <span className="text-3xl">{item.emoji}</span>
-              </CatalogTile>
-            ))}
-            {stickers
-              .filter((s) => !itemsOf("sticker").some((i) => i.emoji === s))
-              .map((s) => (
-                <Tile key={s} selected={style.sticker === s} disabled={pending || locked.has("sticker")} label={s} onClick={() => persistStyle({ ...style, sticker: s })}>
-                  <span className="text-3xl">{s}</span>
-                </Tile>
-              ))}
-          </Grid>
-        ) : null}
-
         {tab === "showcase" ? (
           <div>
-            <p className="mb-3 text-sm text-muted-foreground">Pin up to three trophies next to your name.</p>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Pin up to three trophies. They show next to your name at the top of every kid page.
+            </p>
             <Grid>
               {badgeKeys.map((k) => {
                 const b = BADGE_MAP[k];
@@ -503,8 +485,6 @@ function Preview({ item, avatar, color }: { item: CosmeticItem; avatar: string; 
   switch (item.kind) {
     case "frame":
       return <KidAvatar avatar={avatar} color={color} size="sm" frameClassName={item.className} />;
-    case "hat":
-      return <KidAvatar avatar={avatar} color={color} size="sm" hat={item.key} />;
     case "aura":
       return <KidAvatar avatar={avatar} color={color} size="sm" aura={item.key === "none" ? null : item.key} />;
     case "nameplate":

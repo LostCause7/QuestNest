@@ -63,7 +63,7 @@ export function MobileNav({ pendingCount }: { pendingCount: number }) {
   const pathname = usePathname();
   const items = NAV_ITEMS;
   return (
-    <nav className="qn-glass-panel fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0 lg:hidden">
+    <nav className="qn-glass-panel fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0 md:hidden">
       <ul className="grid grid-cols-6" style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom))" }}>
         {items.map((item) => {
           const active = isActivePath(pathname, item.href);

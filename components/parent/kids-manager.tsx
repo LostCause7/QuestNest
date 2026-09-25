@@ -165,7 +165,7 @@ function KidCard({
   onDelete: () => void;
 }) {
   const lvl = levelInfo(kid.lifetime_points);
-  const look = childLook(kid.style, { seasonal: family.style?.seasonalStickers !== false });
+  const look = childLook(kid.style);
   const theme = colorTheme(kid.color);
   return (
     <div className={cn("relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
@@ -176,8 +176,6 @@ function KidCard({
             avatar={kid.avatar}
             color={kid.color}
             size="md"
-            sticker={look.sticker}
-            hat={look.hat}
             aura={look.aura}
             frameClassName={frameClass(look.frame)}
           />

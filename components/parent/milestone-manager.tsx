@@ -20,7 +20,7 @@ export function MilestoneManager({ family, extras }: { family: Family; extras: F
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         Built-in unlocks open from lifetime {family.currency_name.toLowerCase()} — not the banked balance. Add your
-        own nest unlocks below (a title + sticker at a lifetime total you choose).
+        own nest unlocks below (a title at a lifetime total you choose).
       </p>
       <ul className="grid gap-1.5 text-xs text-muted-foreground sm:grid-cols-2">
         {LIFETIME_MILESTONES.map((m) => (

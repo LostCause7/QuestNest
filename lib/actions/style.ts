@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily, requireUser } from "@/lib/data/family";
-import { unlockedStickers, unlockedTitles } from "@/lib/milestones";
+import { unlockedTitles } from "@/lib/milestones";
 import { familyToday, getApprovedCounts, getBadges, getChildGifts, getFamilyMilestones, getRewards } from "@/lib/data/parent";
 import { AVATAR_KEYS, COLOR_KEYS } from "@/lib/avatars";
 import {
@@ -54,7 +54,6 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
     const locked = new Set<string>(((family.style as FamilyStyle | null)?.lockedSlots ?? []) as string[]);
     const xp = child.lifetime_points ?? 0;
     const titles = [...new Set([...unlockedTitles(xp, extras), ...unlockedItems("title", ctx).map((i) => i.label)])];
-    const stickers = [...new Set([...unlockedStickers(xp, extras), ...unlockedItems("sticker", ctx).map((i) => i.emoji).filter(Boolean) as string[]])];
     const badgeKeys = [...ctx.badges].filter((k) => BADGE_MAP[k]);
 
     let savingFor: string | null = null;
@@ -65,9 +64,9 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
 
     const next: EquippedStyle = {
       title: locked.has("title") ? titles[0] : style.title && titles.includes(style.title) ? style.title : titles[0],
-      sticker: locked.has("sticker") ? null : style.sticker && stickers.includes(style.sticker) ? style.sticker : null,
+      sticker: null,
       frame: pick("frame", style.frame, ctx, "none", locked),
-      hat: pick("hat", style.hat, ctx, null, locked),
+      hat: null,
       aura: pick("aura", style.aura, ctx, null, locked),
       nameplate: pick("nameplate", style.nameplate, ctx, null, locked),
       banner: pick("banner", style.banner, ctx, "none", locked),

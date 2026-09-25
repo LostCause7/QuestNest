@@ -96,13 +96,12 @@ export function FamilySettingsForm({ family }: { family: Family }) {
               <button
                 key={p.name}
                 type="button"
-                aria-pressed={on}
                 onClick={() => {
                   setCurrencyName(p.name);
                   setEmoji(p.emoji);
                 }}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium",
+                  "inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium",
                   on ? "border-primary bg-primary/5" : "border-border"
                 )}
               >

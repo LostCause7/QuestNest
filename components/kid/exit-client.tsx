@@ -1,50 +1,29 @@
-import type { ReactNode } from "react";
-import { UnlockIcon } from "lucide-react";
-import { PinScreen } from "@/components/kid/pin-screen";
-import { PIN_KEY_ACTION } from "@/lib/pin-key-path";
+"use client";
 
-export function ExitClient({
-  next,
-  hasPin,
-  header,
-  draft = "",
-  error = null,
-  path = "/kids/parent",
-}: {
-  next: string;
-  hasPin: boolean;
-  header: ReactNode;
-  draft?: string;
-  error?: string | null;
-  path?: "/kids/parent" | "/kids/exit";
-}) {
+import { useTransition } from "react";
+import { Loader2Icon, UnlockIcon } from "lucide-react";
+import { PinScreen } from "@/components/kid/pin-screen";
+import { exitKidMode } from "@/lib/actions/kid-mode";
+
+export function ExitClient({ next, hasPin, header }: { next: string; hasPin: boolean; header: React.ReactNode }) {
+  const [pending, startTransition] = useTransition();
+
   if (!hasPin) {
     return (
-      <form method="POST" action={PIN_KEY_ACTION} autoComplete="off" className="flex w-full max-w-sm flex-col items-center gap-8">
+      <div className="flex w-full max-w-sm flex-col items-center gap-8">
         {header}
-        <input type="hidden" name="role" value="parent-open" />
-        <input type="hidden" name="next" value={next} />
-        <input type="hidden" name="path" value={path} />
         <button
-          type="submit"
-          name="key"
-          value="open"
-          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-md"
+          type="button"
+          disabled={pending}
+          onClick={() => startTransition(() => exitKidMode(null, next).then(() => undefined))}
+          className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-md transition-all active:scale-95 disabled:opacity-60"
         >
-          <UnlockIcon />
+          {pending ? <Loader2Icon className="animate-spin" /> : <UnlockIcon />}
           Go to Parent HQ
         </button>
-      </form>
+      </div>
     );
   }
 
-  return (
-    <PinScreen
-      header={header}
-      draft={draft}
-      error={error}
-      variableLength
-      hidden={{ role: "parent", id: "", next, path }}
-    />
-  );
+  return <PinScreen header={header} onSubmit={(pin) => exitKidMode(pin, next)} />;
 }

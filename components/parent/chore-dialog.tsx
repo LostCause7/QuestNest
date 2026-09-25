@@ -188,10 +188,9 @@ function ChoreForm({
                     <button
                       key={d.value}
                       type="button"
-                      aria-pressed={on}
                       onClick={() => toggleDay(d.value)}
                       className={cn(
-                        "flex-1 cursor-pointer rounded-lg border py-2 text-center text-xs font-medium transition-colors",
+                        "flex-1 rounded-lg border py-2 text-xs font-medium transition-colors",
                         on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                     >
@@ -213,10 +212,9 @@ function ChoreForm({
                     <button
                       key={k.id}
                       type="button"
-                      aria-pressed={on}
                       onClick={() => toggleKid(k.id)}
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
+                        "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-medium transition-colors",
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >

@@ -1,4 +1,4 @@
-import { FRAME_ITEMS, frameClassName, seasonalSticker } from "@/lib/cosmetics";
+import { FRAME_ITEMS, frameClassName } from "@/lib/cosmetics";
 import type { EquippedStyle, FamilyMilestone } from "@/types/database";
 
 export type { EquippedStyle, FamilyMilestone };
@@ -96,17 +96,13 @@ export function styleStorageKey(childId: string) {
   return `qn_style_${childId}`;
 }
 
-/**
- * Normalized look for rendering. When the kid has no sticker equipped and the
- * nest allows it, a month-based seasonal sticker fills the slot.
- */
-export function childLook(style?: EquippedStyle | null, opts: { seasonal?: boolean } = {}): EquippedStyle {
-  const seasonal = opts.seasonal ?? true;
+/** Normalized look for rendering. Hats and stickers are no longer shown. */
+export function childLook(style?: EquippedStyle | null, _opts: { seasonal?: boolean } = {}): EquippedStyle {
   return {
     title: style?.title ?? null,
     frame: style?.frame ?? "none",
-    sticker: style?.sticker ?? (seasonal ? seasonalSticker() : null),
-    hat: style?.hat ?? null,
+    sticker: null,
+    hat: null,
     aura: style?.aura ?? null,
     nameplate: style?.nameplate ?? null,
     banner: style?.banner ?? null,

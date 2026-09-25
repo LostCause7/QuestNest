@@ -77,15 +77,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.shimmer {
-  --_highlight: rgba(255, 255, 255, 0.22);
-}
-
 :root {
-  --spacing: 0.25rem;
-  --background: #15202b;
   --background: oklch(0.17 0.02 230);
-  --foreground: #f1f5f9;
   --foreground: oklch(0.96 0.01 230);
   --card: oklch(0.23 0.02 230 / 0.72);
   --card-foreground: oklch(0.96 0.01 230);
@@ -396,10 +389,6 @@
 }
 
 /* Closet materials — chrome, glass, frost, holo */
-.qn-backdrop {
-  pointer-events: none !important;
-}
-
 .qn-picker-chrome {
   background:
     radial-gradient(90% 60% at 12% -8%, rgba(255, 255, 255, 0.22) 0%, transparent 52%),
@@ -410,7 +399,6 @@
 
 .qn-glass-panel {
   background: linear-gradient(160deg, rgba(30, 41, 59, 0.78), rgba(15, 23, 42, 0.62));
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
   backdrop-filter: blur(18px) saturate(1.4);
   border: 1.5px solid rgba(148, 163, 184, 0.28);
   box-shadow:
@@ -431,18 +419,14 @@
 .qn-lift {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
-@media (hover: hover) and (pointer: fine) {
-  .qn-lift:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 16px 36px rgba(2, 6, 23, 0.4);
-  }
+.qn-lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 16px 36px rgba(2, 6, 23, 0.4);
 }
-@media (hover: hover) and (pointer: fine) {
-  .qn-lift:active {
-    transform: translateY(-1px);
-  }
+.qn-lift:active {
+  transform: translateY(-1px);
 }
 @media (prefers-reduced-motion: reduce) {
   .qn-lift,
@@ -453,42 +437,24 @@
   }
 }
 
-.qn-chrome,
-.qn-mirror,
-.qn-locker,
-.qn-rose-foil,
-.qn-circuit,
-.qn-prism {
-  /* Light metal sits on a dark app — remap ink so muted/label text stays readable. */
-  --foreground: #0f172a;
-  --muted-foreground: #334155;
-  --card-foreground: #0f172a;
-  color: #0f172a;
-}
 .qn-chrome {
   background-image: linear-gradient(135deg, #f8fafc 0%, #94a3b8 22%, #e2e8f0 45%, #64748b 68%, #f1f5f9 100%);
+  color: #0f172a;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 .qn-chrome-text {
   background-image: linear-gradient(180deg, #e2e8f0 0%, #7dd3fc 48%, #38bdf8 100%);
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .qn-glass {
   background: linear-gradient(135deg, rgba(51, 65, 85, 0.55), rgba(15, 23, 42, 0.42));
-  -webkit-backdrop-filter: blur(16px) saturate(1.35);
   backdrop-filter: blur(16px) saturate(1.35);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 28px rgba(2, 6, 23, 0.28);
 }
 .qn-frost {
-  --foreground: #ecfeff;
-  --muted-foreground: #a5f3fc;
-  --card-foreground: #ecfeff;
-  color: #ecfeff;
   background: linear-gradient(135deg, rgba(14, 116, 144, 0.35), rgba(15, 23, 42, 0.55));
-  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.35), 0 10px 30px rgba(14, 165, 233, 0.22);
 }
@@ -572,13 +538,8 @@
   body {
     @apply bg-background text-foreground;
   }
-  button:not(:disabled), [role="button"]:not(:disabled), a, select, summary, label {
+  button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
-    touch-action: manipulation;
-  }
-  select {
-    font: inherit;
-    color: inherit;
   }
   html {
     @apply font-sans;
@@ -695,7 +656,6 @@ html.qn-big-type .kid-mode {
     oklch(0.2 0.02 230 / 0.72) 48%,
     color-mix(in oklch, var(--room-c) 30%, oklch(0.14 0.02 230)) 100%
   );
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
   border: 1.5px solid rgba(148, 163, 184, 0.22);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 28px rgba(2, 6, 23, 0.32);
@@ -769,11 +729,6 @@ html.qn-big-tap .kid-mode .qn-tap {
 html.qn-big-tap .kid-mode .qn-pinpad button {
   height: 5rem;
   font-size: 1.75rem;
-}
-
-.qn-pinpad button {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
 @media print {

@@ -40,8 +40,6 @@ export function KidSummaryCard({
           avatar={child.avatar}
           color={child.color}
           size="md"
-          sticker={look.sticker}
-          hat={look.hat}
           aura={look.aura}
           frameClassName={frameClass(look.frame)}
         />

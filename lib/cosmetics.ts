@@ -46,12 +46,10 @@ export const STYLE_SLOTS: { kind: CosmeticKind; label: string }[] = [
   { kind: "face", label: "Face" },
   { kind: "color", label: "Color" },
   { kind: "frame", label: "Frame" },
-  { kind: "hat", label: "Hat" },
   { kind: "aura", label: "Aura" },
-  { kind: "nameplate", label: "Nameplate" },
+  { kind: "nameplate", label: "Name" },
   { kind: "banner", label: "Banner" },
   { kind: "title", label: "Title" },
-  { kind: "sticker", label: "Sticker" },
   { kind: "room", label: "Room" },
   { kind: "soundPack", label: "Sound" },
   { kind: "confetti", label: "Confetti" },
@@ -76,12 +74,10 @@ import {
   GATED_FACES,
   GATED_COLORS,
   FRAME_ITEMS,
-  HAT_ITEMS,
   AURA_ITEMS,
   NAMEPLATE_ITEMS,
   BANNER_ITEMS,
   TITLE_ITEMS,
-  STICKER_ITEMS,
   ROOM_ITEMS,
   SOUND_PACK_ITEMS,
   CONFETTI_ITEMS,
@@ -90,12 +86,12 @@ import {
 /* Season pass rewards: unlocked by approved quests inside the current 4-week season, then kept via a claim (gift row). */
 const season = (value: number): UnlockRule => ({ by: "season", value });
 export const SEASON_ITEMS: CosmeticItem[] = [
-  { key: "shades", kind: "hat", label: "Shades", emoji: "🕶️", unlock: season(3) },
+  { key: "sparkler", kind: "confetti", label: "Sparkler", emoji: "✨", unlock: season(3) },
   { key: "season", kind: "frame", label: "Season", className: "ring-4 ring-teal-300 shadow-[0_0_0_7px_rgba(94,234,212,0.35)]", unlock: season(6) },
   { key: "seafoam", kind: "aura", label: "Seafoam", className: "from-teal-200 to-cyan-400", unlock: season(10) },
   { key: "ticket", kind: "nameplate", label: "Ticket", className: "rounded-sm border-2 border-dashed border-orange-400 bg-orange-50 px-2 text-orange-800", unlock: season(15) },
   { key: "sunset", kind: "color", label: "Sunset", className: "from-orange-400 via-rose-400 to-purple-500", unlock: season(20) },
-  { key: "sunhat", kind: "hat", label: "Sun hat", emoji: "👒", unlock: season(28) },
+  { key: "boardwalk", kind: "banner", label: "Boardwalk", className: "bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200", unlock: season(28) },
   { key: "dragon", kind: "face", label: "Dragon", emoji: "🐲", unlock: season(36) },
   { key: "champion", kind: "frame", label: "Champion", className: "ring-4 ring-yellow-400 shadow-[0_0_22px_rgba(250,204,21,0.9)] qn-frame-shimmer", unlock: season(45) },
 ];
@@ -107,12 +103,10 @@ export const CATALOG: CosmeticItem[] = [
   ...GATED_FACES,
   ...GATED_COLORS,
   ...FRAME_ITEMS,
-  ...HAT_ITEMS,
   ...AURA_ITEMS,
   ...NAMEPLATE_ITEMS,
   ...BANNER_ITEMS,
   ...TITLE_ITEMS,
-  ...STICKER_ITEMS,
   ...ROOM_ITEMS,
   ...SOUND_PACK_ITEMS,
   ...CONFETTI_ITEMS,
@@ -145,11 +139,6 @@ export function nameplateClassName(key?: string | null) {
 export function bannerClassName(key?: string | null) {
   const c = findItem("banner", key)?.className;
   return c ? c : null;
-}
-
-export function hatEmoji(key?: string | null) {
-  if (!key || key === "none") return null;
-  return findItem("hat", key)?.emoji ?? null;
 }
 
 export function gatedFaceEmoji(key: string) {
