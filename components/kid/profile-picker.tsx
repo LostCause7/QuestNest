@@ -36,7 +36,7 @@ function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
       avatar={avatarKey || "luna"}
       color={colorKey || "slate"}
       size="xl"
-      className="relative shadow-xl ring-4 ring-white/40 sm:size-32 sm:text-8xl"
+      className="relative shadow-xl sm:size-32 sm:text-8xl"
     />
   );
 }
@@ -172,7 +172,7 @@ export function ProfilePicker({
                     avatar={p.avatar}
                     color={p.color}
                     size="xl"
-                    className="relative shadow-xl ring-4 ring-white/90 transition-[box-shadow] group-hover:ring-sun-400 sm:size-32 sm:text-8xl"
+                    className="relative shadow-xl sm:size-32 sm:text-8xl"
                   />
                 </motion.span>
                 <span className="flex flex-col items-center gap-0.5">

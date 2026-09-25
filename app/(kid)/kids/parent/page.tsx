@@ -3,9 +3,9 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 import { ExitClient } from "@/components/kid/exit-client";
 import { KidAvatar } from "@/components/shared/avatar-picker";
-import { requireFamily, requireUser } from "@/lib/data/family";
+import { requireFamily } from "@/lib/data/family";
+import { getOwnerParentLook } from "@/lib/data/active-parent";
 import { hasParentPin } from "@/lib/data/parent";
-import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/origin";
 
 export const metadata: Metadata = { title: "Parent unlock" };
@@ -15,21 +15,11 @@ export default async function ParentUnlockPage(props: {
 }) {
   const sp = await props.searchParams;
   const next = safeNext(typeof sp.next === "string" ? sp.next : undefined, "/app");
-  const user = await requireUser();
   const family = await requireFamily();
-  const pinSet = await hasParentPin(family.id);
-  let first = user.email?.split("@")[0] ?? "Parent";
-  let avatarKey = "luna";
-  let colorKey = "slate";
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase.from("profiles").select("avatar_key, color_key, display_name").eq("id", user.id).maybeSingle();
-    if (data?.avatar_key) avatarKey = data.avatar_key;
-    if (data?.color_key) colorKey = data.color_key;
-    if (data?.display_name) first = data.display_name.split(" ")[0] || first;
-  } catch {
-    // Face still renders with the default look.
-  }
+  const [pinSet, owner] = await Promise.all([hasParentPin(family.id), getOwnerParentLook()]);
+  const first = owner.name.split(" ")[0] || owner.name;
+  const avatarKey = owner.avatarKey;
+  const colorKey = owner.colorKey;
 
   return (
     <div className="flex min-h-screen flex-col">

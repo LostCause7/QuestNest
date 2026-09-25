@@ -46,6 +46,12 @@ export type FamilyStyle = {
   lockedSlots?: string[];
   crestEmoji?: string | null;
   crestColor?: string | null;
+  /** Nest-owner Closet look when profiles.avatar_key / motto are missing (pre-0007). */
+  ownerLook?: {
+    motto?: string | null;
+    avatarKey?: string | null;
+    colorKey?: string | null;
+  } | null;
 };
 
 export type Profile = {

@@ -260,8 +260,22 @@ export async function saveParentLook(input: {
       .eq("id", user.id);
     if (error && /column|schema cache|does not exist/i.test(error.message)) {
       const { error: nameErr } = await supabase.from("profiles").update({ display_name: parsed.data.name }).eq("id", user.id);
-      if (nameErr) return fail(friendlyError(nameErr.message));
-      return ok(undefined, "Name saved. Extra look fields need the nest update.");
+      const nextStyle: FamilyStyle = {
+        ...(family.style ?? {}),
+        ownerLook: {
+          motto: parsed.data.motto || null,
+          avatarKey: parsed.data.avatar_key || "luna",
+          colorKey: parsed.data.color_key || "sky",
+        },
+      };
+      const { error: styleErr } = await supabase.from("families").update({ style: nextStyle }).eq("id", family.id);
+      if (nameErr && styleErr) return fail(friendlyError(nameErr.message));
+      if (styleErr && /column|schema cache|does not exist/i.test(styleErr.message)) {
+        return fail("Your profile look needs the nest update (0018_owner_profile_look.sql).");
+      }
+      if (styleErr) return fail(friendlyError(styleErr.message));
+      revalidate();
+      return ok(undefined, "Look saved.");
     }
     if (error) return fail(friendlyError(error.message));
     revalidate();

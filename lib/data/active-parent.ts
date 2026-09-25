@@ -1,8 +1,9 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { requireUser } from "@/lib/data/family";
+import { getFamily, requireUser } from "@/lib/data/family";
 import { ACTIVE_PARENT_COOKIE } from "@/lib/supabase/proxy";
+import type { FamilyStyle } from "@/types/database";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -27,20 +28,38 @@ async function ownerLook(userId: string, email: string | null): Promise<ActivePa
     full.error && /column|schema cache|does not exist/i.test(full.error.message)
       ? (await supabase.from("profiles").select("display_name, avatar_url").eq("id", userId).maybeSingle()).data
       : full.data;
+  const family = await getFamily();
+  const stored = (family?.style as FamilyStyle | null | undefined)?.ownerLook;
   const name =
     profile && "display_name" in profile && typeof profile.display_name === "string" && profile.display_name.trim()
       ? profile.display_name
       : (email?.split("@")[0] ?? "Parent");
+  const motto =
+    (profile && "motto" in profile && typeof profile.motto === "string" && profile.motto) || stored?.motto || "";
+  const avatarKey =
+    (profile && "avatar_key" in profile && typeof profile.avatar_key === "string" && profile.avatar_key) ||
+    stored?.avatarKey ||
+    "luna";
+  const colorKey =
+    (profile && "color_key" in profile && typeof profile.color_key === "string" && profile.color_key) ||
+    stored?.colorKey ||
+    "sky";
   return {
     source: "owner",
     id: userId,
     name,
-    motto: profile && "motto" in profile && typeof profile.motto === "string" ? profile.motto : "",
-    avatarKey: profile && "avatar_key" in profile && typeof profile.avatar_key === "string" && profile.avatar_key ? profile.avatar_key : "luna",
-    colorKey: profile && "color_key" in profile && typeof profile.color_key === "string" && profile.color_key ? profile.color_key : "sky",
+    motto,
+    avatarKey,
+    colorKey,
     avatarUrl: profile && "avatar_url" in profile ? (profile.avatar_url as string | null) : null,
   };
 }
+
+/** Nest owner's Your profile look (picker tile + Settings when they unlock). */
+export const getOwnerParentLook = cache(async (): Promise<ActiveParentLook> => {
+  const user = await requireUser();
+  return ownerLook(user.id, user.email);
+});
 
 /** The parent face currently using Parent HQ — extra PIN profile or nest owner. */
 export const getActiveParentLook = cache(async (familyId: string): Promise<ActiveParentLook> => {

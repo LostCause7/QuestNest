@@ -3,47 +3,26 @@ import { cookies } from "next/headers";
 import { FamilyCrest } from "@/components/brand/family-crest";
 import { Logo } from "@/components/brand/logo";
 import { ProfilePicker } from "@/components/kid/profile-picker";
-import { requireFamily, requireUser } from "@/lib/data/family";
+import { requireFamily } from "@/lib/data/family";
+import { getOwnerParentLook } from "@/lib/data/active-parent";
 import { getChildren, getParentProfiles } from "@/lib/data/parent";
-import { createClient } from "@/lib/supabase/server";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 
 export const metadata: Metadata = { title: "Who's using the nest?" };
 
 export default async function KidPickerPage() {
-  const user = await requireUser();
   const family = await requireFamily();
-  const kids = await getChildren(family.id);
-  const extraParents = await getParentProfiles(family.id);
+  const [kids, extraParents, owner] = await Promise.all([
+    getChildren(family.id),
+    getParentProfiles(family.id),
+    getOwnerParentLook(),
+  ]);
   const canAdd = (await cookies()).get(KID_MODE_COOKIE)?.value !== "1";
-  let parentName = user.email?.split("@")[0] ?? "Parent";
-  let parentAvatar: string | null = null;
-  let parentAvatarKey: string | null = "luna";
-  let parentColorKey: string | null = "slate";
-  let parentMotto: string | null = null;
-  try {
-    const supabase = await createClient();
-    const full = await supabase
-      .from("profiles")
-      .select("display_name, avatar_url, avatar_key, color_key, motto")
-      .eq("id", user.id)
-      .maybeSingle();
-    const profile =
-      full.error && /column|schema cache|does not exist/i.test(full.error.message)
-        ? (await supabase.from("profiles").select("display_name, avatar_url").eq("id", user.id).maybeSingle()).data
-        : full.data;
-    parentName = profile?.display_name?.split(" ")[0] || parentName;
-    parentAvatar = profile?.avatar_url ?? null;
-    parentAvatarKey = profile && "avatar_key" in profile && typeof profile.avatar_key === "string" && profile.avatar_key
-      ? profile.avatar_key
-      : "luna";
-    parentColorKey = profile && "color_key" in profile && typeof profile.color_key === "string" && profile.color_key
-      ? profile.color_key
-      : "slate";
-    parentMotto = profile && "motto" in profile ? (profile.motto as string | null) : null;
-  } catch {
-    // Picker still works without the profile row.
-  }
+  const parentName = owner.name.split(" ")[0] || owner.name;
+  const parentAvatar = owner.avatarUrl;
+  const parentAvatarKey = owner.avatarKey;
+  const parentColorKey = owner.colorKey;
+  const parentMotto = owner.motto;
 
   return (
     <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
