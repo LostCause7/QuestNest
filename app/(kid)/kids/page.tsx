@@ -26,20 +26,44 @@ export default async function KidPickerPage() {
 
   return (
     <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
-      <header className="flex items-center px-6 py-5">
+      <header className="flex items-center justify-between px-6 py-5">
         <Logo tone="light" size="sm" />
+        <form action="/auth/signout" method="post">
+          <button
+            type="submit"
+            className="text-sm font-medium text-white/70 transition-colors hover:text-white"
+          >
+            Sign out
+          </button>
+        </form>
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center px-6 pb-20">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/50">
-          {family.style?.crestEmoji ? (
-            <FamilyCrest mark={family.style.crestEmoji} color={family.style.crestColor} size="sm" />
-          ) : null}
-          {family.name}
-        </p>
-        <h1 className="mt-3 font-display text-4xl font-semibold text-balance text-center sm:text-5xl">
+      <main id="main" className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-16">
+        <section className="relative mb-6 flex flex-col items-center sm:mb-8">
+          <div
+            className="pointer-events-none absolute top-4 size-40 rounded-full bg-sky-200/20 blur-3xl sm:size-52"
+            aria-hidden
+          />
+          <div className="relative flex flex-col items-center gap-4 rounded-[2rem] border border-white/25 bg-white/10 px-8 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.34),0_18px_40px_rgba(2,6,23,0.38)] backdrop-blur-md sm:flex-row sm:gap-5 sm:px-8 sm:py-5">
+            <FamilyCrest
+              mark={family.style?.crestEmoji || family.name}
+              color={family.style?.crestColor}
+              size="xl"
+              className="shadow-[0_10px_24px_rgba(2,6,23,0.4)] ring-white/70"
+            />
+            <div className="text-center sm:text-left">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-200/80">
+                Family nest
+              </p>
+              <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
+                {family.name}
+              </h1>
+            </div>
+          </div>
+        </section>
+        <h2 className="font-display text-2xl font-semibold text-balance text-center text-white sm:text-3xl">
           Who&apos;s using the nest?
-        </h1>
-        <p className="mt-3 max-w-md text-center text-lg text-white/65">
+        </h2>
+        <p className="mt-2 max-w-md text-center text-base text-white/65 sm:text-lg">
           Kids pick their face and enter their PIN. Extra parents use their own PIN.
         </p>
         {kids.length === 0 && canAdd ? (

@@ -13,13 +13,13 @@ export function FamilyCrest({
   mark?: string | null;
   color?: string | null;
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }) {
   const letter = resolveCrestLetter(mark) ?? "A";
   const src = crestSrc(letter);
   const tone = resolveCrestColor(color);
   const fill = CREST_COLORS.find((c) => c.key === tone)?.fill ?? CREST_COLORS[0].fill;
-  const dim = { sm: "size-8 text-sm", md: "size-12 text-xl", lg: "size-16 text-3xl" }[size];
+  const dim = { sm: "size-8 text-sm", md: "size-12 text-xl", lg: "size-16 text-3xl", xl: "size-24 text-5xl" }[size];
   const [broken, setBroken] = useState(false);
 
   useEffect(() => {

@@ -81,7 +81,7 @@ export function ProfilePicker({
 
   return (
     <>
-      <ul className="mt-12 flex flex-wrap justify-center gap-8 sm:gap-12">
+      <ul className="mt-8 flex flex-wrap justify-center gap-8 sm:mt-10 sm:gap-12">
         {kids.map((kid) => {
           const theme = colorTheme(kid.color);
           const look = childLook(kid.style);
