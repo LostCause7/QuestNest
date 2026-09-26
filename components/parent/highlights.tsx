@@ -57,8 +57,8 @@ export function Highlights({
   return (
     <section className="grid gap-3 lg:grid-cols-[1fr_1.4fr]">
       {hero ? (
-        <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-amber-800/80">This week&apos;s hero</div>
+        <div className="qn-glass-panel relative overflow-hidden rounded-2xl p-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">This week&apos;s hero</div>
           <div className="mt-2 flex items-center gap-3">
             <KidAvatar
               avatar={hero.avatar}
@@ -67,15 +67,17 @@ export function Highlights({
               aura={childLook(hero.style).aura}
               frameClassName={frameClass(childLook(hero.style).frame)}
             />
-            <div>
-              <div className="font-display text-2xl font-semibold">{hero.nickname?.trim() || hero.name}</div>
-              <div className="text-sm text-amber-900/80">
+            <div className="min-w-0">
+              <div className="font-display text-2xl font-semibold text-white">
+                {hero.nickname?.trim() || hero.name}
+              </div>
+              <div className="text-sm text-slate-200">
                 {heroCount} quest{heroCount === 1 ? "" : "s"} approved this week
                 {streaker && streaker.current_streak > 1 ? ` · ${streaker.nickname?.trim() || streaker.name} is on a ${streaker.current_streak}-day streak` : ""}
               </div>
             </div>
           </div>
-          <span className="pointer-events-none absolute -right-4 -bottom-6 text-8xl opacity-20" aria-hidden="true">
+          <span className="pointer-events-none absolute -right-4 -bottom-6 text-8xl opacity-25" aria-hidden="true">
             🏆
           </span>
         </div>
