@@ -24,6 +24,7 @@ If this project already has the first migration, run any later files you have no
 - [`0011_mandatory_chores.sql`](supabase/migrations/0011_mandatory_chores.sql) — optional mandatory quests: miss a due day and the assigned kid loses that quest’s points (a single-claim quest is safe for everyone if anyone claimed it)
 - [`0012_skip_requests.sql`](supabase/migrations/0012_skip_requests.sql) — kids can ask to skip a quest today; a parent confirms; confirmed (or still-pending) skips award no points and skip the mandatory deduction
 - [`0013_cash_redeem_and_cancel.sql`](supabase/migrations/0013_cash_redeem_and_cancel.sql) — cash rewards (name or details contain $) let kids pick a $5-step amount; they can change their mind on a pending or approved redemption and get the points back
+- [`0022_family_subscription.sql`](supabase/migrations/0022_family_subscription.sql) — one Stripe subscription per nest, covering every parent and kid on that account
 
 The app still runs if a later file is missing (nearby shop, custom unlocks, extra parent faces, extra look fields, kudos, gifted looks, bonus rules, daily awards, one-kid-claim quests, mandatory deductions, cash amounts, and change-mind refunds degrade instead of crashing — the related settings just show a hint to run the migration). Run them in order when you can.
 

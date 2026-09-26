@@ -39,7 +39,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         </div>
         <div className="relative z-10 flex items-center gap-3 text-sm text-white/70">
           <LogoMark className="size-5" tone="light" />
-          Free for families. No app download — works on any device.
+          7-day free trial. One nest subscription covers every parent and kid.
         </div>
       </aside>
 

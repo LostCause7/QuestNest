@@ -18,8 +18,10 @@ import { Logo } from "@/components/brand/logo";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { HeroPreview } from "@/components/marketing/hero-preview";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { SubscribeCta } from "@/components/marketing/subscribe-cta";
 import { getClaims } from "@/lib/supabase/server";
 import { getFamily } from "@/lib/data/family";
+import { nestPriceLabel } from "@/lib/stripe";
 
 const steps = [
   {
@@ -67,8 +69,8 @@ const faqs = [
     a: "Yes. From any kid's card you can add a bonus or a deduction with a note that shows up in their activity feed.",
   },
   {
-    q: "Is it free?",
-    a: "Yes. ChoreHall is free for families.",
+    q: "How does billing work?",
+    a: "One nest subscription covers every parent and kid on that account. It starts with a 7-day free trial, then billing begins. Kids never need their own payment.",
   },
 ];
 
@@ -78,6 +80,7 @@ export default async function HomePage() {
     const family = await getFamily();
     redirect(family ? "/kids" : "/onboarding");
   }
+  const priceLabel = await nestPriceLabel();
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-background text-foreground">
@@ -121,14 +124,15 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-12 px-6 text-base">
                 <Link href="/signup">
-                  Start ChoreHall — it&apos;s free
+                  Start your nest
                   <ArrowRightIcon />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <a href="#how">See how it works</a>
-              </Button>
+              <SubscribeCta priceLabel={priceLabel} />
             </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              7 days free, then one subscription covers every parent and kid on the account.
+            </p>
             <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
                 <KidAvatar avatar="luna" color="coral" size="xs" className="ring-2 ring-white" />
@@ -255,13 +259,18 @@ export default async function HomePage() {
         </div>
         <div className="relative mx-auto max-w-4xl px-6 py-24 text-center">
           <h2 className="font-display text-4xl font-semibold text-balance sm:text-5xl">Ready to turn “did you do your chores?” into “look what I did!”</h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">Create your nest, add your kids, and hand them the tablet.</p>
-          <Button asChild size="lg" className="mt-8 h-12 px-6 text-base">
-            <Link href="/signup">
-              Get started free
-              <ArrowRightIcon />
-            </Link>
-          </Button>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
+            Create your nest, try 7 days free, then one subscription covers every kid and parent on that account.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Button asChild size="lg" className="h-12 px-6 text-base">
+              <Link href="/signup">
+                Get started
+                <ArrowRightIcon />
+              </Link>
+            </Button>
+            <SubscribeCta priceLabel={priceLabel} />
+          </div>
         </div>
       </section>
 

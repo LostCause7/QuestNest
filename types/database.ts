@@ -82,6 +82,10 @@ export type Family = {
   combo_bonus_points?: number | null;
   surprise_chance?: number | null;
   perfect_day_points?: number | null;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscription_status?: string | null;
+  subscription_period_end?: string | null;
   created_at: string;
 }
 

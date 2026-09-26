@@ -50,15 +50,18 @@ export const metadata: Metadata = {
     description:
       "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
     url: siteUrl,
+    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "ChoreHall" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ChoreHall — Chores become quests. Kids actually want to do.",
     description:
       "Turn chores into quests, points into rewards, and nagging into high-fives. No extra app download.",
+    images: ["/logo.png"],
   },
   icons: {
-    icon: "/icon.svg",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
 };
 

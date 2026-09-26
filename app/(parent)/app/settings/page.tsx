@@ -4,19 +4,23 @@ import { FamilySettingsForm, ParentPinForm, ProfileForm } from "@/components/par
 import { MilestoneManager } from "@/components/parent/milestone-manager";
 import { BonusRulesForm, NestLookForm } from "@/components/parent/fun-settings";
 import { DataTools, DevicePrefsForm, InstallHowTo, WhatsNew } from "@/components/parent/nest-extras";
+import { BillingCard } from "@/components/parent/billing-card";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { getActiveParentLook } from "@/lib/data/active-parent";
 import { getFamilyMilestones, hasParentPin } from "@/lib/data/parent";
+import { isBillingConfigured, nestPriceLabel } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Settings" };
 
-export default async function SettingsPage() {
+export default async function SettingsPage(props: PageProps<"/app/settings">) {
   const user = await requireUser();
   const family = await requireFamily();
-  const [look, pinSet, extras] = await Promise.all([
+  const sp = await props.searchParams;
+  const [look, pinSet, extras, priceLabel] = await Promise.all([
     getActiveParentLook(family.id),
     hasParentPin(family.id),
     getFamilyMilestones(family.id),
+    nestPriceLabel(),
   ]);
 
   return (
@@ -26,6 +30,19 @@ export default async function SettingsPage() {
         <div className="space-y-6">
           <Section title="Family" description="Name, currency, timezone and home area for nearby rewards.">
             <FamilySettingsForm family={family} />
+          </Section>
+          <Section
+            id="billing"
+            title="Nest subscription"
+            description="7 days free, then one Stripe subscription covers every parent and kid on this account."
+          >
+            <BillingCard
+              status={family.subscription_status}
+              periodEnd={family.subscription_period_end}
+              configured={isBillingConfigured()}
+              priceLabel={priceLabel}
+              syncOnLoad={sp.billing === "success"}
+            />
           </Section>
           <Section
             title={look.source === "extra" ? "Your PIN" : "Parent PIN"}
