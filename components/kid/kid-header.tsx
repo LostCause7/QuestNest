@@ -21,7 +21,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
   return (
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
       <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 rounded-3xl p-3 sm:gap-4 sm:p-4")}>
-        <span className="relative overflow-visible">
+        <span className="relative shrink-0 overflow-visible">
           <ChildLookAvatar child={child} size="md" className="shadow-md sm:size-16 sm:text-4xl" />
           <span className="absolute -right-1 -bottom-1 rounded-full bg-card px-1 text-[10px] font-bold shadow-sm" title={lvl.title}>
             {lvl.level < 3 ? "🐣" : lvl.level < 6 ? "🐥" : lvl.level < 10 ? "🐦" : "🦅"}
@@ -29,7 +29,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate font-display text-xl font-semibold sm:text-2xl">
+            <h1 className="min-w-0 font-display text-xl font-semibold sm:text-2xl">
               <ChildLookName child={child} />
             </h1>
             {showcase.length ? (

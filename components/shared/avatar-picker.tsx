@@ -39,34 +39,38 @@ export function KidAvatar({
   }, [src]);
 
   const face = (
-    <span className={cn("relative z-[1] isolate inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)} aria-hidden="true">
-      <span
-        className={cn(
-          "absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br shadow-inner ring-2 ring-white/70",
-          theme.gradient,
-          frameClassName
+    <span
+      className={cn("relative z-[1] inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)}
+      aria-hidden="true"
+    >
+      <span className={cn("absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br shadow-inner", theme.gradient)}>
+        {src && !broken ? (
+          <img
+            src={src}
+            alt=""
+            className="size-full object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+            onError={() => setBroken(true)}
+          />
+        ) : (
+          <span className="flex size-full items-center justify-center drop-shadow-sm">{avatarEmoji(avatar)}</span>
         )}
-      />
-      {ornament ? <FrameOrnament kind={ornament} /> : null}
-      {src && !broken ? (
-        <img
-          src={src}
-          alt=""
-          className="relative z-[1] size-[132%] max-w-none object-contain mix-blend-normal drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
-          onError={() => setBroken(true)}
-        />
+      </span>
+      {frameClassName ? (
+        <span className={cn("pointer-events-none absolute inset-0 z-[2] rounded-full", frameClassName)} />
       ) : (
-        <span className="relative z-[1] drop-shadow-sm">{avatarEmoji(avatar)}</span>
+        <span className="pointer-events-none absolute inset-0 z-[2] rounded-full ring-2 ring-white/70" />
       )}
+      {ornament ? <FrameOrnament kind={ornament} /> : null}
     </span>
   );
 
   if (!designed && !auraClass) return face;
+  const auraPad = { xs: "p-1.5", sm: "p-2", md: "p-2.5", lg: "p-3", xl: "p-3.5" }[size];
   return (
-    <span className="relative inline-flex shrink-0 overflow-visible" aria-hidden="true">
+    <span className={cn("relative inline-flex shrink-0 overflow-visible", auraPad)} aria-hidden="true">
       {designed && aura ? <AuraFx aura={aura} /> : null}
       {!designed && auraClass ? (
-        <span className={cn("absolute -inset-3 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />
+        <span className={cn("absolute inset-0 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />
       ) : null}
       {face}
     </span>

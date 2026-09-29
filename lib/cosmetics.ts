@@ -19,6 +19,7 @@ export type CosmeticKind =
   | "title"
   | "sticker"
   | "room"
+  | "background"
   | "soundPack"
   | "confetti";
 
@@ -54,6 +55,7 @@ export const STYLE_SLOTS: { kind: CosmeticKind; label: string }[] = [
   { kind: "banner", label: "Banner" },
   { kind: "title", label: "Title" },
   { kind: "room", label: "Room" },
+  { kind: "background", label: "Background" },
   { kind: "soundPack", label: "Sound" },
   { kind: "confetti", label: "Confetti" },
 ];
@@ -69,6 +71,7 @@ export {
   TITLE_ITEMS,
   STICKER_ITEMS,
   ROOM_ITEMS,
+  BACKGROUND_ITEMS,
   SOUND_PACK_ITEMS,
   CONFETTI_ITEMS,
 } from "@/lib/looks-catalog";
@@ -82,6 +85,7 @@ import {
   BANNER_ITEMS,
   TITLE_ITEMS,
   ROOM_ITEMS,
+  BACKGROUND_ITEMS,
   SOUND_PACK_ITEMS,
   CONFETTI_ITEMS,
 } from "@/lib/looks-catalog";
@@ -110,6 +114,7 @@ export const CATALOG: CosmeticItem[] = [
   ...BANNER_ITEMS,
   ...TITLE_ITEMS,
   ...ROOM_ITEMS,
+  ...BACKGROUND_ITEMS,
   ...SOUND_PACK_ITEMS,
   ...CONFETTI_ITEMS,
   ...SEASON_ITEMS,
@@ -288,7 +293,13 @@ export function closetPrice(item: CosmeticItem) {
 /** Image for a Closet tile. Faces use portraits; everything else uses a generated thumb. */
 export function cosmeticThumb(item: Pick<CosmeticItem, "kind" | "key">) {
   if (item.kind === "face") return `/faces/${item.key}.png`;
+  if (item.kind === "background" && item.key !== "none") return wallpaperSrc(item.key)!;
   return `/closet/${item.kind}/${item.key}.svg`;
+}
+
+export function wallpaperSrc(key?: string | null) {
+  if (!key || key === "none") return null;
+  return `/backgrounds/${key}.png`;
 }
 
 /** Month-based sticker shown when the kid has not equipped one. */

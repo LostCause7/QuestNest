@@ -52,7 +52,7 @@ export async function sendKudos(childId: string, input: { emoji: string; message
 }
 
 const giftSchema = z.object({
-  kind: z.enum(["face", "color", "frame", "aura", "nameplate", "banner", "title", "room", "soundPack", "confetti"]),
+  kind: z.enum(["face", "color", "frame", "aura", "nameplate", "banner", "title", "room", "background", "soundPack", "confetti"]),
   key: z.string().trim().min(1).max(32),
 });
 

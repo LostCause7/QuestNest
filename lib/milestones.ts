@@ -107,6 +107,7 @@ export function childLook(style?: EquippedStyle | null, _opts: { seasonal?: bool
     nameplate: style?.nameplate ?? null,
     banner: style?.banner ?? null,
     room: style?.room ?? null,
+    background: style?.background ?? null,
     soundPack: style?.soundPack ?? null,
     confetti: style?.confetti ?? null,
     showcase: style?.showcase ?? null,

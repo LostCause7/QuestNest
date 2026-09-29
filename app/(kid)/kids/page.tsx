@@ -26,7 +26,7 @@ export default async function KidPickerPage() {
   const parentMotto = owner.motto;
 
   return (
-    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
+    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-x-hidden overflow-y-auto text-white">
       <FamilyLooksRealtime familyId={family.id} />
       <header className="flex items-center justify-between px-6 py-5">
         <Logo tone="light" size="sm" />
@@ -39,7 +39,7 @@ export default async function KidPickerPage() {
           </button>
         </form>
       </header>
-      <main id="main" className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-16">
+      <main id="main" className="flex flex-1 flex-col items-center justify-center overflow-visible px-6 pb-16">
         <section className="relative mb-6 flex flex-col items-center sm:mb-8">
           <div
             className="pointer-events-none absolute top-4 size-40 rounded-full bg-sky-200/20 blur-3xl sm:size-52"

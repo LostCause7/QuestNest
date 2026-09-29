@@ -12,6 +12,7 @@ import { requireActiveChild } from "@/lib/data/kid";
 import { getChildren } from "@/lib/data/parent";
 import { switchChild } from "@/lib/actions/kid-mode";
 import { DEFAULT_ROOM, findItem } from "@/lib/cosmetics";
+import { cn } from "@/lib/utils";
 
 export default async function KidShellLayout({ children, params }: LayoutProps<"/kids/[childId]">) {
   const { childId } = await params;
@@ -22,10 +23,18 @@ export default async function KidShellLayout({ children, params }: LayoutProps<"
 
   const roomKey = child.style?.room || DEFAULT_ROOM;
   const room = findItem("room", roomKey)?.key ?? DEFAULT_ROOM;
+  const wallpaperKey = findItem("background", child.style?.background)?.key ?? null;
+  const wallpaper = wallpaperKey && wallpaperKey !== "none" ? wallpaperKey : null;
 
   return (
-    <div className="kid-mode relative flex min-h-screen flex-col bg-background pb-24 text-foreground sm:pb-8" data-room={room}>
-      <RoomBackdrop room={room} />
+    <div
+      className={cn(
+        "kid-mode relative isolate flex min-h-screen flex-col pb-24 text-foreground sm:pb-8",
+        wallpaper ? "bg-transparent" : "bg-background"
+      )}
+      data-room={room}
+    >
+      <RoomBackdrop room={room} wallpaper={wallpaper} />
       <KidDeviceChrome />
       <SoundPackSync pack={child.style?.soundPack} room={room} confetti={child.style?.confetti} />
       <KidCelebrations />

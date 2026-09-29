@@ -23,13 +23,15 @@ export function ChildLookAvatar({
   className?: string;
 }) {
   const look = childLook(child.style);
+  const frame = look.frame && look.frame !== "none" ? frameClass(look.frame) : undefined;
+  const aura = look.aura && look.aura !== "none" ? look.aura : null;
   return (
     <KidAvatar
       avatar={child.avatar}
       color={child.color}
       size={size}
-      aura={size === "xs" ? null : look.aura}
-      frameClassName={frameClass(look.frame)}
+      aura={aura}
+      frameClassName={frame}
       className={className}
     />
   );
@@ -44,7 +46,14 @@ export function ChildLookName({
 }) {
   const plate = nameplateClassName(childLook(child.style).nameplate);
   return (
-    <span className={cn("inline-block max-w-full truncate", className, plate)}>
+    <span
+      className={cn(
+        "inline-flex max-w-full items-center truncate align-middle",
+        plate && "px-2 py-0.5",
+        className,
+        plate
+      )}
+    >
       {childDisplayName(child)}
     </span>
   );

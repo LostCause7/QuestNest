@@ -15,6 +15,14 @@ function lanOrigins() {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: lanOrigins(),
+  async headers() {
+    return [
+      {
+        source: "/backgrounds/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       // Custom domain + Vercel proxy: without this, every save can fail with

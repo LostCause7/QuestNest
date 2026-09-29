@@ -31,6 +31,7 @@ import {
 import { BADGE_MAP } from "@/lib/badges";
 import { childLook, frameClass, unlockedTitles } from "@/lib/milestones";
 import { play, previewPack, setSoundPack, type SoundPack } from "@/lib/sound";
+import { setWallpaper } from "@/lib/wallpaper";
 import { burst, setConfettiStyle } from "@/lib/confetti";
 import { setRoom } from "@/lib/room";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,7 @@ const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: "title", label: "Title", emoji: "🎖️" },
   { key: "showcase", label: "Trophies", emoji: "🏆" },
   { key: "room", label: "Room", emoji: "🏠" },
+  { key: "background", label: "Background", emoji: "🖼️" },
   { key: "soundPack", label: "Sound", emoji: "🔔" },
   { key: "confetti", label: "Confetti", emoji: "🎊" },
 ];
@@ -63,6 +65,7 @@ const SLOT_DEFAULTS: Record<SlotKind, string> = {
   nameplate: "none",
   banner: "none",
   room: "nest",
+  background: "none",
   soundPack: "classic",
   confetti: "circle",
 };
@@ -148,6 +151,14 @@ export function Closet({
     }
     setRoom(style.room ?? null);
   }, [preview, style.room]);
+
+  useEffect(() => {
+    if (preview?.kind === "background") {
+      setWallpaper(preview.key);
+      return () => setWallpaper(style.background ?? null);
+    }
+    setWallpaper(style.background ?? null);
+  }, [preview, style.background]);
 
   useEffect(() => {
     if (preview?.kind === "soundPack") {
@@ -256,6 +267,7 @@ export function Closet({
       return;
     }
     if (kind === "room") setRoom(key);
+    if (kind === "background") setWallpaper(key);
     if (kind === "confetti") {
       setConfettiStyle(key);
       setTimeout(() => burst("small"), 80);
@@ -686,6 +698,12 @@ function Preview({ item, avatar, color }: { item: CosmeticItem; avatar: string; 
           <span className="qn-kid-sky absolute inset-0" />
           <span className="qn-room-fx absolute inset-0" />
         </span>
+      );
+    case "background":
+      return item.key === "none" ? (
+        <span className="size-10 rounded-xl bg-muted ring-1 ring-black/10" />
+      ) : (
+        <img src={cosmeticThumb(item)} alt="" className="size-10 rounded-xl object-cover shadow-inner" />
       );
     case "soundPack":
     case "confetti":

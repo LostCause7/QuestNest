@@ -86,18 +86,32 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
       savingFor = rewards.some((r) => r.id === style.savingFor && r.is_active) ? style.savingFor : null;
     }
 
+    const current = (child.style ?? {}) as EquippedStyle;
+    const incoming: EquippedStyle = { ...current, ...style };
+    const keep = (
+      kind: Extract<CosmeticKind, "frame" | "aura" | "nameplate" | "banner" | "room" | "background" | "soundPack" | "confetti">,
+      wanted: string | null | undefined,
+      fallback: string | null
+    ) => {
+      const picked = pick(kind, wanted, ctx, fallback, locked, fullAccess);
+      if (picked && picked !== fallback) return picked;
+      const worn = current[kind];
+      if (typeof worn === "string" && worn === wanted && itemsOf(kind).some((item) => item.key === worn)) return worn;
+      return picked;
+    };
     const next: EquippedStyle = {
-      title: locked.has("title") ? titles[0] : style.title && titles.includes(style.title) ? style.title : titles[0],
+      title: locked.has("title") ? titles[0] : incoming.title && titles.includes(incoming.title) ? incoming.title : titles[0],
       sticker: null,
-      frame: pick("frame", style.frame, ctx, "none", locked, fullAccess),
+      frame: keep("frame", incoming.frame, "none"),
       hat: null,
-      aura: pick("aura", style.aura, ctx, null, locked, fullAccess),
-      nameplate: pick("nameplate", style.nameplate, ctx, null, locked, fullAccess),
-      banner: pick("banner", style.banner, ctx, "none", locked, fullAccess),
-      room: pick("room", style.room, ctx, null, locked, fullAccess),
-      soundPack: pick("soundPack", style.soundPack, ctx, null, locked, fullAccess),
-      confetti: pick("confetti", style.confetti, ctx, null, locked, fullAccess),
-      showcase: (style.showcase ?? []).filter((k) => badgeKeys.includes(k)).slice(0, 3),
+      aura: keep("aura", incoming.aura, null),
+      nameplate: keep("nameplate", incoming.nameplate, null),
+      banner: keep("banner", incoming.banner, "none"),
+      room: keep("room", incoming.room, null),
+      background: keep("background", incoming.background, null),
+      soundPack: keep("soundPack", incoming.soundPack, null),
+      confetti: keep("confetti", incoming.confetti, null),
+      showcase: (incoming.showcase ?? []).filter((k) => badgeKeys.includes(k)).slice(0, 3),
       savingFor,
     };
     const { error } = await supabase.from("children").update({ style: next }).eq("id", childId);
@@ -148,7 +162,7 @@ export async function saveChildLook(childId: string, input: { avatar?: string; c
 }
 
 const buySchema = z.object({
-  kind: z.enum(["face", "color", "frame", "aura", "nameplate", "banner", "title", "room", "soundPack", "confetti"]),
+  kind: z.enum(["face", "color", "frame", "aura", "nameplate", "banner", "title", "room", "background", "soundPack", "confetti"]),
   key: z.string().trim().min(1).max(32),
 });
 

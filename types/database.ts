@@ -32,6 +32,7 @@ export type EquippedStyle = {
   nameplate?: string | null;
   banner?: string | null;
   room?: string | null;
+  background?: string | null;
   soundPack?: string | null;
   confetti?: string | null;
   showcase?: string[] | null;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ROOM_EVENT } from "@/lib/room";
+import { WALLPAPER_EVENT, preloadWallpaper } from "@/lib/wallpaper";
 
 const FLOATERS: Record<string, string[]> = {
   nest: ["🪺", "🍃", "✨", "🌸"],
@@ -41,16 +42,35 @@ const SPOTS = [
   { top: "86%", left: "28%", size: "text-3xl", delay: "-6s" },
 ];
 
-/** Background layer for the kid's equipped room. */
-export function RoomBackdrop({ room: initial }: { room: string }) {
-  const [room, setRoom] = useState(initial);
-  useEffect(() => setRoom(initial), [initial]);
+/** Background layer for the kid's equipped room or Closet wallpaper. */
+export function RoomBackdrop({ room: initialRoom, wallpaper: initialWallpaper = null }: { room: string; wallpaper?: string | null }) {
+  const [room, setRoom] = useState(initialRoom);
+  const [paper, setPaper] = useState(() => preloadWallpaper(initialWallpaper));
+  useEffect(() => setRoom(initialRoom), [initialRoom]);
+  useEffect(() => {
+    setPaper(preloadWallpaper(initialWallpaper));
+  }, [initialWallpaper]);
   useEffect(() => {
     const onRoom = (event: Event) => setRoom((event as CustomEvent<string>).detail);
+    const onPaper = (event: Event) => setPaper((event as CustomEvent<string | null>).detail);
     window.addEventListener(ROOM_EVENT, onRoom);
-    return () => window.removeEventListener(ROOM_EVENT, onRoom);
+    window.addEventListener(WALLPAPER_EVENT, onPaper);
+    return () => {
+      window.removeEventListener(ROOM_EVENT, onRoom);
+      window.removeEventListener(WALLPAPER_EVENT, onPaper);
+    };
   }, []);
   const floaters = FLOATERS[room] ?? FLOATERS.nest;
+
+  if (paper) {
+    return (
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        {/* Cached Image() decode in preloadWallpaper; this img reuses the browser cache. */}
+        <img src={paper} alt="" className="absolute inset-0 size-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-background/50 to-background/70" />
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">

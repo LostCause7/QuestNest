@@ -37,6 +37,9 @@ function sound(key: string, label: string, emoji: string, unlock: UnlockRule, co
 function confetti(key: string, label: string, emoji: string, unlock: UnlockRule, cost?: number): CosmeticItem {
   return { key, kind: "confetti", label, emoji, unlock, cost };
 }
+function wallpaper(key: string, label: string, unlock: UnlockRule, cost?: number): CosmeticItem {
+  return { key, kind: "background", label, unlock, cost };
+}
 
 /* Extra faces — the 10 starters live in lib/avatars.ts and stay free. */
 export const GATED_FACES: CosmeticItem[] = [
@@ -308,6 +311,20 @@ export const TITLE_ITEMS: CosmeticItem[] = [
 ];
 
 export const STICKER_ITEMS: CosmeticItem[] = [{ key: "star", kind: "sticker", label: "Star", emoji: "⭐", unlock: free }];
+
+export const BACKGROUND_ITEMS: CosmeticItem[] = [
+  wallpaper("none", "None", free),
+  wallpaper("sakurahill", "Sakura Hill", shop, 36),
+  wallpaper("neonrain", "Neon Rain", streak(5), 48),
+  wallpaper("skyisles", "Sky Isles", season(8), 52),
+  wallpaper("moonshrine", "Moon Shrine", streak(7), 54),
+  wallpaper("icepalace", "Ice Palace", season(12), 58),
+  wallpaper("starharbor", "Star Harbor", shop, 72),
+  wallpaper("lanternfest", "Lantern Fest", badge("first_reward"), 40),
+  wallpaper("dragonpeak", "Dragon Peak", streak(10), 80),
+  wallpaper("coraldeep", "Coral Deep", badge("kindness_10"), 46),
+  wallpaper("traindusk", "Train Dusk", set("quests"), 88),
+];
 
 export const ROOM_ITEMS: CosmeticItem[] = [
   room("nest", "Nest", "🪺", free),
