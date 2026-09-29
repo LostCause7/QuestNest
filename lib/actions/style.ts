@@ -119,11 +119,18 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
       showcase: (incoming.showcase ?? []).filter((k) => badgeKeys.includes(k)).slice(0, 3),
       savingFor,
     };
-    const { error } = await supabase.from("children").update({ style: next }).eq("id", childId);
-    if (error && /column|schema cache|does not exist/i.test(error.message)) {
-      return ok(undefined, "Saved on this device. Run the latest nest update to sync looks.");
+    const { error } = await supabase.rpc("save_child_look", {
+      p_child: childId,
+      p_style: next,
+    });
+    if (error && MISSING.test(error.message)) {
+      const fallback = await supabase.from("children").update({ style: next }).eq("id", childId);
+      if (fallback.error) {
+        return fail("Closet looks need the latest nest update in Supabase (0023). They only saved on this device.");
+      }
+    } else if (error) {
+      return fail(friendlyError(error.message));
     }
-    if (error) return fail(friendlyError(error.message));
     revalidate();
     return ok(undefined, "Look saved.");
   });
@@ -159,8 +166,17 @@ export async function saveChildLook(childId: string, input: { avatar?: string; c
     }
     if (!patch.avatar && !patch.color) return ok(undefined);
 
-    const { error } = await supabase.from("children").update(patch).eq("id", childId);
-    if (error) return fail(friendlyError(error.message));
+    const { error } = await supabase.rpc("save_child_look", {
+      p_child: childId,
+      p_avatar: patch.avatar ?? null,
+      p_color: patch.color ?? null,
+    });
+    if (error && MISSING.test(error.message)) {
+      const fallback = await supabase.from("children").update(patch).eq("id", childId);
+      if (fallback.error) return fail(friendlyError(fallback.error.message));
+    } else if (error) {
+      return fail(friendlyError(error.message));
+    }
     revalidate();
     return ok(undefined, "Look saved.");
   });

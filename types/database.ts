@@ -497,6 +497,10 @@ export type Database = {
         Args: { p_family: string; p_today: string };
         Returns: undefined;
       };
+      save_child_look: {
+        Args: { p_child: string; p_avatar?: string | null; p_color?: string | null; p_style?: EquippedStyle | null };
+        Returns: Child;
+      };
     };
     Enums: {
       recurrence: Recurrence;
