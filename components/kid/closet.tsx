@@ -142,7 +142,7 @@ export function Closet({
     setColor(child.color);
     setMotto(child.motto ?? "");
     setStyle(child.style ?? {});
-  }, [child.id, child.avatar, child.color, child.motto, child.style]);
+  }, [child.id]);
 
   useEffect(() => {
     if (preview?.kind === "room") {
@@ -178,8 +178,12 @@ export function Closet({
     setStyle(next);
     play("tap");
     void saveChildStyle(child.id, next).then((res) => {
-      if (!res.ok) toast.error(res.error);
-      else router.refresh();
+      if (!res.ok) {
+        toast.error(res.error);
+        setStyle(child.style ?? {});
+        return;
+      }
+      router.refresh();
     });
   };
 
@@ -189,8 +193,13 @@ export function Closet({
     if (next.color) setColor(next.color);
     play("tap");
     void saveChildLook(child.id, next).then((res) => {
-      if (!res.ok) toast.error(res.error);
-      else router.refresh();
+      if (!res.ok) {
+        toast.error(res.error);
+        setAvatar(child.avatar);
+        setColor(child.color);
+        return;
+      }
+      router.refresh();
     });
   };
 
