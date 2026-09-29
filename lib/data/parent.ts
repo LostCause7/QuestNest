@@ -10,6 +10,9 @@ import type {
   Reward,
   RewardAssignment,
   RewardRedemption,
+  RewardFund,
+  RewardFundPledge,
+  RewardFundWithPledges,
   PointTransaction,
   ChildBadge,
   ChildDayAward,
@@ -84,6 +87,31 @@ export const getPendingCompletions = cache(async (familyId: string): Promise<Cho
     .eq("status", "pending")
     .order("completed_at", { ascending: true });
   return data ?? [];
+});
+
+export const getRewardFunds = cache(async (familyId: string): Promise<RewardFundWithPledges[]> => {
+  const supabase = await createClient();
+  const fundsRes = await supabase
+    .from("reward_funds")
+    .select("*")
+    .eq("family_id", familyId)
+    .eq("status", "open");
+  if (fundsRes.error) return [];
+  const funds = (fundsRes.data ?? []) as RewardFund[];
+  if (!funds.length) return [];
+  const pledgesRes = await supabase
+    .from("reward_fund_pledges")
+    .select("*")
+    .in("fund_id", funds.map((f) => f.id));
+  const pledges = (pledgesRes.error ? [] : pledgesRes.data ?? []) as RewardFundPledge[];
+  const byFund = new Map<string, RewardFundPledge[]>();
+  for (const p of pledges) {
+    byFund.set(p.fund_id, [...(byFund.get(p.fund_id) ?? []), p]);
+  }
+  return funds.map((f) => {
+    const mine = byFund.get(f.id) ?? [];
+    return { ...f, pledges: mine, raised: mine.reduce((sum, p) => sum + p.amount, 0) };
+  });
 });
 
 export const getRedemptions = cache(

@@ -120,7 +120,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="font-medium">{p.child ? <ChildLookName child={p.child} /> : "Someone"}</span>
                   <span className="text-muted-foreground">
-                    {p.kind === "completion" ? (p.item.excuse ? "can't do" : "finished") : "wants"}
+                    {p.kind === "completion" ? (p.item.excuse ? "can't do" : "finished") : p.item.fund_id ? "helped fill" : "wants"}
                   </span>
                   <span className="font-medium">
                     {p.kind === "completion" ? (
@@ -137,7 +137,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                 <div className="text-xs text-muted-foreground">
                   {p.kind === "completion"
                     ? `${longDate(p.item.for_date)} · submitted ${timeAgo(p.item.completed_at)}`
-                    : `requested ${timeAgo(p.item.requested_at)} · ${formatSpend(p.item.cost_at_time, family.currency_emoji, p.reward?.title, p.reward?.description)} held`}
+                    : `requested ${timeAgo(p.item.requested_at)} · ${formatSpend(p.item.cost_at_time, family.currency_emoji, p.reward?.title, p.reward?.description)} held${p.item.fund_id ? " · shared pot" : ""}`}
                 </div>
               </div>
               <div className="flex items-center gap-2">

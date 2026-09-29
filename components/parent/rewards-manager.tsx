@@ -37,7 +37,7 @@ import { RewardIcon } from "@/components/shared/reward-icon";
 import { timeAgo } from "@/lib/format";
 import { formatSpend, isCashReward } from "@/lib/suggested-points";
 import { cn } from "@/lib/utils";
-import type { Child, Family, RewardRedemption } from "@/types/database";
+import type { Child, Family, RewardFundWithPledges, RewardRedemption } from "@/types/database";
 import type { RewardWithKids } from "@/lib/data/parent";
 
 export function RewardsManager({
@@ -45,11 +45,13 @@ export function RewardsManager({
   redemptions,
   kids,
   family,
+  funds = [],
 }: {
   rewards: RewardWithKids[];
   redemptions: RewardRedemption[];
   kids: Child[];
   family: Family;
+  funds?: RewardFundWithPledges[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -113,7 +115,8 @@ export function RewardsManager({
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {timeAgo(r.requested_at)} · {formatSpend(r.cost_at_time, family.currency_emoji, reward?.title, reward?.description)} ·{" "}
+                      {timeAgo(r.requested_at)} · {formatSpend(r.cost_at_time, family.currency_emoji, reward?.title, reward?.description)}
+                      {r.fund_id ? " · shared pot" : ""} ·{" "}
                       <span className="capitalize">{r.status === "pending" ? "awaiting approval" : "approved, not delivered"}</span>
                     </div>
                   </div>
@@ -151,6 +154,8 @@ export function RewardsManager({
               key={r.id}
               reward={r}
               family={family}
+              fund={funds.find((f) => f.reward_id === r.id)}
+              kids={kids}
               busy={isBusy(r.id)}
               onEdit={() => {
                 setEditing(r);
@@ -173,6 +178,8 @@ export function RewardsManager({
                 key={r.id}
                 reward={r}
                 family={family}
+                fund={funds.find((f) => f.reward_id === r.id)}
+                kids={kids}
                 hidden
                 busy={isBusy(r.id)}
                 onEdit={() => {
@@ -261,6 +268,8 @@ export function RewardsManager({
 function RewardCard({
   reward,
   family,
+  fund,
+  kids,
   hidden,
   busy,
   onEdit,
@@ -269,6 +278,8 @@ function RewardCard({
 }: {
   reward: RewardWithKids;
   family: Family;
+  fund?: RewardFundWithPledges;
+  kids: Child[];
   hidden?: boolean;
   busy: boolean;
   onEdit: () => void;
@@ -276,6 +287,7 @@ function RewardCard({
   onDelete: () => void;
 }) {
   const soldOut = reward.stock !== null && reward.stock <= 0;
+  const kidName = (id: string) => kids.find((k) => k.id === id)?.name ?? "A kid";
   return (
     <li className={cn("flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm", hidden && "opacity-60")}>
       <div className="flex items-start gap-3">
@@ -291,6 +303,20 @@ function RewardCard({
             {reward.stock !== null ? ` · ${soldOut ? "sold out" : `${reward.stock} left`}` : ""}
             {reward.source_key ? " · nearby" : ""}
           </div>
+          {fund ? (
+            <div className="mt-2">
+              <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-sunrise-gradient"
+                  style={{ width: `${Math.min(100, (fund.raised / fund.target) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Shared pot {fund.raised}/{fund.target} {family.currency_emoji} ·{" "}
+                {fund.pledges.map((p) => kidName(p.child_id)).join(", ")}
+              </p>
+            </div>
+          ) : null}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

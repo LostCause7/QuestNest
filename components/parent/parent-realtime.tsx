@@ -65,6 +65,9 @@ export function ParentRealtime({ familyId }: { familyId: string }) {
         }
       )
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "children", filter: `family_id=eq.${familyId}` }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reward_funds", filter: `family_id=eq.${familyId}` }, refresh)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "reward_funds", filter: `family_id=eq.${familyId}` }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "reward_fund_pledges", filter: `family_id=eq.${familyId}` }, refresh)
       .subscribe();
 
     return () => {

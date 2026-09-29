@@ -23,6 +23,9 @@ export function friendlyError(message: string) {
   if (/that amount is too big/i.test(message)) return "That's more than this reward allows.";
   if (/pick an amount/i.test(message)) return "Pick how many dollars you want.";
   if (/out of stock/i.test(message)) return "That reward is sold out.";
+  if (/cash rewards cannot be shared/i.test(message)) return "Cash rewards can't be shared. Pick a dollar amount and get it yourself.";
+  if (/that pot is already full/i.test(message)) return "That pot is already full.";
+  if (/put toward the shared pot/i.test(message)) return "Siblings already started a pot. Put points toward it instead of buying it alone.";
   if (/already reviewed/i.test(message)) return "That one was already reviewed.";
   if (/PIN must be/i.test(message)) return message.replace(/^.*?PIN/, "PIN");
   if (/not allowed/i.test(message)) return "You don't have permission to do that.";

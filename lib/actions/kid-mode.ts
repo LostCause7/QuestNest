@@ -10,7 +10,7 @@ import { familyToday } from "@/lib/data/parent";
 import { ACTIVE_CHILD_COOKIE, ACTIVE_PARENT_COOKIE, KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { safeNext } from "@/lib/origin";
 import { ok, fail, friendlyError, type ActionResult } from "./result";
-import type { ChoreCompletion, RewardRedemption } from "@/types/database";
+import type { ChoreCompletion, ContributeResult, RewardRedemption } from "@/types/database";
 
 const cookieOpts = {
   httpOnly: true,
@@ -240,6 +240,31 @@ export async function redeemRewardAsKid(rewardId: string, cost?: number): Promis
   revalidatePath("/kids", "layout");
   revalidatePath("/app", "layout");
   return ok(data as RewardRedemption);
+}
+
+/** Kid chips points into a shared pot. When it fills, every contributor gets the reward. */
+export async function contributeToRewardAsKid(rewardId: string, amount: number): Promise<ActionResult<ContributeResult>> {
+  const childId = await activeChildId();
+  if (!childId) return fail("Pick your profile first.");
+  if (!Number.isInteger(amount) || amount < 1) return fail("Pick how many points to put toward it.");
+  await requireFamily();
+  const supabase = await createClient();
+  const assigned = await supabase.from("reward_assignments").select("child_id").eq("reward_id", rewardId);
+  if (!assigned.error && assigned.data?.length && !assigned.data.some((a) => a.child_id === childId)) {
+    return fail("That reward isn't in your shop.");
+  }
+  const { data, error } = await supabase.rpc("contribute_to_reward", {
+    p_reward: rewardId,
+    p_child: childId,
+    p_amount: amount,
+  });
+  if (error && /could not find the function|schema cache|does not exist/i.test(error.message)) {
+    return fail("Shared pots need the latest nest update. Ask a parent to run 0024_shared_reward_pots.sql.");
+  }
+  if (error) return fail(friendlyError(error.message));
+  revalidatePath("/kids", "layout");
+  revalidatePath("/app", "layout");
+  return ok(data as ContributeResult);
 }
 
 /** Kid changes their mind before the reward is delivered. Points come back. */

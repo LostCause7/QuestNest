@@ -252,6 +252,40 @@ export type RewardRedemption = {
   requested_at: string;
   resolved_at: string | null;
   resolved_by: string | null;
+  fund_id?: string | null;
+}
+
+export type RewardFund = {
+  id: string;
+  family_id: string;
+  reward_id: string;
+  target: number;
+  status: "open" | "filled";
+  created_at: string;
+  filled_at: string | null;
+}
+
+export type RewardFundPledge = {
+  id: string;
+  fund_id: string;
+  family_id: string;
+  child_id: string;
+  amount: number;
+  created_at: string;
+}
+
+export type RewardFundWithPledges = RewardFund & {
+  pledges: RewardFundPledge[];
+  raised: number;
+}
+
+export type ContributeResult = {
+  fund_id: string;
+  raised: number;
+  target: number;
+  filled: boolean;
+  my_amount: number;
+  chipped: number;
 }
 
 export type PointTransaction = {
@@ -395,9 +429,21 @@ export type Database = {
         Row: Row<RewardRedemption>;
         Insert: Insert<
           RewardRedemption,
-          "id" | "status" | "requested_at" | "resolved_at" | "resolved_by"
+          "id" | "status" | "requested_at" | "resolved_at" | "resolved_by" | "fund_id"
         >;
         Update: Partial<RewardRedemption>;
+        Relationships: [];
+      };
+      reward_funds: {
+        Row: Row<RewardFund>;
+        Insert: Insert<RewardFund, "id" | "status" | "created_at" | "filled_at">;
+        Update: Partial<RewardFund>;
+        Relationships: [];
+      };
+      reward_fund_pledges: {
+        Row: Row<RewardFundPledge>;
+        Insert: Insert<RewardFundPledge, "id" | "created_at">;
+        Update: Partial<RewardFundPledge>;
         Relationships: [];
       };
       point_transactions: {
@@ -472,6 +518,10 @@ export type Database = {
       redeem_reward: {
         Args: { p_reward: string; p_child: string; p_cost?: number | null };
         Returns: RewardRedemption;
+      };
+      contribute_to_reward: {
+        Args: { p_reward: string; p_child: string; p_amount: number };
+        Returns: ContributeResult;
       };
       resolve_redemption: {
         Args: { p_redemption: string; p_action: "approve" | "reject" | "fulfill" | "cancel" };

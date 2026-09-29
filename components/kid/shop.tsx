@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { LockIcon, Loader2Icon, ShoppingBagIcon, ClockIcon, TargetIcon, MinusIcon, PlusIcon } from "lucide-react";
+import { LockIcon, Loader2Icon, ShoppingBagIcon, ClockIcon, TargetIcon, MinusIcon, PlusIcon, HandCoinsIcon } from "lucide-react";
 import { toast } from "sonner";
 import { saveChildStyle } from "@/lib/actions/style";
 import { styleStorageKey } from "@/lib/milestones";
@@ -16,12 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import { Celebration, type CelebrationData } from "@/components/kid/celebration";
 import { KidPageHero } from "@/components/kid/page-hero";
-import { cancelRedemptionAsKid, redeemRewardAsKid } from "@/lib/actions/kid-mode";
+import { cancelRedemptionAsKid, contributeToRewardAsKid, redeemRewardAsKid } from "@/lib/actions/kid-mode";
 import { cashStepOptions, formatDollars, isCashReward, pointsToDollars } from "@/lib/suggested-points";
 import { play } from "@/lib/sound";
 import { RewardIcon } from "@/components/shared/reward-icon";
 import { cn } from "@/lib/utils";
-import type { Child, Family, Reward, RewardRedemption } from "@/types/database";
+import type { Child, Family, Reward, RewardFundWithPledges, RewardRedemption } from "@/types/database";
 
 const RARITY: Record<string, { label: string; className: string }> = {
   rare: { label: "Rare", className: "ring-2 ring-sky-300 qn-foil-rare" },
@@ -29,25 +29,54 @@ const RARITY: Record<string, { label: string; className: string }> = {
   legendary: { label: "Legendary", className: "ring-2 ring-amber-400 qn-foil" },
 };
 
+function chipChoices(balance: number, remaining: number) {
+  const max = Math.min(balance, remaining);
+  return [...new Set([10, 25, 50, 100, max].filter((n) => n >= 1 && n <= max))].sort((a, b) => a - b);
+}
+
 export function Shop({
   rewards,
   child,
   family,
   openRedemptions,
+  funds = [],
+  siblings = [],
 }: {
   rewards: Reward[];
   child: Child;
   family: Family;
   openRedemptions: RewardRedemption[];
+  funds?: RewardFundWithPledges[];
+  siblings?: { id: string; name: string }[];
 }) {
   const [selected, setSelected] = useState<Reward | null>(null);
   const [dollars, setDollars] = useState(5);
+  const [chip, setChip] = useState(1);
   const [busy, setBusy] = useState(false);
   const [canceling, setCanceling] = useState<string | null>(null);
   const [bought, setBought] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
   const closeCelebration = useCallback(() => setCelebration(null), []);
   const [savingFor, setSavingFor] = useState<string | null>(child.style?.savingFor ?? null);
+  const potFor = (rewardId: string) => funds.find((f) => f.reward_id === rewardId) ?? null;
+  const kidName = (id: string) => siblings.find((s) => s.id === id)?.name ?? (id === child.id ? child.name : "A sibling");
+  const selectedPot = selected ? potFor(selected.id) : null;
+  const selectedRemaining = selectedPot
+    ? Math.max(0, selectedPot.target - selectedPot.raised)
+    : selected && !isCashReward(selected.title, selected.description)
+      ? selected.cost
+      : 0;
+  const maxChip = Math.min(child.points_balance, selectedRemaining);
+  const myPledge = selectedPot?.pledges.find((p) => p.child_id === child.id)?.amount ?? 0;
+
+  useEffect(() => {
+    if (!selected) return;
+    const pot = potFor(selected.id);
+    const remaining = pot ? Math.max(0, pot.target - pot.raised) : selected.cost;
+    setChip(Math.max(1, Math.min(child.points_balance, remaining) || 1));
+    // potFor is stable enough for this selected id; funds come from the server snapshot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.id, child.points_balance, funds]);
 
   const minCost = (r: Reward) => (isCashReward(r.title, r.description) ? cashStepOptions(r.title, r.description, child.points_balance).minPoints : r.cost);
   const affordable = rewards.filter((r) => minCost(r) <= child.points_balance);
@@ -129,6 +158,57 @@ export function Shop({
     }
   };
 
+  const toward = async (amount: number, filling: boolean) => {
+    if (!selected || amount < 1) return;
+    setBusy(true);
+    play("tap");
+    try {
+      const res = await contributeToRewardAsKid(selected.id, amount);
+      if (!res.ok) {
+        play("error");
+        toast.error(res.error);
+        return;
+      }
+      play("purchase");
+      const filled = Boolean(res.data?.filled);
+      const left = Math.max(0, (res.data?.target ?? selected.cost) - (res.data?.raised ?? 0));
+      setBought(selected.id);
+      setTimeout(() => setBought(null), 900);
+      setSelected(null);
+      if (filled) {
+        setCelebration({
+          emoji: selected.icon,
+          title: selected.requires_approval ? "Pot's full!" : "It's yours!",
+          subtitle: selected.requires_approval
+            ? `Everyone who put toward “${selected.title}” will get it after a parent approves.`
+            : `Everyone who put toward “${selected.title}” gets it!`,
+          points: -(res.data?.chipped ?? amount),
+          currencyEmoji: family.currency_emoji,
+          tone: "shop",
+        });
+      } else {
+        toast.success(
+          filling
+            ? `Put ${res.data?.chipped ?? amount} ${family.currency_emoji} toward it. ${left} to go!`
+            : `Put ${res.data?.chipped ?? amount} ${family.currency_emoji} toward it. ${left} more and everyone who chipped in gets it.`
+        );
+      }
+    } catch {
+      toast.error("Could not put toward that. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const getIt = () => {
+    if (!selected) return;
+    if (selectedPot && selectedRemaining > 0) {
+      void toward(selectedRemaining, true);
+      return;
+    }
+    void buy();
+  };
+
   return (
     <>
       <Celebration data={celebration} onClose={closeCelebration} />
@@ -139,6 +219,7 @@ export function Shop({
         subtitle={
           <>
             You have <strong className="text-foreground">{child.points_balance}</strong> {family.currency_emoji} to spend.
+            Put some toward a reward and siblings can chip in too — everyone who helps gets it.
           </>
         }
       />
@@ -222,7 +303,10 @@ export function Shop({
           const floor = minCost(r);
           const canAfford = floor <= child.points_balance;
           const soldOut = r.stock !== null && r.stock <= 0;
-          const disabled = !canAfford || soldOut;
+          const pot = potFor(r.id);
+          const remaining = pot ? Math.max(0, pot.target - pot.raised) : r.cost;
+          const canChip = !cashItem && !soldOut && child.points_balance > 0 && remaining > 0;
+          const disabled = soldOut || (cashItem ? !canAfford : !canAfford && !canChip && !pot);
           const rarity = r.rarity ? RARITY[r.rarity] : null;
           const isGoal = savingFor === r.id;
           return (
@@ -233,7 +317,7 @@ export function Shop({
               transition={{ delay: bought === r.id ? 0 : Math.min(i * 0.04, 0.4) }}
               className="relative"
             >
-              {!canAfford && !soldOut ? (
+              {!canAfford && !soldOut && !pot ? (
                 <button
                   type="button"
                   onClick={() => pickGoal(r)}
@@ -262,19 +346,32 @@ export function Shop({
                     {rarity.label}
                   </span>
                 ) : null}
-                <span className={cn("flex size-16 items-center justify-center rounded-2xl text-4xl shadow-inner", canAfford ? "bg-sun-300/45" : "bg-muted grayscale")}>
+                <span className={cn("flex size-16 items-center justify-center rounded-2xl text-4xl shadow-inner", canAfford || pot ? "bg-sun-300/45" : "bg-muted grayscale")}>
                   <RewardIcon icon={r.icon} className="size-12" />
                 </span>
                 <span className="mt-3 line-clamp-2 font-display text-base font-semibold leading-tight">{r.title}</span>
                 <span
                   className={cn(
                     "mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold",
-                    canAfford ? "qn-chrome shadow" : "bg-muted text-muted-foreground"
+                    canAfford || pot ? "qn-chrome shadow" : "bg-muted text-muted-foreground"
                   )}
                 >
-                  {!canAfford ? <LockIcon className="size-3.5" /> : null}
+                  {!canAfford && !pot ? <LockIcon className="size-3.5" /> : null}
                   {cashItem ? `from $5 · ${floor}` : r.cost} {family.currency_emoji}
                 </span>
+                {pot ? (
+                  <span className="mt-2 w-full">
+                    <span className="mb-1 block h-1.5 overflow-hidden rounded-full bg-muted">
+                      <span
+                        className="block h-full rounded-full bg-sunrise-gradient"
+                        style={{ width: `${Math.min(100, (pot.raised / pot.target) * 100)}%` }}
+                      />
+                    </span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      {pot.raised}/{pot.target} · {pot.pledges.length} helping
+                    </span>
+                  </span>
+                ) : null}
                 {soldOut ? <span className="mt-1 text-xs font-semibold text-rose-600">Sold out</span> : null}
                 {r.stock !== null && !soldOut ? <span className="mt-1 text-xs text-muted-foreground">{r.stock} left</span> : null}
               </button>
@@ -341,29 +438,131 @@ export function Shop({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl bg-muted p-3 text-center text-sm">
-                  Spend <strong>{selected.cost} {family.currency_emoji}</strong> · you&apos;ll have{" "}
-                  <strong>{child.points_balance - selected.cost} {family.currency_emoji}</strong> left
+                <div className="space-y-3">
+                  {selectedPot ? (
+                    <div className="rounded-2xl bg-muted p-3 text-center text-sm">
+                      <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-background">
+                        <div
+                          className="h-full rounded-full bg-sunrise-gradient"
+                          style={{ width: `${Math.min(100, (selectedPot.raised / selectedPot.target) * 100)}%` }}
+                        />
+                      </div>
+                      <p>
+                        <strong>
+                          {selectedPot.raised}/{selectedPot.target} {family.currency_emoji}
+                        </strong>{" "}
+                        in the pot · {selectedRemaining} to go
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {selectedPot.pledges
+                          .map((p) => `${p.child_id === child.id ? "You" : kidName(p.child_id)} ${p.amount}`)
+                          .join(" · ")}
+                      </p>
+                      {myPledge ? (
+                        <p className="mt-1 text-xs font-semibold">You already put {myPledge} {family.currency_emoji} in.</p>
+                      ) : null}
+                      <p className="mt-2 text-xs text-muted-foreground">Everyone who puts toward it gets the reward when the pot fills. Points you put in stay in the pot.</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-muted p-3 text-center text-sm">
+                      Spend <strong>{selected.cost} {family.currency_emoji}</strong> yourself, or put some toward it so siblings can help.
+                      Everyone who chips in gets it when the pot fills.
+                    </div>
+                  )}
+                  {maxChip > 0 ? (
+                    <div className="space-y-2">
+                      <div className="text-center text-sm font-semibold">Put toward it</div>
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          disabled={busy || chip <= 1}
+                          onClick={() => {
+                            setChip((n) => Math.max(1, n - 1));
+                            play("tap");
+                          }}
+                          className="flex size-12 items-center justify-center rounded-2xl bg-muted font-bold hover:bg-muted/80 disabled:opacity-40"
+                          aria-label="Fewer points"
+                        >
+                          <MinusIcon className="size-5" />
+                        </button>
+                        <div className="min-w-24 text-center">
+                          <div className="font-display text-4xl font-bold">{chip}</div>
+                          <div className="text-xs text-muted-foreground">{family.currency_emoji}</div>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={busy || chip >= maxChip}
+                          onClick={() => {
+                            setChip((n) => Math.min(maxChip, n + 1));
+                            play("tap");
+                          }}
+                          className="flex size-12 items-center justify-center rounded-2xl bg-muted font-bold hover:bg-muted/80 disabled:opacity-40"
+                          aria-label="More points"
+                        >
+                          <PlusIcon className="size-5" />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {chipChoices(child.points_balance, selectedRemaining).map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setChip(n);
+                              play("tap");
+                            }}
+                            className={cn(
+                              "rounded-full px-3 py-1 text-xs font-semibold",
+                              chip === n ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {n === selectedRemaining ? `Rest (${n})` : n === child.points_balance ? `All (${n})` : n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-center text-sm text-muted-foreground">Earn more points to put toward this pot.</p>
+                  )}
                 </div>
               )}
-              <DialogFooter className="sm:justify-center">
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  disabled={busy}
-                  className="h-12 rounded-2xl px-5 font-semibold text-muted-foreground hover:bg-muted"
-                >
-                  Not now
-                </button>
-                <button
-                  type="button"
-                  onClick={buy}
-                  disabled={busy || spend > child.points_balance}
-                  className="qn-tap qn-chrome inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-6 font-display text-lg font-bold active:scale-95 disabled:opacity-60"
-                >
-                  {busy ? <Loader2Icon className="animate-spin" /> : <ShoppingBagIcon className="size-5" />}
-                  Get it!
-                </button>
+              <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelected(null)}
+                    disabled={busy}
+                    className="h-12 rounded-2xl px-5 font-semibold text-muted-foreground hover:bg-muted"
+                  >
+                    Not now
+                  </button>
+                  {!cash && maxChip > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => void toward(chip, false)}
+                      disabled={busy || chip < 1 || chip > maxChip}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-muted px-5 font-display text-base font-bold active:scale-95 disabled:opacity-60"
+                    >
+                      {busy ? <Loader2Icon className="animate-spin" /> : <HandCoinsIcon className="size-5" />}
+                      Put toward it
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={getIt}
+                    disabled={
+                      busy ||
+                      (cash ? spend > child.points_balance : child.points_balance < (selectedPot ? selectedRemaining : selected.cost))
+                    }
+                    className="qn-tap qn-chrome inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-6 font-display text-lg font-bold active:scale-95 disabled:opacity-60"
+                  >
+                    {busy ? <Loader2Icon className="animate-spin" /> : <ShoppingBagIcon className="size-5" />}
+                    {selectedPot && selectedRemaining > 0 && child.points_balance >= selectedRemaining
+                      ? "Fill the pot!"
+                      : "Get it!"}
+                  </button>
+                </div>
               </DialogFooter>
             </>
           ) : null}

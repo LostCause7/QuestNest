@@ -118,6 +118,23 @@ export function KidRealtime({
       )
       .on<RewardRedemption>(
         "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reward_redemptions", filter: `child_id=eq.${childId}` },
+        (payload) => {
+          const r = payload.new;
+          if (r.fund_id) {
+            play("purchase");
+            toast.success(
+              r.status === "pending"
+                ? "The pot filled! Waiting for a parent — everyone who put toward it gets this."
+                : "The pot filled — this reward is yours too!",
+              { duration: 5000 }
+            );
+          }
+          refresh();
+        }
+      )
+      .on<RewardRedemption>(
+        "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reward_redemptions", filter: `child_id=eq.${childId}` },
         (payload) => {
           const r = payload.new;
@@ -130,6 +147,16 @@ export function KidRealtime({
           }
           refresh();
         }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reward_funds", filter: `family_id=eq.${familyId}` },
+        refresh
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reward_fund_pledges", filter: `family_id=eq.${familyId}` },
+        refresh
       )
       .on<ChildBadge>(
         "postgres_changes",
