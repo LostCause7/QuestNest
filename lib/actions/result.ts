@@ -26,6 +26,7 @@ export function friendlyError(message: string) {
   if (/cash rewards cannot be shared/i.test(message)) return "Cash rewards can't be shared. Pick a dollar amount and get it yourself.";
   if (/that pot is already full/i.test(message)) return "That pot is already full.";
   if (/put toward the shared pot/i.test(message)) return "Siblings already started a pot. Put points toward it instead of buying it alone.";
+  if (/could not choose the best candidate function/i.test(message)) return "Could not claim that reward. Try again in a moment.";
   if (/already reviewed/i.test(message)) return "That one was already reviewed.";
   if (/PIN must be/i.test(message)) return message.replace(/^.*?PIN/, "PIN");
   if (/not allowed/i.test(message)) return "You don't have permission to do that.";

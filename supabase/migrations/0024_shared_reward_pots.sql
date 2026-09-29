@@ -242,16 +242,9 @@ $$;
 
 grant execute on function public.redeem_reward(uuid, uuid, integer) to authenticated;
 
-create or replace function public.redeem_reward(p_reward uuid, p_child uuid)
-returns public.reward_redemptions
-language sql
-security invoker
-set search_path = ''
-as $$
-  select * from public.redeem_reward(p_reward, p_child, null::integer);
-$$;
-
-grant execute on function public.redeem_reward(uuid, uuid) to authenticated;
+-- One redeem_reward only. A 2-arg overload plus a 3-arg default makes
+-- PostgREST throw "could not choose the best candidate function".
+drop function if exists public.redeem_reward(uuid, uuid);
 
 -- A filled pot decrements stock once. Only put it back if every contributor
 -- cancels or is declined.

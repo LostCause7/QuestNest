@@ -227,12 +227,13 @@ export async function redeemRewardAsKid(rewardId: string, cost?: number): Promis
   if (!assigned.error && assigned.data?.length && !assigned.data.some((a) => a.child_id === childId)) {
     return fail("That reward isn't in your shop.");
   }
-  const { data, error } = await supabase.rpc(
-    "redeem_reward",
-    typeof cost === "number"
-      ? { p_reward: rewardId, p_child: childId, p_cost: cost }
-      : { p_reward: rewardId, p_child: childId }
-  );
+  // Always send p_cost so PostgREST does not have to pick between the 2-arg
+  // and 3-arg redeem_reward overloads (that error is "could not choose the best candidate").
+  const { data, error } = await supabase.rpc("redeem_reward", {
+    p_reward: rewardId,
+    p_child: childId,
+    p_cost: typeof cost === "number" ? cost : null,
+  });
   if (error && typeof cost === "number" && /could not find the function|p_cost|function.*redeem_reward/i.test(error.message)) {
     return fail("Cash amounts need the latest nest update. Ask a parent to run 0013_cash_redeem_and_cancel.sql.");
   }
