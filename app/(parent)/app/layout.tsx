@@ -41,7 +41,7 @@ async function ParentLayoutInner({ children }: LayoutProps<"/app">) {
   const [look, pendingCompletions, pendingRedemptions] = await Promise.all([
     getActiveParentLook(family.id),
     getPendingCompletions(family.id),
-    getRedemptions(family.id, ["pending"]),
+    getRedemptions(family.id, ["pending", "approved"], 200),
   ]);
   const pendingCount = pendingCompletions.length + pendingRedemptions.length;
 

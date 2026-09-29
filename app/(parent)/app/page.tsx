@@ -59,7 +59,7 @@ async function DashboardInner(props: PageProps<"/app">) {
       getChores(family.id),
       getRewards(family.id),
       getPendingCompletions(family.id),
-      getRedemptions(family.id, ["pending"]),
+      getRedemptions(family.id, ["pending", "approved"], 200),
       getCompletionsBetween(family.id, weekAgo, today),
       getTransactions(family.id, { limit: 8 }),
     ]);
@@ -152,7 +152,7 @@ async function DashboardInner(props: PageProps<"/app">) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Needs approval" value={pending.length} hint={pending.length ? "Tap approve below" : "You're all caught up"} icon="✅" tone={pending.length ? "sun" : "default"} />
+        <StatCard label="Needs you" value={pending.length} hint={pending.length ? "Quests and rewards to hand out" : "You're all caught up"} icon="✅" tone={pending.length ? "sun" : "default"} />
         <StatCard label="Today's quests" value={`${totalDone}/${totalDue}`} hint={totalDue ? `${Math.round((totalDone / totalDue) * 100)}% complete` : "Nothing scheduled"} icon="⚔️" tone="primary" />
         <StatCard label={`${family.currency_name} this week`} value={pointsThisWeek} hint={`${approvedThisWeek.length} quests approved`} icon={family.currency_emoji} tone="mint" />
         <StatCard label="Active kids" value={children.length} hint={`${chores.filter((c) => c.is_active).length} quests · ${rewards.filter((r) => r.is_active).length} rewards`} icon="🧒" />
@@ -161,7 +161,7 @@ async function DashboardInner(props: PageProps<"/app">) {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold">Approval queue</h2>
+            <h2 className="font-display text-xl font-semibold">Needs you</h2>
             {pending.length ? <span className="text-sm text-muted-foreground">{pending.length} waiting</span> : null}
           </div>
           <DashboardSafe>

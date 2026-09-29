@@ -129,6 +129,11 @@ export const getRedemptions = cache(
   }
 );
 
+/** Purchases still waiting on a parent — either approval or handing the reward over. */
+export const getOpenRedemptions = cache(async (familyId: string): Promise<RewardRedemption[]> => {
+  return getRedemptions(familyId, ["pending", "approved"], 200);
+});
+
 export const getTransactions = cache(
   async (familyId: string, opts: { childId?: string; limit?: number } = {}): Promise<PointTransaction[]> => {
     const supabase = await createClient();

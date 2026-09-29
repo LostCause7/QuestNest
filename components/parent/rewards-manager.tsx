@@ -11,8 +11,6 @@ import {
   Trash2Icon,
   LibraryIcon,
   GiftIcon,
-  PackageCheckIcon,
-  XIcon,
   CheckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,17 +23,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { RewardDialog } from "@/components/parent/reward-dialog";
 import { NearbyRewardsButton } from "@/components/parent/nearby-rewards";
+import { RewardPurchases } from "@/components/parent/reward-purchases";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
-import { deleteReward, setRewardActive, resolveRedemption, type RewardInput } from "@/lib/actions/rewards";
+import { deleteReward, setRewardActive, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
 import { RewardIcon } from "@/components/shared/reward-icon";
-import { timeAgo } from "@/lib/format";
-import { formatSpend, isCashReward } from "@/lib/suggested-points";
+import { isCashReward } from "@/lib/suggested-points";
 import { cn } from "@/lib/utils";
 import type { Child, Family, RewardFundWithPledges, RewardRedemption } from "@/types/database";
 import type { RewardWithKids } from "@/lib/data/parent";
@@ -68,12 +65,12 @@ export function RewardsManager({
     if (openedViaQuery) router.replace("/app/rewards");
   }, [openedViaQuery, router]);
 
-  const kidMap = new Map(kids.map((k) => [k.id, k]));
-  const rewardMap = new Map(rewards.map((r) => [r.id, r]));
   const active = rewards.filter((r) => r.is_active);
   const hidden = rewards.filter((r) => !r.is_active);
-  const open = redemptions.filter((r) => r.status === "pending" || r.status === "approved");
-  const history = redemptions.filter((r) => r.status === "fulfilled" || r.status === "rejected").slice(0, 12);
+  const purchases = [
+    ...redemptions.filter((r) => r.status === "pending" || r.status === "approved"),
+    ...redemptions.filter((r) => r.status === "fulfilled" || r.status === "rejected").slice(0, 40),
+  ];
 
   const openNew = (p?: Partial<RewardInput>) => {
     setEditing(null);
@@ -96,46 +93,9 @@ export function RewardsManager({
         </Button>
       </div>
 
-      {open.length ? (
-        <section className="mb-8">
-          <h2 className="mb-3 font-display text-lg font-semibold">To deliver</h2>
-          <ul className="space-y-2">
-            {open.map((r) => {
-              const reward = rewardMap.get(r.reward_id);
-              const kid = kidMap.get(r.child_id);
-              const key = `red-${r.id}`;
-              return (
-                <li key={r.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center">
-                  {kid ? <ChildLookAvatar child={kid} size="sm" /> : null}
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate">
-                      <span className="font-medium">{kid ? <ChildLookName child={kid} /> : null}</span> <span className="text-muted-foreground">redeemed</span>{" "}
-                      <span className="font-medium">
-                        <RewardIcon icon={reward?.icon} className="size-5" /> {reward?.title}
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {timeAgo(r.requested_at)} · {formatSpend(r.cost_at_time, family.currency_emoji, reward?.title, reward?.description)}
-                      {r.fund_id ? " · shared pot" : ""} ·{" "}
-                      <span className="capitalize">{r.status === "pending" ? "awaiting approval" : "approved, not delivered"}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {r.status === "pending" ? (
-                      <Button size="sm" variant="outline" disabled={isBusy(key)} onClick={() => run(() => resolveRedemption(r.id, "reject"), { key })}>
-                        <XIcon /> Decline
-                      </Button>
-                    ) : null}
-                    <Button size="sm" disabled={isBusy(key)} onClick={() => run(() => resolveRedemption(r.id, "fulfill"), { key })}>
-                      <PackageCheckIcon /> Delivered
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
+      <div className="mb-8">
+        <RewardPurchases redemptions={purchases} rewards={rewards} kids={kids} family={family} />
+      </div>
 
       <h2 className="mb-3 font-display text-lg font-semibold">The shop</h2>
       {active.length === 0 && hidden.length === 0 ? (
@@ -193,30 +153,6 @@ export function RewardsManager({
             ))}
           </ul>
         </div>
-      ) : null}
-
-      {history.length ? (
-        <section className="mt-10">
-          <h2 className="mb-3 font-display text-lg font-semibold text-muted-foreground">Recent history</h2>
-          <ul className="divide-y rounded-2xl border bg-card">
-            {history.map((r) => {
-              const reward = rewardMap.get(r.reward_id);
-              const kid = kidMap.get(r.child_id);
-              return (
-                <li key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                  {kid ? <ChildLookAvatar child={kid} size="xs" /> : null}
-                  <span className="min-w-0 flex-1 truncate">
-                    <span className="font-medium">{kid ? <ChildLookName child={kid} /> : null}</span> · <RewardIcon icon={reward?.icon} className="size-4" /> {reward?.title}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{timeAgo(r.resolved_at ?? r.requested_at)}</span>
-                  <Badge variant={r.status === "rejected" ? "destructive" : "secondary"} className="capitalize">
-                    {r.status === "fulfilled" ? "delivered" : r.status}
-                  </Badge>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
       ) : null}
 
       <RewardDialog open={dialogOpen} onOpenChange={setDialogOpen} reward={editing} preset={preset} family={family} kids={kids} />

@@ -60,7 +60,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
 
   if (!items.length) {
     return (
-      <EmptyState icon={<InboxIcon className="size-7 text-primary" />} title="All caught up" description="Nothing is waiting for your approval. Quests and reward requests will show up here." className="py-10" />
+      <EmptyState icon={<InboxIcon className="size-7 text-primary" />} title="All caught up" description="Nothing is waiting. Finished quests and reward purchases to hand out will show up here." className="py-10" />
     );
   }
 
@@ -111,7 +111,7 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                   aria-hidden="true"
                   className="qn-stamp pointer-events-none absolute top-2 right-3 z-10 rounded-lg border-[3px] border-emerald-600 px-2 py-0.5 font-display text-lg font-black uppercase tracking-widest text-emerald-600"
                 >
-                  {p.kind === "completion" && p.item.excuse ? "That's okay" : "Approved"}
+                  {p.kind === "completion" && p.item.excuse ? "That's okay" : p.kind === "redemption" ? "Delivered" : "Approved"}
                 </span>
               ) : null}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -120,7 +120,15 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="font-medium">{p.child ? <ChildLookName child={p.child} /> : "Someone"}</span>
                   <span className="text-muted-foreground">
-                    {p.kind === "completion" ? (p.item.excuse ? "can't do" : "finished") : p.item.fund_id ? "helped fill" : "wants"}
+                    {p.kind === "completion"
+                      ? p.item.excuse
+                        ? "can't do"
+                        : "finished"
+                      : p.item.status === "approved"
+                        ? "bought"
+                        : p.item.fund_id
+                          ? "helped fill"
+                          : "wants"}
                   </span>
                   <span className="font-medium">
                     {p.kind === "completion" ? (
@@ -172,19 +180,21 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                   </>
                 ) : (
                   <>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="min-h-11 px-3"
-                      disabled={busy}
-                      onClick={() => run(() => resolveRedemption(p.item.id, "reject"), { key })}
-                    >
-                      <XIcon />
-                      Decline
-                    </Button>
+                    {p.item.status === "pending" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="min-h-11 px-3"
+                        disabled={busy}
+                        onClick={() => run(() => resolveRedemption(p.item.id, "reject"), { key })}
+                      >
+                        <XIcon />
+                        Decline
+                      </Button>
+                    ) : null}
                     <Button size="sm" className="min-h-11 px-3" disabled={busy || stamped === key} onClick={() => approve(p, key)}>
                       {busy ? <Loader2Icon className="animate-spin" /> : <PackageCheckIcon />}
-                      Approve
+                      Delivered
                     </Button>
                   </>
                 )}

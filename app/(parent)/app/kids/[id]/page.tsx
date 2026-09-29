@@ -12,13 +12,13 @@ import { Closet } from "@/components/kid/closet";
 import { ActivityList } from "@/components/parent/activity-list";
 import { StatCard } from "@/components/parent/stat-card";
 import { requireFamily } from "@/lib/data/family";
-import { familyToday, getApprovedCounts, getBadges, getChildGifts, getChildren, getChores, getFamilyMilestones, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
+import { familyToday, getApprovedCounts, getBadges, getChildGifts, getChildren, getChores, getFamilyMilestones, getOpenRedemptions, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
 import { seasonWindow } from "@/lib/cosmetics";
 import { childLook } from "@/lib/milestones";
 import { levelInfo } from "@/lib/levels";
 import { describeSchedule } from "@/lib/schedule";
-import { dateTime } from "@/lib/format";
 import { RewardIcon } from "@/components/shared/reward-icon";
+import { RewardPurchases } from "@/components/parent/reward-purchases";
 
 export const metadata: Metadata = { title: "Kid profile" };
 
@@ -31,11 +31,12 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
 
   const today = familyToday(family);
   const season = seasonWindow(family.created_at, today);
-  const [badges, chores, transactions, redemptions, rewards, extras, gifts, counts] = await Promise.all([
+  const [badges, chores, transactions, openRedemptions, redemptions, rewards, extras, gifts, counts] = await Promise.all([
     getBadges([kid.id]),
     getChores(family.id),
     getTransactions(family.id, { childId: kid.id, limit: 30 }),
-    getRedemptions(family.id, undefined, 20),
+    getOpenRedemptions(family.id),
+    getRedemptions(family.id, undefined, 40),
     getRewards(family.id),
     getFamilyMilestones(family.id),
     getChildGifts(kid.id),
@@ -43,8 +44,12 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
   ]);
   const look = childLook(kid.style);
   const myChores = chores.filter((c) => c.child_ids.includes(kid.id) && c.is_active);
-  const myRedemptions = redemptions.filter((r) => r.child_id === kid.id);
-  const rewardMap = new Map(rewards.map((r) => [r.id, r]));
+  const seen = new Set<string>();
+  const myRedemptions = [...openRedemptions, ...redemptions].filter((r) => {
+    if (r.child_id !== kid.id || seen.has(r.id)) return false;
+    seen.add(r.id);
+    return true;
+  });
   const lvl = levelInfo(kid.lifetime_points);
 
   return (
@@ -142,28 +147,13 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
           <ActivityList transactions={transactions} kids={[kid]} family={family} />
         </section>
         <section>
-          <h2 className="mb-3 font-display text-xl font-semibold">Reward history</h2>
-          {myRedemptions.length ? (
-            <ul className="divide-y rounded-2xl border bg-card">
-              {myRedemptions.map((r) => {
-                const reward = rewardMap.get(r.reward_id);
-                return (
-                  <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
-                    <RewardIcon icon={reward?.icon ?? "🎁"} className="size-6" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{reward?.title ?? "Reward"}</div>
-                      <div className="text-xs text-muted-foreground">{dateTime(r.requested_at)}</div>
-                    </div>
-                    <Badge variant={r.status === "rejected" ? "destructive" : r.status === "pending" ? "outline" : "secondary"} className="capitalize">
-                      {r.status}
-                    </Badge>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">Nothing redeemed yet.</div>
-          )}
+          <RewardPurchases
+            redemptions={myRedemptions}
+            rewards={rewards}
+            kids={[kid]}
+            family={family}
+            empty="Nothing redeemed yet."
+          />
         </section>
       </div>
     </>
