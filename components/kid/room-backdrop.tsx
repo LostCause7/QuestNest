@@ -51,6 +51,12 @@ export function RoomBackdrop({ room: initialRoom, wallpaper: initialWallpaper = 
     setPaper(preloadWallpaper(initialWallpaper));
   }, [initialWallpaper]);
   useEffect(() => {
+    const root = document.querySelector(".kid-mode");
+    if (!root) return;
+    if (paper) root.setAttribute("data-paper", "1");
+    else root.removeAttribute("data-paper");
+  }, [paper]);
+  useEffect(() => {
     const onRoom = (event: Event) => setRoom((event as CustomEvent<string>).detail);
     const onPaper = (event: Event) => setPaper((event as CustomEvent<string | null>).detail);
     window.addEventListener(ROOM_EVENT, onRoom);
@@ -67,7 +73,7 @@ export function RoomBackdrop({ room: initialRoom, wallpaper: initialWallpaper = 
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {/* Cached Image() decode in preloadWallpaper; this img reuses the browser cache. */}
         <img src={paper} alt="" className="absolute inset-0 size-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-background/50 to-background/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/18 via-background/28 to-background/40" />
       </div>
     );
   }

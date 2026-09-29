@@ -1283,6 +1283,23 @@ html.qn-big-type .kid-mode {
 .kid-mode[data-room] .qn-card {
   background-image: linear-gradient(var(--room-card), var(--room-card));
 }
+/* Closet wallpaper should read through every card as light glass. */
+.kid-mode[data-paper] .qn-glass-panel,
+.kid-mode[data-paper] .qn-kid-surface,
+.kid-mode[data-paper] .qn-glass {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.36), rgba(15, 23, 42, 0.2));
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+}
+.kid-mode[data-paper] .qn-card {
+  background-image: none;
+}
+.kid-mode[data-paper] .bg-card,
+.kid-mode[data-paper] [class*="bg-card/"] {
+  background-color: rgba(15, 23, 42, 0.34) !important;
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
 .qn-room-blob-a {
   background: var(--room-a);
   animation: qn-room-shift 18s ease-in-out infinite;

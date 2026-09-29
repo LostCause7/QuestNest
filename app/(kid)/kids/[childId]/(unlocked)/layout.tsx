@@ -33,6 +33,7 @@ export default async function KidShellLayout({ children, params }: LayoutProps<"
         wallpaper ? "bg-transparent" : "bg-background"
       )}
       data-room={room}
+      data-paper={wallpaper ? "1" : undefined}
     >
       <RoomBackdrop room={room} wallpaper={wallpaper} />
       <KidDeviceChrome />
