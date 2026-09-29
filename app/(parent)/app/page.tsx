@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { PlusIcon, SwordsIcon, GiftIcon, UsersIcon, ArrowRightIcon, PlayIcon } from "lucide-react";
 import { FamilyCrest } from "@/components/brand/family-crest";
@@ -199,7 +200,7 @@ export default async function DashboardPage(props: PageProps<"/app">) {
   );
 }
 
-function QuickLink({ href, icon, label, count }: { href: string; icon: React.ReactNode; label: string; count: number }) {
+function QuickLink({ href, icon, label, count }: { href: string; icon: ReactNode; label: string; count: number }) {
   return (
     <Link href={href} className="flex items-center gap-2 rounded-xl border p-3 text-sm transition-colors hover:bg-muted">
       <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span>

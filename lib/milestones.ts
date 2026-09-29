@@ -102,11 +102,12 @@ export function parseStyle(value: EquippedStyle | string | null | undefined): Eq
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value) as EquippedStyle;
-      return parsed && typeof parsed === "object" ? parsed : {};
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
     } catch {
       return {};
     }
   }
+  if (typeof value !== "object" || Array.isArray(value)) return {};
   return value;
 }
 

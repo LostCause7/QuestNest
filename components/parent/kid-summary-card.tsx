@@ -1,3 +1,4 @@
+import type { ElementType } from "react";
 import Link from "next/link";
 import { FlameIcon, ChevronRightIcon } from "lucide-react";
 import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
@@ -25,7 +26,7 @@ export function KidSummaryCard({
   const look = childLook(child.style);
   const theme = colorTheme(child.color);
   const pct = dueToday === 0 ? 100 : Math.round((doneToday / dueToday) * 100);
-  const Wrapper: React.ElementType = href ? Link : "div";
+  const Wrapper: ElementType = href ? Link : "div";
   return (
     <Wrapper
       {...(href ? { href } : {})}
