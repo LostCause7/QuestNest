@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { RewardIcon } from "@/components/shared/reward-icon";
 import { useAction } from "@/hooks/use-action";
 import { suggestNearbyRewards, addNearbyRewards } from "@/lib/actions/places";
@@ -294,8 +294,8 @@ export function NearbyRewardsButton({ family, kids }: { family: Family; kids: Ch
                             on ? "border-primary bg-primary/5" : "border-border opacity-70"
                           )}
                         >
-                          <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
-                          {k.name}
+                          <ChildLookAvatar child={k} size="xs" />
+                          <ChildLookName child={k} />
                         </button>
                       );
                     })}

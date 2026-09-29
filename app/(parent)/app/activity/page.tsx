@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/parent/page-header";
 import { ActivityList } from "@/components/parent/activity-list";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren, getTransactions } from "@/lib/data/parent";
 import { cn } from "@/lib/utils";
@@ -35,8 +35,8 @@ export default async function ActivityPage(props: PageProps<"/app/activity">) {
         </FilterChip>
         {kids.map((k) => (
           <FilterChip key={k.id} href={`/app/activity?kid=${k.id}`} active={kidId === k.id}>
-            <KidAvatar avatar={k.avatar} color={k.color} size="xs" className="size-5 text-xs" />
-            {k.name}
+            <ChildLookAvatar child={k} size="xs" className="size-5 text-xs" />
+            <ChildLookName child={k} />
           </FilterChip>
         ))}
         <div className="ml-auto text-sm text-muted-foreground">

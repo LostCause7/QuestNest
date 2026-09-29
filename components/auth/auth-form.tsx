@@ -15,13 +15,21 @@ import {
   updatePassword,
 } from "@/lib/actions/auth";
 
-function Feedback({ state, initialError }: { state: AuthState; initialError?: string }) {
+function Feedback({
+  state,
+  initialError,
+  initialMessage,
+}: {
+  state: AuthState;
+  initialError?: string;
+  initialMessage?: string;
+}) {
   const error = state?.error ?? initialError;
-  if (state?.message) {
+  if (state?.message || initialMessage) {
     return (
       <Alert className="border-success/40 bg-success/10 text-success-foreground [&_svg]:text-success">
         <CheckCircle2Icon />
-        <AlertDescription className="text-foreground">{state.message}</AlertDescription>
+        <AlertDescription className="text-foreground">{state?.message ?? initialMessage}</AlertDescription>
       </Alert>
     );
   }
@@ -36,7 +44,13 @@ function Feedback({ state, initialError }: { state: AuthState; initialError?: st
   return null;
 }
 
-export function LoginForm({ initialError }: { initialError?: string }) {
+export function LoginForm({
+  initialError,
+  initialMessage,
+}: {
+  initialError?: string;
+  initialMessage?: string;
+}) {
   const [state, action] = useActionState<AuthState, FormData>(signInWithPassword, undefined);
   return (
     <div className="qn-glass-panel space-y-6 rounded-3xl p-6 sm:p-8">
@@ -45,7 +59,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         <p className="text-muted-foreground">Sign in to your family&apos;s nest.</p>
       </div>
       <form action={action} className="space-y-4">
-        <Feedback state={state} initialError={initialError} />
+        <Feedback state={state} initialError={initialError} initialMessage={initialMessage} />
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required />

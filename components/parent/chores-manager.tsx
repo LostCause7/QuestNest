@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { ChoreDialog } from "@/components/parent/chore-dialog";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
@@ -75,8 +75,8 @@ export function ChoresManager({ chores, kids, family }: { chores: ChoreWithKids[
               <TabsTrigger value="all">Everyone</TabsTrigger>
               {kids.map((k) => (
                 <TabsTrigger key={k.id} value={k.id} className="gap-1.5">
-                  <KidAvatar avatar={k.avatar} color={k.color} size="xs" className="size-5 text-xs" />
-                  {k.name}
+                  <ChildLookAvatar child={k} size="xs" className="size-5 text-xs" />
+                  <ChildLookName child={k} />
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -281,7 +281,7 @@ function ChoreCard({
       <div className="mt-auto flex items-center justify-between gap-2">
         <div className="flex -space-x-1.5">
           {assigned.map((k) => (
-            <KidAvatar key={k.id} avatar={k.avatar} color={k.color} size="xs" className="ring-2 ring-card" />
+            <ChildLookAvatar key={k.id} child={k} size="xs" className="ring-2 ring-card" />
           ))}
           {assigned.length === 0 ? <span className="text-xs text-muted-foreground">Unassigned</span> : null}
         </div>

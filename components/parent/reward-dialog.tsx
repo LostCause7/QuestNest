@@ -22,7 +22,7 @@ import { createReward, updateReward, type RewardInput } from "@/lib/actions/rewa
 import { REWARD_ICONS } from "@/lib/templates";
 import { rewardIconSrc } from "@/lib/reward-icons";
 import { suggestRewardCost } from "@/lib/suggested-points";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 import type { RewardWithKids } from "@/lib/data/parent";
@@ -225,8 +225,8 @@ function RewardForm({
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >
-                      <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
-                      {k.name}
+                      <ChildLookAvatar child={k} size="xs" />
+                      <ChildLookName child={k} />
                     </button>
                   );
                 })}

@@ -5,7 +5,7 @@ import { ArrowLeftIcon, FlameIcon, TrophyIcon, SwordsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { BadgeGrid } from "@/components/shared/badge-grid";
 import { UnlockTrack } from "@/components/kid/unlock-track";
 import { Closet } from "@/components/kid/closet";
@@ -14,7 +14,7 @@ import { StatCard } from "@/components/parent/stat-card";
 import { requireFamily } from "@/lib/data/family";
 import { familyToday, getApprovedCounts, getBadges, getChildGifts, getChildren, getChores, getFamilyMilestones, getTransactions, getRedemptions, getRewards } from "@/lib/data/parent";
 import { seasonWindow } from "@/lib/cosmetics";
-import { childLook, frameClass } from "@/lib/milestones";
+import { childLook } from "@/lib/milestones";
 import { levelInfo } from "@/lib/levels";
 import { describeSchedule } from "@/lib/schedule";
 import { dateTime } from "@/lib/format";
@@ -57,15 +57,11 @@ export default async function KidDetailPage(props: PageProps<"/app/kids/[id]">) 
       </Button>
 
       <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 sm:flex-row sm:items-center">
-        <KidAvatar
-          avatar={kid.avatar}
-          color={kid.color}
-          size="xl"
-          aura={look.aura}
-          frameClassName={frameClass(look.frame)}
-        />
+        <ChildLookAvatar child={kid} size="xl" />
         <div className="flex-1">
-          <h1 className="font-display text-3xl font-semibold">{kid.nickname?.trim() || kid.name}</h1>
+          <h1 className="font-display text-3xl font-semibold">
+            <ChildLookName child={kid} />
+          </h1>
           <p className="text-muted-foreground">
             {kid.nickname?.trim() ? `${kid.name} · ` : ""}
             Level {lvl.level} · {look.title || lvl.title}

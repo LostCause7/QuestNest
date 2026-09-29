@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { FamilyCrest } from "@/components/brand/family-crest";
 import { Logo } from "@/components/brand/logo";
 import { ProfilePicker } from "@/components/kid/profile-picker";
+import { FamilyLooksRealtime } from "@/components/shared/family-looks-realtime";
 import { requireFamily } from "@/lib/data/family";
 import { getOwnerParentLook } from "@/lib/data/active-parent";
 import { getChildren, getParentProfiles } from "@/lib/data/parent";
@@ -26,6 +27,7 @@ export default async function KidPickerPage() {
 
   return (
     <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-hidden text-white">
+      <FamilyLooksRealtime familyId={family.id} />
       <header className="flex items-center justify-between px-6 py-5">
         <Logo tone="light" size="sm" />
         <form action="/auth/signout" method="post">

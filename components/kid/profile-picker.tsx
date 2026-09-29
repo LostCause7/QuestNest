@@ -5,11 +5,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { PlusIcon } from "lucide-react";
 import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { ParentDialog } from "@/components/parent/parent-dialog";
 import { colorTheme } from "@/lib/avatars";
-import { childLook, frameClass } from "@/lib/milestones";
-import { nameplateClassName } from "@/lib/cosmetics";
+import { childLook } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, ParentProfile } from "@/types/database";
 
@@ -81,11 +81,10 @@ export function ProfilePicker({
 
   return (
     <>
-      <ul className="mt-8 flex flex-wrap justify-center gap-8 sm:mt-10 sm:gap-12">
+      <ul className="mt-8 flex flex-wrap justify-center gap-8 overflow-visible sm:mt-10 sm:gap-12">
         {kids.map((kid) => {
           const theme = colorTheme(kid.color);
           const look = childLook(kid.style);
-          const plate = nameplateClassName(look.nameplate);
           const i = delay++;
           return (
             <motion.li
@@ -93,29 +92,27 @@ export function ProfilePicker({
               initial={{ opacity: 0, y: 24, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: i * 0.07, type: "spring", stiffness: 260, damping: 20 }}
+              className="overflow-visible"
             >
               <Link
                 href={`/kids/${kid.id}/pin`}
-                className="group flex flex-col items-center gap-4 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
+                className="group flex flex-col items-center gap-4 overflow-visible rounded-3xl px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
               >
-                <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block">
+                <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block overflow-visible p-3">
                   <span
                     className={cn(
-                      "absolute -inset-2 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
+                      "absolute inset-1 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
                       theme.gradient
                     )}
                   />
-                  <KidAvatar
-                    avatar={kid.avatar}
-                    color={kid.color}
+                  <ChildLookAvatar
+                    child={kid}
                     size="xl"
-                    aura={look.aura}
-                    frameClassName={frameClass(look.frame)}
                     className="relative shadow-xl transition-[box-shadow] group-hover:ring-sun-400 sm:size-32 sm:text-8xl"
                   />
                 </motion.span>
                 <span className="flex flex-col items-center gap-0.5">
-                  <span className={cn("font-display text-2xl font-semibold text-white", plate)}>{kid.nickname?.trim() || kid.name}</span>
+                  <ChildLookName child={kid} className="font-display text-2xl font-semibold text-white" />
                   {look.title ? (
                     <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">{look.title}</span>
                   ) : null}

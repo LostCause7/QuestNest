@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { RewardDialog } from "@/components/parent/reward-dialog";
 import { NearbyRewardsButton } from "@/components/parent/nearby-rewards";
@@ -104,10 +104,10 @@ export function RewardsManager({
               const key = `red-${r.id}`;
               return (
                 <li key={r.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-3 sm:flex-row sm:items-center">
-                  {kid ? <KidAvatar avatar={kid.avatar} color={kid.color} size="sm" /> : null}
+                  {kid ? <ChildLookAvatar child={kid} size="sm" /> : null}
                   <div className="min-w-0 flex-1">
                     <div className="truncate">
-                      <span className="font-medium">{kid?.name}</span> <span className="text-muted-foreground">redeemed</span>{" "}
+                      <span className="font-medium">{kid ? <ChildLookName child={kid} /> : null}</span> <span className="text-muted-foreground">redeemed</span>{" "}
                       <span className="font-medium">
                         <RewardIcon icon={reward?.icon} className="size-5" /> {reward?.title}
                       </span>
@@ -197,9 +197,9 @@ export function RewardsManager({
               const kid = kidMap.get(r.child_id);
               return (
                 <li key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                  {kid ? <KidAvatar avatar={kid.avatar} color={kid.color} size="xs" /> : null}
+                  {kid ? <ChildLookAvatar child={kid} size="xs" /> : null}
                   <span className="min-w-0 flex-1 truncate">
-                    <span className="font-medium">{kid?.name}</span> · <RewardIcon icon={reward?.icon} className="size-4" /> {reward?.title}
+                    <span className="font-medium">{kid ? <ChildLookName child={kid} /> : null}</span> · <RewardIcon icon={reward?.icon} className="size-4" /> {reward?.title}
                   </span>
                   <span className="text-xs text-muted-foreground">{timeAgo(r.resolved_at ?? r.requested_at)}</span>
                   <Badge variant={r.status === "rejected" ? "destructive" : "secondary"} className="capitalize">

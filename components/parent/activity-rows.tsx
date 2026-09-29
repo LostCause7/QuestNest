@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Undo2Icon } from "lucide-react";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar } from "@/components/shared/child-look";
+import type { EquippedStyle } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
@@ -25,6 +26,7 @@ export type ActivityRow = {
   childName: string;
   avatar: string;
   color: string;
+  style?: EquippedStyle | null;
   kind: TxKind;
   note: string | null;
   amount: number;
@@ -51,7 +53,7 @@ export function ActivityRows({
           const positive = t.amount > 0;
           return (
             <li key={t.id} className="flex items-center gap-3 px-3 py-2.5 sm:px-4">
-              <KidAvatar avatar={t.avatar} color={t.color} size="xs" />
+              <ChildLookAvatar child={{ avatar: t.avatar, color: t.color, style: t.style }} size="xs" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm">
                   <span className="font-medium">{t.childName}</span>{" "}

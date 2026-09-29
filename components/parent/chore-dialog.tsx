@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IconPicker } from "@/components/shared/icon-picker";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { useAction } from "@/hooks/use-action";
 import { createChore, updateChore, type ChoreInput } from "@/lib/actions/chores";
 import { CHORE_ICONS } from "@/lib/templates";
@@ -219,8 +219,8 @@ function ChoreForm({
                         on ? "border-primary bg-primary/5" : "border-border opacity-70"
                       )}
                     >
-                      <KidAvatar avatar={k.avatar} color={k.color} size="xs" />
-                      {k.name}
+                      <ChildLookAvatar child={k} size="xs" />
+                      <ChildLookName child={k} />
                     </button>
                   );
                 })}

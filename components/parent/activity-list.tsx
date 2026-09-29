@@ -28,9 +28,10 @@ export function ActivityList({
     const kid = kidMap.get(t.child_id);
     return {
       id: t.id,
-      childName: kid?.name ?? "Kid",
+      childName: kid ? kid.nickname?.trim() || kid.name : "Kid",
       avatar: kid?.avatar ?? "luna",
       color: kid?.color ?? "sky",
+      style: kid?.style,
       kind: t.kind,
       note: t.note,
       amount: t.amount,

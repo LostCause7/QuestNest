@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { LockIcon, SparklesIcon } from "lucide-react";
@@ -28,7 +29,7 @@ import {
   type CosmeticKind,
 } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
-import { childLook, frameClass, styleStorageKey, unlockedTitles } from "@/lib/milestones";
+import { childLook, frameClass, unlockedTitles } from "@/lib/milestones";
 import { play, previewPack, setSoundPack, type SoundPack } from "@/lib/sound";
 import { burst, setConfettiStyle } from "@/lib/confetti";
 import { setRoom } from "@/lib/room";
@@ -95,6 +96,7 @@ export function Closet({
   allAccess?: boolean;
 }) {
   const { run, pending } = useAction();
+  const router = useRouter();
   const [ownedGifts, setOwnedGifts] = useState(gifts);
   const [cp, setCp] = useState(child.closet_points ?? 0);
   const ctx = useMemo(
@@ -110,16 +112,7 @@ export function Closet({
   const [color, setColor] = useState(child.color);
   const [motto, setMotto] = useState(child.motto ?? "");
   const [preview, setPreview] = useState<CosmeticItem | null>(null);
-  const [style, setStyle] = useState<EquippedStyle>(() => {
-    if (typeof window === "undefined") return child.style ?? {};
-    try {
-      const raw = window.localStorage.getItem(styleStorageKey(child.id));
-      if (raw) return { ...child.style, ...(JSON.parse(raw) as EquippedStyle) };
-    } catch {
-      /* keep server style */
-    }
-    return child.style ?? {};
-  });
+  const [style, setStyle] = useState<EquippedStyle>(child.style ?? {});
 
   // Items that opened since the last visit get a shine.
   const [fresh] = useState<Set<string>>(() => {
@@ -140,6 +133,13 @@ export function Closet({
       /* ignore */
     }
   }, [child.id, ctx]);
+
+  useEffect(() => {
+    setAvatar(child.avatar);
+    setColor(child.color);
+    setMotto(child.motto ?? "");
+    setStyle(child.style ?? {});
+  }, [child.id, child.avatar, child.color, child.motto, child.style]);
 
   useEffect(() => {
     if (preview?.kind === "room") {
@@ -165,14 +165,10 @@ export function Closet({
     next = { ...next, hat: null, sticker: null };
     setPreview(null);
     setStyle(next);
-    try {
-      window.localStorage.setItem(styleStorageKey(child.id), JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
     play("tap");
     void saveChildStyle(child.id, next).then((res) => {
       if (!res.ok) toast.error(res.error);
+      else router.refresh();
     });
   };
 
@@ -183,6 +179,7 @@ export function Closet({
     play("tap");
     void saveChildLook(child.id, next).then((res) => {
       if (!res.ok) toast.error(res.error);
+      else router.refresh();
     });
   };
 
@@ -473,7 +470,11 @@ export function Closet({
                   type="button"
                   variant="outline"
                   disabled={pending}
-                  onClick={() => run(() => saveChildFlavor(child.id, { motto, nickname: child.nickname ?? undefined }))}
+                  onClick={() =>
+                    run(() => saveChildFlavor(child.id, { motto, nickname: child.nickname ?? undefined }), {
+                      onSuccess: () => router.refresh(),
+                    })
+                  }
                 >
                   Save
                 </Button>

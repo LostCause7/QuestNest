@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { KidPinClient } from "@/components/kid/kid-pin-client";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren } from "@/lib/data/parent";
 import { getActiveChildId } from "@/lib/data/kid";
-import { childLook, frameClass } from "@/lib/milestones";
 
 export const metadata: Metadata = { title: "Enter your PIN" };
 
@@ -37,15 +36,10 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
           color={kid.color}
           header={
             <div className="flex flex-col items-center gap-3">
-              <KidAvatar
-                avatar={kid.avatar}
-                color={kid.color}
-                size="xl"
-                aura={childLook(kid.style).aura}
-                frameClassName={frameClass(childLook(kid.style).frame)}
-                className="shadow-xl animate-float"
-              />
-              <h1 className="font-display text-3xl font-semibold">Hi {kid.nickname?.trim() || kid.name}!</h1>
+              <ChildLookAvatar child={kid} size="xl" className="shadow-xl animate-float" />
+              <h1 className="font-display text-3xl font-semibold">
+                Hi <ChildLookName child={kid} />!
+              </h1>
               <p className="text-muted-foreground">{kid.cheer?.trim() || "Enter your secret PIN"}</p>
             </div>
           }

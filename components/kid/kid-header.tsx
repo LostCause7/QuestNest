@@ -2,11 +2,11 @@
 
 import { FlameIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { PointsTicker } from "@/components/kid/points-ticker";
 import { levelInfo } from "@/lib/levels";
-import { childLook, frameClass } from "@/lib/milestones";
-import { bannerClassName, nameplateClassName } from "@/lib/cosmetics";
+import { childLook } from "@/lib/milestones";
+import { bannerClassName } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
 import { switchChild } from "@/lib/actions/kid-mode";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,6 @@ import type { Child, Family } from "@/types/database";
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
   const lvl = levelInfo(child.lifetime_points);
   const look = childLook(child.style);
-  const shownName = child.nickname?.trim() || child.name;
-  const plate = nameplateClassName(look.nameplate);
   const banner = bannerClassName(look.banner);
   const showcase = (look.showcase ?? []).map((k) => BADGE_MAP[k]).filter(Boolean);
   const metal = lvl.level >= 10 ? "from-yellow-300 to-amber-500 text-amber-950" : lvl.level >= 5 ? "from-slate-200 to-slate-400 text-slate-900" : "from-amber-200 to-orange-300 text-orange-950";
@@ -24,21 +22,16 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
       <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 rounded-3xl p-3 sm:gap-4 sm:p-4")}>
         <span className="relative overflow-visible">
-          <KidAvatar
-            avatar={child.avatar}
-            color={child.color}
-            size="md"
-            aura={look.aura}
-            frameClassName={frameClass(look.frame)}
-            className="shadow-md sm:size-16 sm:text-4xl"
-          />
+          <ChildLookAvatar child={child} size="md" className="shadow-md sm:size-16 sm:text-4xl" />
           <span className="absolute -right-1 -bottom-1 rounded-full bg-card px-1 text-[10px] font-bold shadow-sm" title={lvl.title}>
             {lvl.level < 3 ? "🐣" : lvl.level < 6 ? "🐥" : lvl.level < 10 ? "🐦" : "🦅"}
           </span>
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className={cn("truncate font-display text-xl font-semibold sm:text-2xl", plate)}>{shownName}</h1>
+            <h1 className="truncate font-display text-xl font-semibold sm:text-2xl">
+              <ChildLookName child={child} />
+            </h1>
             {showcase.length ? (
               <span
                 className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/90 px-2 py-0.5 text-lg shadow-sm ring-1 ring-amber-300/60"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { HeartHandshakeIcon, RepeatIcon, TargetIcon } from "lucide-react";
@@ -110,12 +110,13 @@ export function SaveUpMeter({ reward, balance, currencyEmoji, childId }: { rewar
   );
 }
 
-const subscribeCelebrate = (cb: () => void) => onCelebrate(cb);
-const noCelebration = () => null;
-
-/** Re-plays the last celebration this session. */
+/** Re-plays the last celebration this session. Client-only so sessionStorage cannot crash hydration. */
 export function ReplayCelebration() {
-  const last = useSyncExternalStore<CelebrationPayload | null>(subscribeCelebrate, lastCelebration, noCelebration);
+  const [last, setLast] = useState<CelebrationPayload | null>(null);
+  useEffect(() => {
+    setLast(lastCelebration());
+    return onCelebrate(() => setLast(lastCelebration()));
+  }, []);
   if (!last) return null;
   return (
     <button

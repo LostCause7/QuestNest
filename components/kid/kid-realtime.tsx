@@ -45,8 +45,12 @@ export function KidRealtime({
       .channel(`kid-${childId}`)
       .on<Child>(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "children", filter: `id=eq.${childId}` },
+        { event: "UPDATE", schema: "public", table: "children", filter: `family_id=eq.${familyId}` },
         (payload) => {
+          if (payload.new.id !== childId) {
+            refresh();
+            return;
+          }
           const next = payload.new;
           const level = levelFromXp(next.lifetime_points);
           if (lastLevel.current !== null && level > lastLevel.current) {

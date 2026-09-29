@@ -1,6 +1,5 @@
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName, childDisplayName } from "@/components/shared/child-look";
 import { BADGE_MAP } from "@/lib/badges";
-import { childLook, frameClass } from "@/lib/milestones";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Child, ChildBadge, ChoreCompletion, Family, PointTransaction } from "@/types/database";
@@ -27,7 +26,7 @@ export function Highlights({
   if (!kids.length) return null;
   const name = (id: string) => {
     const k = kids.find((c) => c.id === id);
-    return k ? k.nickname?.trim() || k.name : "Someone";
+    return k ? childDisplayName(k) : "Someone";
   };
 
   const approved = weekCompletions.filter((c) => c.status === "approved");
@@ -57,23 +56,17 @@ export function Highlights({
   return (
     <section className="grid gap-3 lg:grid-cols-[1fr_1.4fr]">
       {hero ? (
-        <div className="qn-glass-panel relative overflow-hidden rounded-2xl p-4">
+        <div className="qn-glass-panel relative overflow-visible rounded-2xl p-4">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">This week&apos;s hero</div>
           <div className="mt-2 flex items-center gap-3">
-            <KidAvatar
-              avatar={hero.avatar}
-              color={hero.color}
-              size="lg"
-              aura={childLook(hero.style).aura}
-              frameClassName={frameClass(childLook(hero.style).frame)}
-            />
+            <ChildLookAvatar child={hero} size="lg" />
             <div className="min-w-0">
               <div className="font-display text-2xl font-semibold text-white">
-                {hero.nickname?.trim() || hero.name}
+                <ChildLookName child={hero} />
               </div>
               <div className="text-sm text-slate-200">
                 {heroCount} quest{heroCount === 1 ? "" : "s"} approved this week
-                {streaker && streaker.current_streak > 1 ? ` · ${streaker.nickname?.trim() || streaker.name} is on a ${streaker.current_streak}-day streak` : ""}
+                {streaker && streaker.current_streak > 1 ? ` · ${childDisplayName(streaker)} is on a ${streaker.current_streak}-day streak` : ""}
               </div>
             </div>
           </div>

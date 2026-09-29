@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { ShirtIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { KidAvatar } from "@/components/shared/avatar-picker";
-import { LIFETIME_MILESTONES, childLook, frameClass, nextMilestone } from "@/lib/milestones";
+import { ChildLookAvatar } from "@/components/shared/child-look";
+import { LIFETIME_MILESTONES, nextMilestone } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, Family, FamilyMilestone } from "@/types/database";
 
@@ -18,7 +18,6 @@ export function UnlockTrack({
   extras: FamilyMilestone[];
 }) {
   const next = nextMilestone(child.lifetime_points, extras);
-  const look = childLook(child.style);
 
   return (
     <div className="space-y-6">
@@ -31,13 +30,7 @@ export function UnlockTrack({
               {family.currency_emoji} — even if you spent some.
             </p>
           </div>
-          <KidAvatar
-            avatar={child.avatar}
-            color={child.color}
-            size="lg"
-            frameClassName={frameClass(look.frame)}
-            aura={look.aura}
-          />
+          <ChildLookAvatar child={child} size="lg" />
         </div>
         {next ? (
           <p className="mt-3 text-sm font-medium">

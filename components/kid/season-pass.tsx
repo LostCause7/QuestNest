@@ -28,7 +28,7 @@ export function SeasonPass({
 }) {
   const { run, isBusy } = useAction();
   const claimed = new Set(gifts);
-  const max = SEASON_NODES[SEASON_NODES.length - 1].quests;
+  const max = SEASON_NODES.at(-1)?.quests ?? 1;
   const pct = Math.min(100, (quests / max) * 100);
 
   return (

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { AdjustPointsDialog } from "@/components/parent/adjust-points-dialog";
@@ -21,8 +21,7 @@ import { KudosDialog } from "@/components/parent/kudos-dialog";
 import { useAction } from "@/hooks/use-action";
 import { deleteChild, setChildActive } from "@/lib/actions/children";
 import { levelInfo } from "@/lib/levels";
-import { childLook, frameClass } from "@/lib/milestones";
-import { nameplateClassName } from "@/lib/cosmetics";
+import { childLook } from "@/lib/milestones";
 import { colorTheme } from "@/lib/avatars";
 import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
@@ -168,24 +167,15 @@ function KidCard({
   const look = childLook(kid.style);
   const theme = colorTheme(kid.color);
   return (
-    <div className={cn("relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
+    <div className={cn("relative overflow-visible rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
       <div className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", theme.gradient)} />
       <div className="flex items-start gap-3">
         <Link href={`/app/kids/${kid.id}`}>
-          <KidAvatar
-            avatar={kid.avatar}
-            color={kid.color}
-            size="md"
-            aura={look.aura}
-            frameClassName={frameClass(look.frame)}
-          />
+          <ChildLookAvatar child={kid} size="md" />
         </Link>
         <div className="min-w-0 flex-1">
-          <Link
-            href={`/app/kids/${kid.id}`}
-            className={cn("block truncate font-display text-lg font-semibold hover:underline", nameplateClassName(look.nameplate))}
-          >
-            {kid.nickname?.trim() || kid.name}
+          <Link href={`/app/kids/${kid.id}`} className="block truncate font-display text-lg font-semibold hover:underline">
+            <ChildLookName child={kid} />
           </Link>
           <div className="text-sm text-muted-foreground">
             Level {lvl.level} · {look.title || lvl.title}

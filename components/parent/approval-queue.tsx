@@ -5,7 +5,7 @@ import { CheckIcon, XIcon, PackageCheckIcon, Loader2Icon, InboxIcon, Undo2Icon }
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { KidAvatar } from "@/components/shared/avatar-picker";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { useAction } from "@/hooks/use-action";
 import { reviewCompletion } from "@/lib/actions/chores";
@@ -115,10 +115,10 @@ export function ApprovalQueue({ items, family }: { items: PendingItem[]; family:
                 </span>
               ) : null}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              {p.child ? <KidAvatar avatar={p.child.avatar} color={p.child.color} size="sm" /> : null}
+              {p.child ? <ChildLookAvatar child={p.child} size="sm" /> : null}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <span className="font-medium">{p.child?.name ?? "Someone"}</span>
+                  <span className="font-medium">{p.child ? <ChildLookName child={p.child} /> : "Someone"}</span>
                   <span className="text-muted-foreground">
                     {p.kind === "completion" ? (p.item.excuse ? "can't do" : "finished") : "wants"}
                   </span>
