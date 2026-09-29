@@ -25,8 +25,8 @@ export function ChildLookAvatar({
   const aura = look.aura && look.aura !== "none" ? look.aura : null;
   return (
     <KidAvatar
-      avatar={child.avatar}
-      color={child.color}
+      avatar={child.avatar ?? "fox"}
+      color={child.color ?? "sky"}
       size={size}
       aura={aura}
       frameClassName={frame}

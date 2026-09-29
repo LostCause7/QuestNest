@@ -32,6 +32,22 @@ import { isChoreDueOn, siblingClaim } from "@/lib/schedule";
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage(props: PageProps<"/app">) {
+  try {
+    return await DashboardInner(props);
+  } catch (error) {
+    console.error(error);
+    const message = error instanceof Error ? error.message : "The dashboard could not load this nest.";
+    return (
+      <div className="mx-auto max-w-md space-y-3 py-16 text-center">
+        <h1 className="font-display text-2xl font-semibold">Parent HQ hit a snag</h1>
+        <p className="text-sm text-muted-foreground">Try again. If it keeps happening, sign out and sign back in.</p>
+        <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">{message}</p>
+      </div>
+    );
+  }
+}
+
+async function DashboardInner(props: PageProps<"/app">) {
   const sp = await props.searchParams;
   const family = await requireFamily();
   const today = familyToday(family);
@@ -76,7 +92,7 @@ export default async function DashboardPage(props: PageProps<"/app">) {
     const due = chores.filter(
       (c) =>
         c.is_active &&
-        c.child_ids.includes(kid.id) &&
+        (c.child_ids ?? []).includes(kid.id) &&
         isChoreDueOn(c, today) &&
         !siblingClaim(c, kid.id, today, todayCompletions)
     );

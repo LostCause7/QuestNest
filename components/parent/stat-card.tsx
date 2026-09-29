@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export function StatCard({
@@ -9,9 +10,9 @@ export function StatCard({
   className,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   hint?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   tone?: "default" | "primary" | "sun" | "mint";
   className?: string;
 }) {

@@ -14,7 +14,11 @@ export default function ParentError({ error, reset }: { error: Error & { digest?
       <h1 className="font-display text-2xl font-semibold">Parent HQ hit a snag</h1>
       <p className="text-muted-foreground">Try again. If it keeps happening, sign out and sign back in.</p>
       {error.message ? (
-        <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">{error.message}</p>
+        <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">
+          {error.message.includes("#441")
+            ? "The dashboard failed while drawing this nest. Tap Try again after a refresh."
+            : error.message}
+        </p>
       ) : null}
       <div className="flex justify-center gap-2">
         <Button onClick={reset}>Try again</Button>

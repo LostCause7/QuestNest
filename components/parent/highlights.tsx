@@ -1,3 +1,5 @@
+"use client";
+
 import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { BADGE_MAP } from "@/lib/badges";
 import { childDisplayName } from "@/lib/milestones";
@@ -40,17 +42,17 @@ export function Highlights({
 
   const moments: Moment[] = [];
   const bigQuest = [...transactions].filter((t) => t.kind === "chore").sort((a, b) => b.amount - a.amount)[0];
-  if (bigQuest) moments.push({ at: bigQuest.created_at, emoji: "⚔️", text: `${name(bigQuest.child_id)} earned +${bigQuest.amount} ${family.currency_emoji} for ${bigQuest.note ?? "a quest"}`, tone: "gold" });
-  for (const t of transactions.filter((t) => t.kind === "bonus").slice(0, 2)) {
+  if (bigQuest?.created_at) moments.push({ at: bigQuest.created_at, emoji: "⚔️", text: `${name(bigQuest.child_id)} earned +${bigQuest.amount} ${family.currency_emoji} for ${bigQuest.note ?? "a quest"}`, tone: "gold" });
+  for (const t of transactions.filter((t) => t.kind === "bonus" && t.created_at).slice(0, 2)) {
     moments.push({ at: t.created_at, emoji: "🌟", text: `${name(t.child_id)} got a bonus: ${t.note ?? "nice work"} (+${t.amount})`, tone: "sun" });
   }
-  for (const b of [...badges].sort((a, b) => b.earned_at.localeCompare(a.earned_at)).slice(0, 2)) {
+  for (const b of [...badges].sort((a, b) => (b.earned_at ?? "").localeCompare(a.earned_at ?? "")).slice(0, 2)) {
     const def = BADGE_MAP[b.badge_key];
-    if (def) moments.push({ at: b.earned_at, emoji: def.emoji, text: `${name(b.child_id)} earned the ${def.name} trophy`, tone: "pink" });
+    if (def && b.earned_at) moments.push({ at: b.earned_at, emoji: def.emoji, text: `${name(b.child_id)} earned the ${def.name} trophy`, tone: "pink" });
   }
   const reward = transactions.find((t) => t.kind === "reward");
-  if (reward) moments.push({ at: reward.created_at, emoji: "🎁", text: `${name(reward.child_id)} cashed in ${reward.note ?? "a reward"}`, tone: "mint" });
-  moments.sort((a, b) => b.at.localeCompare(a.at));
+  if (reward?.created_at) moments.push({ at: reward.created_at, emoji: "🎁", text: `${name(reward.child_id)} cashed in ${reward.note ?? "a reward"}`, tone: "mint" });
+  moments.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
 
   if (!hero && !moments.length) return null;
 
