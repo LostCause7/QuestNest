@@ -167,8 +167,8 @@ function KidCard({
   const look = childLook(kid.style);
   const theme = colorTheme(kid.color);
   return (
-    <div className={cn("relative overflow-visible rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
-      <div className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", theme.gradient)} />
+    <div className={cn("relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm", archived && "opacity-60")}>
+      <div className={cn("absolute inset-x-0 top-0 h-1.5 rounded-t-2xl bg-gradient-to-r", theme.gradient)} />
       <div className="flex items-start gap-3">
         <Link href={`/app/kids/${kid.id}`}>
           <ChildLookAvatar child={kid} size="md" />

@@ -33,11 +33,11 @@ export function KidSummaryCard({
     <Wrapper
       {...(href ? { href } : {})}
       className={cn(
-        "qn-glass-panel qn-lift group relative flex flex-col gap-4 overflow-visible rounded-2xl p-4",
+        "qn-glass-panel qn-lift group relative flex flex-col gap-4 overflow-hidden rounded-2xl p-4",
         href && "hover:-translate-y-0.5"
       )}
     >
-      <div className={cn("absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r", theme.gradient)} />
+      <div className={cn("absolute inset-x-0 top-0 h-1.5 rounded-t-2xl bg-gradient-to-r", theme.gradient)} />
       <div className="flex items-center gap-3">
         <ChildLookAvatar child={child} size="md" />
         <div className="min-w-0 flex-1">

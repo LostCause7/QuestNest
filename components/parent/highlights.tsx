@@ -59,9 +59,9 @@ export function Highlights({
   return (
     <section className="grid gap-3 lg:grid-cols-[1fr_1.4fr]">
       {hero ? (
-        <div className="qn-glass-panel relative overflow-visible rounded-2xl p-4">
+        <div className="qn-glass-panel relative overflow-hidden rounded-2xl p-4">
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">This week&apos;s hero</div>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="relative z-[1] mt-2 flex items-center gap-3">
             <ChildLookAvatar child={hero} size="lg" />
             <div className="min-w-0">
               <div className="font-display text-2xl font-semibold text-white">
@@ -73,7 +73,7 @@ export function Highlights({
               </div>
             </div>
           </div>
-          <span className="pointer-events-none absolute -right-4 -bottom-6 text-8xl opacity-25" aria-hidden="true">
+          <span className="pointer-events-none absolute right-2 bottom-1 text-7xl opacity-25" aria-hidden="true">
             🏆
           </span>
         </div>
