@@ -92,7 +92,8 @@ export function Shop({
     } catch {
       /* ignore */
     }
-    void saveChildStyle(child.id, style);
+    // Only patch the goal so a stale page snapshot cannot wipe Closet wear.
+    void saveChildStyle(child.id, { savingFor: next });
   };
 
   const buy = async () => {

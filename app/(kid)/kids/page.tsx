@@ -26,7 +26,7 @@ export default async function KidPickerPage() {
   const parentMotto = owner.motto;
 
   return (
-    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-x-hidden overflow-y-auto text-white">
+    <div className="qn-picker-chrome fixed inset-0 z-20 flex flex-col overflow-x-visible overflow-y-auto text-white">
       <FamilyLooksRealtime familyId={family.id} />
       <header className="flex items-center justify-between px-6 py-5">
         <Logo tone="light" size="sm" />

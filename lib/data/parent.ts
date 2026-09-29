@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { mandatorySettleThrough, todayInTimezone } from "@/lib/schedule";
+import { parseStyle } from "@/lib/milestones";
 import type {
   Child,
   Chore,
@@ -23,15 +24,7 @@ export type ChoreWithKids = Chore & { child_ids: string[] };
 export type RewardWithKids = Reward & { child_ids: string[] };
 
 function asStyle(value: Child["style"] | string | null | undefined): Child["style"] {
-  if (!value) return {};
-  if (typeof value === "string") {
-    try {
-      return JSON.parse(value) as Child["style"];
-    } catch {
-      return {};
-    }
-  }
-  return value;
+  return parseStyle(value);
 }
 
 export const getChildren = cache(async (familyId: string, includeInactive = false): Promise<Child[]> => {

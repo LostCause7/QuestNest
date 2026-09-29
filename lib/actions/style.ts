@@ -6,7 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily, requireUser } from "@/lib/data/family";
 import { getActiveParentLook } from "@/lib/data/active-parent";
-import { unlockedTitles } from "@/lib/milestones";
+import { parseStyle, unlockedTitles } from "@/lib/milestones";
 import { familyToday, getApprovedCounts, getBadges, getChildGifts, getFamilyMilestones, getRewards } from "@/lib/data/parent";
 import { isKnownColor, isKnownFace } from "@/lib/looks-keys";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
@@ -20,7 +20,6 @@ import {
   unlockContext,
   unlockedItems,
   type CosmeticKind,
-  type UnlockContext,
 } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
 import { fail, friendlyError, guardAction, ok, type ActionResult } from "./result";
@@ -49,19 +48,24 @@ async function contextFor(child: Child, family: Family) {
   return { ctx: unlockContext(child, extras, badges, gifts, counts[child.id] ?? 0), extras };
 }
 
-function pick(
-  kind: CosmeticKind,
+function knownKey(kind: CosmeticKind, key: string | null | undefined) {
+  return Boolean(key && key !== "none" && itemsOf(kind).some((item) => item.key === key));
+}
+
+/** Persist a Closet slot. Parent-locked slots stay put; known catalog keys are kept. */
+function persistSlot(
+  kind: Extract<CosmeticKind, "frame" | "aura" | "nameplate" | "banner" | "room" | "background" | "soundPack" | "confetti">,
   wanted: string | null | undefined,
-  ctx: UnlockContext,
+  current: EquippedStyle,
   fallback: string | null,
-  locked: Set<string>,
-  fullAccess = false
+  locked: Set<string>
 ) {
-  if (locked.has(kind)) return fallback;
-  if (!wanted) return fallback;
-  if (fullAccess && itemsOf(kind).some((item) => item.key === wanted)) return wanted;
-  const allowed = unlockedItems(kind, ctx).map((i) => i.key);
-  return allowed.includes(wanted) ? wanted : fallback;
+  const worn = current[kind];
+  if (locked.has(kind)) return typeof worn === "string" && worn ? worn : fallback;
+  if (wanted === null || wanted === "none") return fallback;
+  if (knownKey(kind, wanted)) return wanted;
+  if (typeof worn === "string" && knownKey(kind, worn)) return worn;
+  return fallback;
 }
 
 export async function saveChildStyle(childId: string, style: EquippedStyle): Promise<ActionResult> {
@@ -80,37 +84,37 @@ export async function saveChildStyle(childId: string, style: EquippedStyle): Pro
       : [...new Set([...unlockedTitles(xp, extras), ...unlockedItems("title", ctx).map((i) => i.label)])];
     const badgeKeys = [...ctx.badges].filter((k) => BADGE_MAP[k]);
 
-    let savingFor: string | null = null;
-    if (style.savingFor) {
-      const rewards = await getRewards(family.id);
-      savingFor = rewards.some((r) => r.id === style.savingFor && r.is_active) ? style.savingFor : null;
+    const current = parseStyle(child.style);
+    let savingFor = current.savingFor ?? null;
+    if (Object.prototype.hasOwnProperty.call(style, "savingFor")) {
+      if (style.savingFor) {
+        const rewards = await getRewards(family.id);
+        savingFor = rewards.some((r) => r.id === style.savingFor && r.is_active) ? style.savingFor : null;
+      } else {
+        savingFor = null;
+      }
     }
-
-    const current = (child.style ?? {}) as EquippedStyle;
     const incoming: EquippedStyle = { ...current, ...style };
-    const keep = (
-      kind: Extract<CosmeticKind, "frame" | "aura" | "nameplate" | "banner" | "room" | "background" | "soundPack" | "confetti">,
-      wanted: string | null | undefined,
-      fallback: string | null
-    ) => {
-      const picked = pick(kind, wanted, ctx, fallback, locked, fullAccess);
-      if (picked && picked !== fallback) return picked;
-      const worn = current[kind];
-      if (typeof worn === "string" && worn === wanted && itemsOf(kind).some((item) => item.key === worn)) return worn;
-      return picked;
-    };
     const next: EquippedStyle = {
-      title: locked.has("title") ? titles[0] : incoming.title && titles.includes(incoming.title) ? incoming.title : titles[0],
+      title: locked.has("title")
+        ? current.title && titles.includes(current.title)
+          ? current.title
+          : titles[0]
+        : incoming.title && titles.includes(incoming.title)
+          ? incoming.title
+          : current.title && titles.includes(current.title)
+            ? current.title
+            : titles[0],
       sticker: null,
-      frame: keep("frame", incoming.frame, "none"),
+      frame: persistSlot("frame", incoming.frame, current, "none", locked),
       hat: null,
-      aura: keep("aura", incoming.aura, null),
-      nameplate: keep("nameplate", incoming.nameplate, null),
-      banner: keep("banner", incoming.banner, "none"),
-      room: keep("room", incoming.room, null),
-      background: keep("background", incoming.background, null),
-      soundPack: keep("soundPack", incoming.soundPack, null),
-      confetti: keep("confetti", incoming.confetti, null),
+      aura: persistSlot("aura", incoming.aura, current, null, locked),
+      nameplate: persistSlot("nameplate", incoming.nameplate, current, null, locked),
+      banner: persistSlot("banner", incoming.banner, current, "none", locked),
+      room: persistSlot("room", incoming.room, current, null, locked),
+      background: persistSlot("background", incoming.background, current, null, locked),
+      soundPack: persistSlot("soundPack", incoming.soundPack, current, null, locked),
+      confetti: persistSlot("confetti", incoming.confetti, current, null, locked),
       showcase: (incoming.showcase ?? []).filter((k) => badgeKeys.includes(k)).slice(0, 3),
       savingFor,
     };

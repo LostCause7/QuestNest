@@ -29,7 +29,8 @@ import {
   type CosmeticKind,
 } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
-import { childLook, frameClass, unlockedTitles } from "@/lib/milestones";
+import { peekKidLook, rememberKidLook } from "@/lib/kid-look-store";
+import { childLook, frameClass, parseStyle, unlockedTitles } from "@/lib/milestones";
 import { play, previewPack, setSoundPack, type SoundPack } from "@/lib/sound";
 import { setWallpaper } from "@/lib/wallpaper";
 import { burst, setConfettiStyle } from "@/lib/confetti";
@@ -115,7 +116,7 @@ export function Closet({
   const [color, setColor] = useState(child.color);
   const [motto, setMotto] = useState(child.motto ?? "");
   const [preview, setPreview] = useState<CosmeticItem | null>(null);
-  const [style, setStyle] = useState<EquippedStyle>(child.style ?? {});
+  const [style, setStyle] = useState<EquippedStyle>(() => parseStyle(child.style));
 
   // Items that opened since the last visit get a shine.
   const [fresh] = useState<Set<string>>(() => {
@@ -138,10 +139,11 @@ export function Closet({
   }, [child.id, ctx]);
 
   useEffect(() => {
-    setAvatar(child.avatar);
-    setColor(child.color);
+    const live = peekKidLook(child.id);
+    setAvatar(live?.avatar ?? child.avatar);
+    setColor(live?.color ?? child.color);
     setMotto(child.motto ?? "");
-    setStyle(child.style ?? {});
+    setStyle({ ...parseStyle(child.style), ...live?.style });
   }, [child.id]);
 
   useEffect(() => {
@@ -176,11 +178,14 @@ export function Closet({
     next = { ...next, hat: null, sticker: null };
     setPreview(null);
     setStyle(next);
+    rememberKidLook(child.id, { style: next });
     play("tap");
     void saveChildStyle(child.id, next).then((res) => {
       if (!res.ok) {
         toast.error(res.error);
-        setStyle(child.style ?? {});
+        const fallback = parseStyle(child.style);
+        setStyle(fallback);
+        rememberKidLook(child.id, { style: fallback });
         return;
       }
       router.refresh();
@@ -191,12 +196,14 @@ export function Closet({
     setPreview(null);
     if (next.avatar) setAvatar(next.avatar);
     if (next.color) setColor(next.color);
+    rememberKidLook(child.id, next);
     play("tap");
     void saveChildLook(child.id, next).then((res) => {
       if (!res.ok) {
         toast.error(res.error);
         setAvatar(child.avatar);
         setColor(child.color);
+        rememberKidLook(child.id, { avatar: child.avatar, color: child.color });
         return;
       }
       router.refresh();

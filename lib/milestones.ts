@@ -96,21 +96,36 @@ export function styleStorageKey(childId: string) {
   return `qn_style_${childId}`;
 }
 
+/** Closet JSON from Postgres may arrive as an object or a string. */
+export function parseStyle(value: EquippedStyle | string | null | undefined): EquippedStyle {
+  if (!value) return {};
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as EquippedStyle;
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return value;
+}
+
 /** Normalized look for rendering. Hats and stickers are no longer shown. */
-export function childLook(style?: EquippedStyle | null, _opts: { seasonal?: boolean } = {}): EquippedStyle {
+export function childLook(style?: EquippedStyle | string | null, _opts: { seasonal?: boolean } = {}): EquippedStyle {
+  const look = parseStyle(style);
   return {
-    title: style?.title ?? null,
-    frame: style?.frame ?? "none",
+    title: look.title ?? null,
+    frame: look.frame ?? "none",
     sticker: null,
     hat: null,
-    aura: style?.aura ?? null,
-    nameplate: style?.nameplate ?? null,
-    banner: style?.banner ?? null,
-    room: style?.room ?? null,
-    background: style?.background ?? null,
-    soundPack: style?.soundPack ?? null,
-    confetti: style?.confetti ?? null,
-    showcase: style?.showcase ?? null,
-    savingFor: style?.savingFor ?? null,
+    aura: look.aura ?? null,
+    nameplate: look.nameplate ?? null,
+    banner: look.banner ?? null,
+    room: look.room ?? null,
+    background: look.background ?? null,
+    soundPack: look.soundPack ?? null,
+    confetti: look.confetti ?? null,
+    showcase: look.showcase ?? null,
+    savingFor: look.savingFor ?? null,
   };
 }

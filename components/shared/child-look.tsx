@@ -2,15 +2,20 @@
 
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { nameplateClassName } from "@/lib/cosmetics";
-import { childLook, frameClass } from "@/lib/milestones";
+import { useLiveKidLook } from "@/lib/kid-look-store";
+import { childLook, frameClass, parseStyle } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, EquippedStyle } from "@/types/database";
 
-type LookChild = Pick<Child, "avatar" | "color"> & { style?: EquippedStyle | null };
-type NamedChild = Pick<Child, "name" | "nickname"> & { style?: EquippedStyle | null };
+type LookChild = Pick<Child, "avatar" | "color"> & { id?: string; style?: EquippedStyle | string | null };
+type NamedChild = Pick<Child, "name" | "nickname"> & { id?: string; style?: EquippedStyle | string | null };
 
 export function childDisplayName(child: Pick<Child, "name" | "nickname">) {
   return child.nickname?.trim() || child.name;
+}
+
+function mergedStyle(child: { id?: string; style?: EquippedStyle | string | null }, live?: { style?: EquippedStyle }) {
+  return { ...parseStyle(child.style), ...live?.style };
 }
 
 export function ChildLookAvatar({
@@ -22,13 +27,14 @@ export function ChildLookAvatar({
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
-  const look = childLook(child.style);
+  const live = useLiveKidLook(child.id);
+  const look = childLook(mergedStyle(child, live));
   const frame = look.frame && look.frame !== "none" ? frameClass(look.frame) : undefined;
   const aura = look.aura && look.aura !== "none" ? look.aura : null;
   return (
     <KidAvatar
-      avatar={child.avatar}
-      color={child.color}
+      avatar={live?.avatar ?? child.avatar}
+      color={live?.color ?? child.color}
       size={size}
       aura={aura}
       frameClassName={frame}
@@ -44,7 +50,8 @@ export function ChildLookName({
   child: NamedChild;
   className?: string;
 }) {
-  const plate = nameplateClassName(childLook(child.style).nameplate);
+  const live = useLiveKidLook(child.id);
+  const plate = nameplateClassName(childLook(mergedStyle(child, live)).nameplate);
   return (
     <span
       className={cn(

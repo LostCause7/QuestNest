@@ -4,8 +4,9 @@ import { FlameIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { PointsTicker } from "@/components/kid/points-ticker";
+import { useLiveKidLook } from "@/lib/kid-look-store";
 import { levelInfo } from "@/lib/levels";
-import { childLook } from "@/lib/milestones";
+import { childLook, parseStyle } from "@/lib/milestones";
 import { bannerClassName } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
 import { switchChild } from "@/lib/actions/kid-mode";
@@ -13,14 +14,15 @@ import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
+  const live = useLiveKidLook(child.id);
   const lvl = levelInfo(child.lifetime_points);
-  const look = childLook(child.style);
+  const look = childLook({ ...parseStyle(child.style), ...live?.style });
   const banner = bannerClassName(look.banner);
   const showcase = (look.showcase ?? []).map((k) => BADGE_MAP[k]).filter(Boolean);
   const metal = lvl.level >= 10 ? "from-yellow-300 to-amber-500 text-amber-950" : lvl.level >= 5 ? "from-slate-200 to-slate-400 text-slate-900" : "from-amber-200 to-orange-300 text-orange-950";
   return (
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
-      <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 rounded-3xl p-3 sm:gap-4 sm:p-4")}>
+      <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 overflow-visible rounded-3xl p-3 sm:gap-4 sm:p-4")}>
         <span className="relative shrink-0 overflow-visible">
           <ChildLookAvatar child={child} size="md" className="shadow-md sm:size-16 sm:text-4xl" />
           <span className="absolute -right-1 -bottom-1 rounded-full bg-card px-1 text-[10px] font-bold shadow-sm" title={lvl.title}>
