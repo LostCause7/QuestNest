@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import type { EquippedStyle } from "@/types/database";
+import { parseStyle } from "@/lib/milestones";
+import type { Child, EquippedStyle } from "@/types/database";
 
 export type LiveKidLook = {
   avatar?: string;
@@ -77,4 +78,24 @@ export function useLiveKidLook(childId: string | undefined): LiveKidLook | undef
     () => (childId ? looks.get(childId) : undefined),
     () => undefined
   );
+}
+
+/** Closet writes here immediately; picker/header should show it even if the kid row is still stale. */
+export function mergeKidLook<T extends Pick<Child, "avatar" | "color"> & { style?: EquippedStyle | string | null }>(
+  child: T,
+  live?: LiveKidLook
+): T {
+  if (!live) return child;
+  return {
+    ...child,
+    avatar: live.avatar ?? child.avatar,
+    color: live.color ?? child.color,
+    style: { ...parseStyle(child.style), ...live.style },
+  };
+}
+
+export function useShownKid<T extends Pick<Child, "avatar" | "color"> & { id?: string; style?: EquippedStyle | string | null }>(
+  child: T
+): T {
+  return mergeKidLook(child, useLiveKidLook(child.id));
 }

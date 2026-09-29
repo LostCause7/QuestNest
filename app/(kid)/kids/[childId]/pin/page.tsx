@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
-import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
+import { LiveChildAvatar, LiveChildName } from "@/components/kid/live-child-look";
 import { KidPinClient } from "@/components/kid/kid-pin-client";
 import { requireFamily } from "@/lib/data/family";
 import { getChildren } from "@/lib/data/parent";
@@ -36,9 +36,9 @@ export default async function KidPinPage(props: PageProps<"/kids/[childId]/pin">
           color={kid.color}
           header={
             <div className="flex flex-col items-center gap-3">
-              <ChildLookAvatar child={kid} size="xl" className="shadow-xl animate-float" />
+              <LiveChildAvatar child={kid} size="xl" className="shadow-xl animate-float" />
               <h1 className="font-display text-3xl font-semibold">
-                Hi <ChildLookName child={kid} />!
+                Hi <LiveChildName child={kid} />!
               </h1>
               <p className="text-muted-foreground">{kid.cheer?.trim() || "Enter your secret PIN"}</p>
             </div>

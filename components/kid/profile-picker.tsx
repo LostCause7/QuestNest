@@ -9,6 +9,7 @@ import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { ParentDialog } from "@/components/parent/parent-dialog";
 import { colorTheme } from "@/lib/avatars";
+import { useShownKid } from "@/lib/kid-look-store";
 import { childLook, parseStyle } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, ParentProfile } from "@/types/database";
@@ -52,8 +53,9 @@ function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
 }
 
 function PickerKidTile({ kid, delay }: { kid: Child; delay: number }) {
-  const theme = colorTheme(kid.color);
-  const look = childLook(parseStyle(kid.style));
+  const shown = useShownKid(kid);
+  const theme = colorTheme(shown.color);
+  const look = childLook(parseStyle(shown.style));
   return (
     <motion.li
       initial={{ opacity: 0, y: 24, scale: 0.9 }}
@@ -73,13 +75,13 @@ function PickerKidTile({ kid, delay }: { kid: Child; delay: number }) {
             )}
           />
           <ChildLookAvatar
-            child={kid}
+            child={shown}
             size="xl"
             className="relative shadow-xl transition-[box-shadow] group-hover:ring-sun-400 sm:size-32 sm:text-8xl"
           />
         </PickerAvatarWell>
         <span className="flex flex-col items-center gap-0.5">
-          <ChildLookName child={kid} className="font-display text-2xl font-semibold text-white" />
+          <ChildLookName child={shown} className="font-display text-2xl font-semibold text-white" />
           {look.title ? (
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">{look.title}</span>
           ) : null}

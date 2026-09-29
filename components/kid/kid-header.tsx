@@ -4,9 +4,9 @@ import { FlameIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { PointsTicker } from "@/components/kid/points-ticker";
-import { useLiveKidLook } from "@/lib/kid-look-store";
+import { useShownKid } from "@/lib/kid-look-store";
 import { levelInfo } from "@/lib/levels";
-import { childLook, parseStyle } from "@/lib/milestones";
+import { childLook } from "@/lib/milestones";
 import { bannerClassName } from "@/lib/cosmetics";
 import { BADGE_MAP } from "@/lib/badges";
 import { switchChild } from "@/lib/actions/kid-mode";
@@ -14,13 +14,7 @@ import { cn } from "@/lib/utils";
 import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
-  const live = useLiveKidLook(child.id);
-  const shown = {
-    ...child,
-    avatar: live?.avatar ?? child.avatar,
-    color: live?.color ?? child.color,
-    style: { ...parseStyle(child.style), ...live?.style },
-  };
+  const shown = useShownKid(child);
   const lvl = levelInfo(child.lifetime_points);
   const look = childLook(shown.style);
   const banner = bannerClassName(look.banner);

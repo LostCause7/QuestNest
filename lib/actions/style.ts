@@ -33,6 +33,7 @@ async function parentHasFullAccess() {
 
 function revalidate() {
   revalidatePath("/app", "layout");
+  revalidatePath("/kids");
   revalidatePath("/kids", "layout");
 }
 
