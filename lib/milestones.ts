@@ -1,5 +1,5 @@
 import { FRAME_ITEMS, frameClassName } from "@/lib/cosmetics";
-import type { EquippedStyle, FamilyMilestone } from "@/types/database";
+import type { Child, EquippedStyle, FamilyMilestone } from "@/types/database";
 
 export type { EquippedStyle, FamilyMilestone };
 
@@ -94,6 +94,10 @@ export function unlockedStickers(lifetimePoints: number, extras: FamilyMilestone
 
 export function styleStorageKey(childId: string) {
   return `qn_style_${childId}`;
+}
+
+export function childDisplayName(child: Pick<Child, "name" | "nickname">) {
+  return child.nickname?.trim() || child.name;
 }
 
 /** Closet JSON from Postgres may arrive as an object or a string. */

@@ -75,7 +75,7 @@ export function isChoreDueOn(chore: Pick<Chore, "recurrence" | "days_of_week" | 
       return true; // a one-off shows until it's completed (handled by caller)
     case "weekly":
     case "custom":
-      return chore.days_of_week.includes(weekdayOf(dateStr));
+      return (chore.days_of_week ?? []).includes(weekdayOf(dateStr));
     default:
       return true;
   }
@@ -84,7 +84,7 @@ export function isChoreDueOn(chore: Pick<Chore, "recurrence" | "days_of_week" | 
 export function describeSchedule(chore: Pick<Chore, "recurrence" | "days_of_week">) {
   if (chore.recurrence === "daily") return "Every day";
   if (chore.recurrence === "once") return "One time";
-  const days = [...chore.days_of_week].sort();
+  const days = [...(chore.days_of_week ?? [])].sort();
   if (days.length === 7) return "Every day";
   if (days.length === 0) return "Not scheduled";
   if (days.join(",") === "1,2,3,4,5") return "Weekdays";

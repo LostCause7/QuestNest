@@ -27,7 +27,7 @@ const OLD_MARK_LETTER: Record<string, string> = {
 };
 
 export function resolveCrestLetter(value?: string | null): string | null {
-  if (!value) return null;
+  if (typeof value !== "string" || !value) return null;
   const trimmed = value.trim();
   if (/^[A-Za-z]$/.test(trimmed)) return trimmed.toUpperCase();
   if (OLD_MARK_LETTER[trimmed]) return OLD_MARK_LETTER[trimmed];

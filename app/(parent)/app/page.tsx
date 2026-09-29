@@ -13,6 +13,7 @@ import { WelcomeToast } from "@/components/parent/welcome-toast";
 import { Chalkboard, FamilyXpBar, FirstWeekCoach, RivalBoard } from "@/components/parent/nest-extras";
 import { Highlights } from "@/components/parent/highlights";
 import { MysteryWeekend } from "@/components/parent/mystery-weekend";
+import { DashboardSafe } from "@/components/parent/dashboard-safe";
 import { requireFamily } from "@/lib/data/family";
 import {
   getBadges,
@@ -120,14 +121,18 @@ export default async function DashboardPage(props: PageProps<"/app">) {
       </div>
 
       <div className="mb-6 space-y-3">
-        <Highlights kids={children} family={family} weekCompletions={weekCompletions} transactions={transactions} badges={badges} />
-        <MysteryWeekend
-          family={family}
-          kids={children}
-          existingTitles={chores.map((c) => c.title)}
-          hasOnceToday={chores.some((c) => c.is_active && c.recurrence === "once" && c.created_at.slice(0, 10) === today)}
-          today={today}
-        />
+        <DashboardSafe>
+          <Highlights kids={children} family={family} weekCompletions={weekCompletions} transactions={transactions} badges={badges} />
+        </DashboardSafe>
+        <DashboardSafe>
+          <MysteryWeekend
+            family={family}
+            kids={children}
+            existingTitles={chores.map((c) => c.title)}
+            hasOnceToday={chores.some((c) => c.is_active && c.recurrence === "once" && c.created_at?.slice(0, 10) === today)}
+            today={today}
+          />
+        </DashboardSafe>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -143,7 +148,9 @@ export default async function DashboardPage(props: PageProps<"/app">) {
             <h2 className="font-display text-xl font-semibold">Approval queue</h2>
             {pending.length ? <span className="text-sm text-muted-foreground">{pending.length} waiting</span> : null}
           </div>
-          <ApprovalQueue items={pending} family={family} />
+          <DashboardSafe>
+            <ApprovalQueue items={pending} family={family} />
+          </DashboardSafe>
 
           <div className="mt-8 flex items-center justify-between">
             <h2 className="font-display text-xl font-semibold">Recent activity</h2>
@@ -154,7 +161,9 @@ export default async function DashboardPage(props: PageProps<"/app">) {
               </Link>
             </Button>
           </div>
-          <ActivityList transactions={transactions} kids={children} family={family} compact />
+          <DashboardSafe>
+            <ActivityList transactions={transactions} kids={children} family={family} compact />
+          </DashboardSafe>
         </section>
 
         <section className="space-y-4">
@@ -170,7 +179,9 @@ export default async function DashboardPage(props: PageProps<"/app">) {
           {perKid.length ? (
             <div className="grid gap-3">
               {perKid.map(({ kid, dueToday, doneToday }) => (
-                <KidSummaryCard key={kid.id} child={kid} family={family} dueToday={dueToday} doneToday={doneToday} href={`/app/kids/${kid.id}`} />
+                <DashboardSafe key={kid.id}>
+                  <KidSummaryCard child={kid} family={family} dueToday={dueToday} doneToday={doneToday} href={`/app/kids/${kid.id}`} />
+                </DashboardSafe>
               ))}
             </div>
           ) : (

@@ -1,5 +1,6 @@
-import { ChildLookAvatar, ChildLookName, childDisplayName } from "@/components/shared/child-look";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { BADGE_MAP } from "@/lib/badges";
+import { childDisplayName } from "@/lib/milestones";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Child, ChildBadge, ChoreCompletion, Family, PointTransaction } from "@/types/database";

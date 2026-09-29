@@ -49,7 +49,7 @@ export function ActivityRows({
     <>
       <ul className="divide-y rounded-2xl border bg-card">
         {rows.map((t) => {
-          const meta = KIND_LABEL[t.kind];
+          const meta = KIND_LABEL[t.kind] ?? { label: "Activity", emoji: "📜" };
           const positive = t.amount > 0;
           return (
             <li key={t.id} className="flex items-center gap-3 px-3 py-2.5 sm:px-4">

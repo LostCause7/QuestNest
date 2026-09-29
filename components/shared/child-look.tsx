@@ -2,16 +2,14 @@
 
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { nameplateClassName } from "@/lib/cosmetics";
-import { childLook, frameClass, parseStyle } from "@/lib/milestones";
+import { childDisplayName, childLook, frameClass, parseStyle } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, EquippedStyle } from "@/types/database";
 
+export { childDisplayName };
+
 type LookChild = Pick<Child, "avatar" | "color"> & { id?: string; style?: EquippedStyle | string | null };
 type NamedChild = Pick<Child, "name" | "nickname"> & { id?: string; style?: EquippedStyle | string | null };
-
-export function childDisplayName(child: Pick<Child, "name" | "nickname">) {
-  return child.nickname?.trim() || child.name;
-}
 
 export function ChildLookAvatar({
   child,
