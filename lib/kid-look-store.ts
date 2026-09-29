@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import type { EquippedStyle } from "@/types/database";
 
 export type LiveKidLook = {
@@ -50,7 +50,7 @@ export function peekKidLook(childId: string | undefined): LiveKidLook | undefine
   return looks.get(childId) ?? readStored(childId);
 }
 
-/** Keep Face/Color/Closet style visible on header and picker after leaving Closet. */
+/** Keep Face/Color/Closet style visible on header after leaving Closet. */
 export function rememberKidLook(childId: string, patch: LiveKidLook) {
   const prev = looks.get(childId) ?? readStored(childId) ?? {};
   const next: LiveKidLook = {
@@ -64,9 +64,17 @@ export function rememberKidLook(childId: string, patch: LiveKidLook) {
 }
 
 export function useLiveKidLook(childId: string | undefined): LiveKidLook | undefined {
+  useEffect(() => {
+    if (!childId || looks.has(childId)) return;
+    const stored = readStored(childId);
+    if (!stored) return;
+    looks.set(childId, stored);
+    emit();
+  }, [childId]);
+
   return useSyncExternalStore(
     subscribe,
-    () => (childId ? looks.get(childId) ?? readStored(childId) : undefined),
+    () => (childId ? looks.get(childId) : undefined),
     () => undefined
   );
 }

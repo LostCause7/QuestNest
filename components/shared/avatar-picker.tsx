@@ -38,9 +38,10 @@ export function KidAvatar({
     setBroken(false);
   }, [src]);
 
+  const auraPad = { xs: "p-1.5", sm: "p-2", md: "p-2.5", lg: "p-3", xl: "p-3.5" }[size];
   const face = (
     <span
-      className={cn("relative z-[1] inline-flex shrink-0 items-center justify-center overflow-visible", sizes, className)}
+      className={cn("relative z-[1] inline-flex shrink-0 items-center justify-center overflow-visible rounded-full", sizes, className)}
       aria-hidden="true"
     >
       <span className={cn("absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br shadow-inner", theme.gradient)}>
@@ -48,11 +49,11 @@ export function KidAvatar({
           <img
             src={src}
             alt=""
-            className="size-full object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)]"
+            className="size-full object-cover object-center"
             onError={() => setBroken(true)}
           />
         ) : (
-          <span className="flex size-full items-center justify-center drop-shadow-sm">{avatarEmoji(avatar)}</span>
+          <span className="flex size-full items-center justify-center">{avatarEmoji(avatar)}</span>
         )}
       </span>
       {frameClassName ? (
@@ -64,10 +65,8 @@ export function KidAvatar({
     </span>
   );
 
-  if (!designed && !auraClass) return face;
-  const auraPad = { xs: "p-1.5", sm: "p-2", md: "p-2.5", lg: "p-3", xl: "p-3.5" }[size];
   return (
-    <span className={cn("relative inline-flex shrink-0 overflow-visible", auraPad)} aria-hidden="true">
+    <span className={cn("relative inline-flex shrink-0 items-center justify-center overflow-visible", auraPad)} aria-hidden="true">
       {designed && aura ? <AuraFx aura={aura} /> : null}
       {!designed && auraClass ? (
         <span className={cn("absolute inset-0 rounded-full bg-gradient-to-br opacity-95 blur-xl qn-aura", auraClass)} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PlusIcon } from "lucide-react";
@@ -9,7 +9,6 @@ import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { KidDialog } from "@/components/parent/kid-dialog";
 import { ParentDialog } from "@/components/parent/parent-dialog";
 import { colorTheme } from "@/lib/avatars";
-import { useLiveKidLook } from "@/lib/kid-look-store";
 import { childLook, parseStyle } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, ParentProfile } from "@/types/database";
@@ -22,14 +21,24 @@ type OwnerTile = {
   motto?: string | null;
 };
 
+function PickerAvatarWell({ children }: { children: ReactNode }) {
+  return (
+    <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative flex size-36 items-center justify-center overflow-visible sm:size-40">
+      {children}
+    </motion.span>
+  );
+}
+
 function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
   if (avatarUrl && !avatarKey) {
     return (
-      <img
-        src={avatarUrl}
-        alt=""
-        className="relative size-28 rounded-full object-cover shadow-xl ring-4 ring-white/40 sm:size-32"
-      />
+      <span className="inline-flex p-3.5">
+        <img
+          src={avatarUrl}
+          alt=""
+          className="relative size-28 rounded-full object-cover shadow-xl ring-4 ring-white/40 sm:size-32"
+        />
+      </span>
     );
   }
   return (
@@ -43,9 +52,8 @@ function OwnerAvatar({ avatarUrl, avatarKey, colorKey }: OwnerTile) {
 }
 
 function PickerKidTile({ kid, delay }: { kid: Child; delay: number }) {
-  const live = useLiveKidLook(kid.id);
-  const theme = colorTheme(live?.color ?? kid.color);
-  const look = childLook({ ...parseStyle(kid.style), ...live?.style });
+  const theme = colorTheme(kid.color);
+  const look = childLook(parseStyle(kid.style));
   return (
     <motion.li
       initial={{ opacity: 0, y: 24, scale: 0.9 }}
@@ -57,10 +65,10 @@ function PickerKidTile({ kid, delay }: { kid: Child; delay: number }) {
         href={`/kids/${kid.id}/pin`}
         className="group flex flex-col items-center gap-4 overflow-visible rounded-3xl px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
       >
-        <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block overflow-visible p-3">
+        <PickerAvatarWell>
           <span
             className={cn(
-              "absolute inset-1 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
+              "absolute inset-3 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
               theme.gradient
             )}
           />
@@ -69,7 +77,7 @@ function PickerKidTile({ kid, delay }: { kid: Child; delay: number }) {
             size="xl"
             className="relative shadow-xl transition-[box-shadow] group-hover:ring-sun-400 sm:size-32 sm:text-8xl"
           />
-        </motion.span>
+        </PickerAvatarWell>
         <span className="flex flex-col items-center gap-0.5">
           <ChildLookName child={kid} className="font-display text-2xl font-semibold text-white" />
           {look.title ? (
@@ -93,11 +101,11 @@ function AddTile({ label, onClick, delay }: { label: string; onClick: () => void
         onClick={onClick}
         className="group flex flex-col items-center gap-4 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
       >
-        <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block">
+        <PickerAvatarWell>
           <span className="relative inline-flex size-28 items-center justify-center rounded-full border-4 border-dashed border-white/30 text-white/60 transition-colors group-hover:border-white/70 group-hover:text-white sm:size-32">
             <PlusIcon className="size-12" />
           </span>
-        </motion.span>
+        </PickerAvatarWell>
         <span className="font-display text-xl font-semibold text-white/75">{label}</span>
       </button>
     </motion.li>
@@ -121,7 +129,7 @@ export function ProfilePicker({
 
   return (
     <>
-      <ul className="mt-8 flex flex-wrap justify-center gap-8 overflow-visible sm:mt-10 sm:gap-12">
+      <ul className="mt-8 flex flex-wrap items-start justify-center gap-8 overflow-visible sm:mt-10 sm:gap-12">
         {kids.map((kid) => (
           <PickerKidTile key={kid.id} kid={kid} delay={delay++} />
         ))}
@@ -134,12 +142,10 @@ export function ProfilePicker({
             href="/kids/parent"
             className="group flex flex-col items-center gap-4 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
           >
-            <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block">
-              <span className="absolute -inset-2 rounded-full bg-nest-400/50 opacity-0 blur-lg transition-opacity group-hover:opacity-80" />
-              <span className="block transition-[box-shadow] group-hover:[&>*]:ring-sun-400">
-                <OwnerAvatar {...parent} />
-              </span>
-            </motion.span>
+            <PickerAvatarWell>
+              <span className="absolute inset-3 rounded-full bg-nest-400/50 opacity-0 blur-lg transition-opacity group-hover:opacity-80" />
+              <OwnerAvatar {...parent} />
+            </PickerAvatarWell>
             <span className="flex flex-col items-center gap-0.5">
               <span className="font-display text-2xl font-semibold text-white">{parent.name}</span>
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
@@ -162,10 +168,10 @@ export function ProfilePicker({
                 href={`/kids/parents/${p.id}/pin`}
                 className="group flex flex-col items-center gap-4 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun-400"
               >
-                <motion.span whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }} className="relative block">
+                <PickerAvatarWell>
                   <span
                     className={cn(
-                      "absolute -inset-2 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
+                      "absolute inset-3 rounded-full bg-gradient-to-br opacity-0 blur-lg transition-opacity group-hover:opacity-80",
                       theme.gradient
                     )}
                   />
@@ -175,7 +181,7 @@ export function ProfilePicker({
                     size="xl"
                     className="relative shadow-xl sm:size-32 sm:text-8xl"
                   />
-                </motion.span>
+                </PickerAvatarWell>
                 <span className="flex flex-col items-center gap-0.5">
                   <span className="font-display text-2xl font-semibold text-white">{p.name}</span>
                   <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
