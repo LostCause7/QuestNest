@@ -15,8 +15,14 @@ import type { Child, Family } from "@/types/database";
 
 export function KidHeader({ child, family }: { child: Child; family: Family }) {
   const live = useLiveKidLook(child.id);
+  const shown = {
+    ...child,
+    avatar: live?.avatar ?? child.avatar,
+    color: live?.color ?? child.color,
+    style: { ...parseStyle(child.style), ...live?.style },
+  };
   const lvl = levelInfo(child.lifetime_points);
-  const look = childLook({ ...parseStyle(child.style), ...live?.style });
+  const look = childLook(shown.style);
   const banner = bannerClassName(look.banner);
   const showcase = (look.showcase ?? []).map((k) => BADGE_MAP[k]).filter(Boolean);
   const metal = lvl.level >= 10 ? "from-yellow-300 to-amber-500 text-amber-950" : lvl.level >= 5 ? "from-slate-200 to-slate-400 text-slate-900" : "from-amber-200 to-orange-300 text-orange-950";
@@ -24,7 +30,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
     <header className="mx-auto w-full max-w-3xl px-4 pt-4 sm:px-6">
       <div className={cn(banner || "qn-kid-surface", "qn-lift flex items-center gap-3 overflow-visible rounded-3xl p-3 sm:gap-4 sm:p-4")}>
         <span className="relative shrink-0 overflow-visible">
-          <ChildLookAvatar child={child} size="md" className="shadow-md sm:size-16 sm:text-4xl" />
+          <ChildLookAvatar child={shown} size="md" className="shadow-md sm:size-16 sm:text-4xl" />
           <span className="absolute -right-1 -bottom-1 rounded-full bg-card px-1 text-[10px] font-bold shadow-sm" title={lvl.title}>
             {lvl.level < 3 ? "🐣" : lvl.level < 6 ? "🐥" : lvl.level < 10 ? "🐦" : "🦅"}
           </span>
@@ -32,7 +38,7 @@ export function KidHeader({ child, family }: { child: Child; family: Family }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="min-w-0 font-display text-xl font-semibold sm:text-2xl">
-              <ChildLookName child={child} />
+              <ChildLookName child={shown} />
             </h1>
             {showcase.length ? (
               <span

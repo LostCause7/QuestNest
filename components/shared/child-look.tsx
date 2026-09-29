@@ -2,7 +2,6 @@
 
 import { KidAvatar } from "@/components/shared/avatar-picker";
 import { nameplateClassName } from "@/lib/cosmetics";
-import { useLiveKidLook } from "@/lib/kid-look-store";
 import { childLook, frameClass, parseStyle } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { Child, EquippedStyle } from "@/types/database";
@@ -14,10 +13,6 @@ export function childDisplayName(child: Pick<Child, "name" | "nickname">) {
   return child.nickname?.trim() || child.name;
 }
 
-function mergedStyle(child: { id?: string; style?: EquippedStyle | string | null }, live?: { style?: EquippedStyle }) {
-  return { ...parseStyle(child.style), ...live?.style };
-}
-
 export function ChildLookAvatar({
   child,
   size = "md",
@@ -27,14 +22,13 @@ export function ChildLookAvatar({
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
-  const live = useLiveKidLook(child.id);
-  const look = childLook(mergedStyle(child, live));
+  const look = childLook(parseStyle(child.style));
   const frame = look.frame && look.frame !== "none" ? frameClass(look.frame) : undefined;
   const aura = look.aura && look.aura !== "none" ? look.aura : null;
   return (
     <KidAvatar
-      avatar={live?.avatar ?? child.avatar}
-      color={live?.color ?? child.color}
+      avatar={child.avatar}
+      color={child.color}
       size={size}
       aura={aura}
       frameClassName={frame}
@@ -50,8 +44,7 @@ export function ChildLookName({
   child: NamedChild;
   className?: string;
 }) {
-  const live = useLiveKidLook(child.id);
-  const plate = nameplateClassName(childLook(mergedStyle(child, live)).nameplate);
+  const plate = nameplateClassName(childLook(parseStyle(child.style)).nameplate);
   return (
     <span
       className={cn(
