@@ -279,7 +279,7 @@ export const getApprovedCounts = cache(async (familyId: string, from: string, to
 
 const MISSING = /does not exist|schema cache|column/i;
 
-/** Apply missed-mandatory deductions after 11:50pm local (or yesterday before noon as catch-up). */
+/** Apply missed-mandatory deductions after 11:59:59pm local (or yesterday before noon as catch-up). */
 export const settleMandatoryPenalties = cache(async (family: Family): Promise<number> => {
   const through = mandatorySettleThrough(family.timezone);
   if (!through) return 0;
