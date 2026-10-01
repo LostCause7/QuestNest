@@ -543,6 +543,10 @@ export type Database = {
         Args: { p_tx: string };
         Returns: undefined;
       };
+      take_back_pot_chip: {
+        Args: { p_fund: string; p_child: string; p_amount: number };
+        Returns: undefined;
+      };
       clear_kid_notices: {
         Args: { p_family: string; p_today: string };
         Returns: undefined;

@@ -193,6 +193,8 @@ export async function undoTransaction(txId: string): Promise<ActionResult> {
       .maybeSingle();
     if (!original || original.family_id !== family.id) return fail("That activity wasn't found.");
 
+    await takeBackPotChip(supabase, original);
+
     const erased = await supabase.rpc("erase_activity", { p_tx: parsed.data });
     let eraseError = erased.error?.message ?? null;
     if (eraseError && /could not find|schema cache|does not exist/i.test(eraseError)) {
@@ -206,6 +208,63 @@ export async function undoTransaction(txId: string): Promise<ActionResult> {
     revalidate();
     return ok(undefined, "Removed.");
   });
+}
+
+/** If this row was a shared-pot chip, take that amount out of the pot too. */
+async function takeBackPotChip(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  original: { kind: string; ref_id: string | null; child_id: string; amount: number }
+) {
+  if (original.kind !== "reward" || !original.ref_id) return;
+  const chip = Math.abs(original.amount);
+  if (chip < 1) return;
+
+  const rpc = await supabase.rpc("take_back_pot_chip", {
+    p_fund: original.ref_id,
+    p_child: original.child_id,
+    p_amount: chip,
+  });
+  if (!rpc.error) return;
+
+  const { data: fund } = await supabase.from("reward_funds").select("*").eq("id", original.ref_id).maybeSingle();
+  if (!fund) return;
+
+  const { data: pledge } = await supabase
+    .from("reward_fund_pledges")
+    .select("*")
+    .eq("fund_id", fund.id)
+    .eq("child_id", original.child_id)
+    .maybeSingle();
+  if (!pledge) return;
+
+  const next = pledge.amount - chip;
+  if (next <= 0) {
+    await supabase.from("reward_fund_pledges").delete().eq("id", pledge.id);
+  } else {
+    await supabase.from("reward_fund_pledges").update({ amount: next }).eq("id", pledge.id);
+  }
+
+  const { data: leftover } = await supabase.from("reward_fund_pledges").select("amount").eq("fund_id", fund.id);
+  const raised = (leftover ?? []).reduce((sum, row) => sum + row.amount, 0);
+
+  if (fund.status === "filled") {
+    await supabase
+      .from("reward_redemptions")
+      .update({ status: "rejected", resolved_at: new Date().toISOString() })
+      .eq("fund_id", fund.id)
+      .in("status", ["pending", "approved"]);
+    if (raised < fund.target) {
+      await supabase.from("reward_funds").update({ status: "open", filled_at: null }).eq("id", fund.id);
+      const { data: reward } = await supabase.from("rewards").select("id, stock").eq("id", fund.reward_id).maybeSingle();
+      if (reward && reward.stock != null) {
+        await supabase.from("rewards").update({ stock: reward.stock + 1 }).eq("id", reward.id);
+      }
+    }
+  }
+
+  if (raised <= 0) {
+    await supabase.from("reward_funds").delete().eq("id", fund.id).eq("status", "open");
+  }
 }
 
 async function eraseActivityFallback(
