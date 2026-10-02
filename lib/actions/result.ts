@@ -25,6 +25,8 @@ export function friendlyError(message: string) {
   if (/out of stock/i.test(message)) return "That reward is sold out.";
   if (/cash rewards cannot be shared/i.test(message)) return "Cash rewards can't be shared. Pick a dollar amount and get it yourself.";
   if (/that pot is already full/i.test(message)) return "That pot is already full.";
+  if (/no pot to change/i.test(message)) return "There's no pot on that reward yet.";
+  if (/that kid is not on this pot/i.test(message)) return "That kid isn't on this pot.";
   if (/put toward the shared pot/i.test(message)) return "Siblings already started a pot. Put points toward it instead of buying it alone.";
   if (/could not choose the best candidate function/i.test(message)) return "Could not claim that reward. Try again in a moment.";
   if (/already reviewed/i.test(message)) return "That one was already reviewed.";

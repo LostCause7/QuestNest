@@ -134,6 +134,43 @@ export async function setRewardPotProgress(rewardId: string, raised: number): Pr
   });
 }
 
+/** Parent takes one kid off the pot and returns their points. */
+export async function removeChildFromRewardPot(rewardId: string, childId: string): Promise<ActionResult<ContributeResult>> {
+  return guardAction(async () => {
+    const parsed = z.object({ rewardId: z.uuid(), childId: z.uuid() }).safeParse({ rewardId, childId });
+    if (!parsed.success) return fail("That pot entry wasn't found.");
+    await requireFamily();
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("remove_child_from_reward_pot", {
+      p_reward: parsed.data.rewardId,
+      p_child: parsed.data.childId,
+    });
+    if (error && /could not find the function|schema cache|does not exist/i.test(error.message)) {
+      return fail("Removing a kid from a pot needs the latest nest update. Run 0028_remove_pot_progress.sql.");
+    }
+    if (error) return fail(friendlyError(error.message));
+    revalidate();
+    return ok(data as ContributeResult, "Removed from the pot. Their points are back.");
+  });
+}
+
+/** Parent clears the pot and returns every chip. */
+export async function clearRewardPot(rewardId: string): Promise<ActionResult<ContributeResult>> {
+  return guardAction(async () => {
+    const parsed = z.string().uuid().safeParse(rewardId);
+    if (!parsed.success) return fail("That pot wasn't found.");
+    await requireFamily();
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("clear_reward_pot", { p_reward: parsed.data });
+    if (error && /could not find the function|schema cache|does not exist/i.test(error.message)) {
+      return fail("Clearing a pot needs the latest nest update. Run 0028_remove_pot_progress.sql.");
+    }
+    if (error) return fail(friendlyError(error.message));
+    revalidate();
+    return ok(data as ContributeResult, "Pot cleared. Points went back to the kids who put toward it.");
+  });
+}
+
 export async function resolveRedemption(
   redemptionId: string,
   action: "approve" | "reject" | "fulfill"

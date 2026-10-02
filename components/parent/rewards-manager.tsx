@@ -13,6 +13,7 @@ import {
   GiftIcon,
   CheckIcon,
   GaugeIcon,
+  XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +27,21 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ChildLookAvatar, ChildLookName } from "@/components/shared/child-look";
 import { EmptyState } from "@/components/parent/page-header";
 import { RewardDialog } from "@/components/parent/reward-dialog";
 import { NearbyRewardsButton } from "@/components/parent/nearby-rewards";
 import { RewardPurchases } from "@/components/parent/reward-purchases";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
-import { deleteReward, setRewardActive, setRewardPotProgress, type RewardInput } from "@/lib/actions/rewards";
+import {
+  clearRewardPot,
+  deleteReward,
+  removeChildFromRewardPot,
+  setRewardActive,
+  setRewardPotProgress,
+  type RewardInput,
+} from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
 import { RewardIcon } from "@/components/shared/reward-icon";
 import { isCashReward } from "@/lib/suggested-points";
@@ -209,52 +218,112 @@ export function RewardsManager({
               <DialogHeader>
                 <DialogTitle className="font-display text-xl">Pot progress</DialogTitle>
                 <DialogDescription>
-                  Set how full “{potReward.title}” looks. This does not take or give kids points.
+                  Change how full “{potReward.title}” looks, take a kid off, or clear the pot. Taking a kid off or
+                  clearing the pot gives their points back.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-2">
-                <Label htmlFor="pot-raised">Filled amount</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="pot-raised"
-                    type="number"
-                    min={0}
-                    max={potReward.cost}
-                    value={potRaised}
-                    onChange={(e) => setPotRaised(e.target.value)}
-                  />
-                  <span className="shrink-0 text-sm text-muted-foreground">
-                    / {potReward.cost} {family.currency_emoji}
-                  </span>
-                </div>
-                {funds.find((f) => f.reward_id === potReward.id)?.pledges.length ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pot-raised">Filled amount</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="pot-raised"
+                      type="number"
+                      min={0}
+                      max={potReward.cost}
+                      value={potRaised}
+                      onChange={(e) => setPotRaised(e.target.value)}
+                    />
+                    <span className="shrink-0 text-sm text-muted-foreground">
+                      / {potReward.cost} {family.currency_emoji}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Kids have put{" "}
-                    {funds.find((f) => f.reward_id === potReward.id)?.pledges.reduce((s, p) => s + p.amount, 0) ?? 0}{" "}
-                    {family.currency_emoji} in.
-                    {Number(potRaised) >= potReward.cost
-                      ? " Filling the pot grants it to everyone who put toward it."
+                    Saving a new number only changes the bar — it does not take or give kids points.
+                    {Number(potRaised) >= potReward.cost && (funds.find((f) => f.reward_id === potReward.id)?.pledges.length ?? 0) > 0
+                      ? " Filling the pot grants it to everyone still on it."
                       : ""}
                   </p>
+                </div>
+                {(funds.find((f) => f.reward_id === potReward.id)?.pledges.length ?? 0) > 0 ? (
+                  <div className="space-y-2">
+                    <Label>Kids on this pot</Label>
+                    <ul className="divide-y rounded-xl border">
+                      {(funds.find((f) => f.reward_id === potReward.id)?.pledges ?? []).map((p) => {
+                        const kid = kids.find((k) => k.id === p.child_id);
+                        const key = `pot-kid-${p.child_id}`;
+                        return (
+                          <li key={p.id} className="flex items-center gap-2 px-3 py-2">
+                            {kid ? <ChildLookAvatar child={kid} size="xs" /> : null}
+                            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                              {kid ? <ChildLookName child={kid} /> : "A kid"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {p.amount} {family.currency_emoji}
+                            </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                              disabled={isBusy(key)}
+                              onClick={() =>
+                                run(() => removeChildFromRewardPot(potReward.id, p.child_id), {
+                                  key,
+                                  onSuccess: (data) => {
+                                    const next = data?.raised ?? 0;
+                                    setPotRaised(String(next));
+                                    if (!data?.fund_id) setPotReward(null);
+                                  },
+                                })
+                              }
+                            >
+                              <XIcon />
+                              Remove
+                            </Button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">A head start kids can chip in on top of.</p>
+                  <p className="text-xs text-muted-foreground">No kids have put points in yet.</p>
                 )}
               </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setPotReward(null)}>
-                  Cancel
-                </Button>
-                <Button
-                  disabled={pending}
-                  onClick={() =>
-                    potReward &&
-                    run(() => setRewardPotProgress(potReward.id, Number(potRaised) || 0), {
-                      onSuccess: () => setPotReward(null),
-                    })
-                  }
-                >
-                  Save progress
-                </Button>
+              <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button variant="ghost" onClick={() => setPotReward(null)}>
+                    Cancel
+                  </Button>
+                  {funds.find((f) => f.reward_id === potReward.id) ? (
+                    <Button
+                      variant="outline"
+                      className="border-rose-200 text-rose-800 hover:bg-rose-50"
+                      disabled={pending}
+                      onClick={() =>
+                        run(() => clearRewardPot(potReward.id), {
+                          onSuccess: () => {
+                            setPotRaised("0");
+                            setPotReward(null);
+                          },
+                        })
+                      }
+                    >
+                      Clear pot
+                    </Button>
+                  ) : null}
+                  <Button
+                    disabled={pending}
+                    onClick={() =>
+                      potReward &&
+                      run(() => setRewardPotProgress(potReward.id, Number(potRaised) || 0), {
+                        onSuccess: () => setPotReward(null),
+                      })
+                    }
+                  >
+                    Save progress
+                  </Button>
+                </div>
               </DialogFooter>
             </>
           ) : null}

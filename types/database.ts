@@ -552,6 +552,14 @@ export type Database = {
         Args: { p_reward: string; p_raised: number };
         Returns: ContributeResult;
       };
+      remove_child_from_reward_pot: {
+        Args: { p_reward: string; p_child: string };
+        Returns: ContributeResult;
+      };
+      clear_reward_pot: {
+        Args: { p_reward: string };
+        Returns: ContributeResult;
+      };
       clear_kid_notices: {
         Args: { p_family: string; p_today: string };
         Returns: undefined;
