@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
-import type { Reward } from "@/types/database";
+import type { ContributeResult, Reward } from "@/types/database";
 
 const rewardSchema = z.object({
   title: z.string().trim().min(1, "Give the reward a name.").max(80),
@@ -111,6 +111,27 @@ export async function deleteReward(id: string): Promise<ActionResult> {
   if (error) return fail(friendlyError(error.message));
   revalidate();
   return ok(undefined, "Reward deleted.");
+}
+
+/** Parent sets how full a shared pot looks. Does not take or give kids points. */
+export async function setRewardPotProgress(rewardId: string, raised: number): Promise<ActionResult<ContributeResult>> {
+  return guardAction(async () => {
+    const parsed = z.object({ rewardId: z.uuid(), raised: z.number().int().min(0).max(100000) }).safeParse({ rewardId, raised });
+    if (!parsed.success) return fail("Pick how full the pot should be.");
+    await requireFamily();
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("set_reward_pot_progress", {
+      p_reward: parsed.data.rewardId,
+      p_raised: parsed.data.raised,
+    });
+    if (error && /could not find the function|schema cache|does not exist/i.test(error.message)) {
+      return fail("Adjusting pot progress needs the latest nest update. Run 0027_parent_pot_progress.sql.");
+    }
+    if (error) return fail(friendlyError(error.message));
+    revalidate();
+    const filled = Boolean((data as ContributeResult | null)?.filled);
+    return ok(data as ContributeResult, filled ? "Pot is full. Everyone who put toward it gets the reward." : "Pot progress updated.");
+  });
 }
 
 export async function resolveRedemption(

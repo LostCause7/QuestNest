@@ -263,6 +263,7 @@ export type RewardFund = {
   status: "open" | "filled";
   created_at: string;
   filled_at: string | null;
+  bonus?: number;
 }
 
 export type RewardFundPledge = {
@@ -280,12 +281,12 @@ export type RewardFundWithPledges = RewardFund & {
 }
 
 export type ContributeResult = {
-  fund_id: string;
+  fund_id: string | null;
   raised: number;
   target: number;
   filled: boolean;
-  my_amount: number;
-  chipped: number;
+  my_amount?: number;
+  chipped?: number;
 }
 
 export type PointTransaction = {
@@ -546,6 +547,10 @@ export type Database = {
       take_back_pot_chip: {
         Args: { p_fund: string; p_child: string; p_amount: number };
         Returns: undefined;
+      };
+      set_reward_pot_progress: {
+        Args: { p_reward: string; p_raised: number };
+        Returns: ContributeResult;
       };
       clear_kid_notices: {
         Args: { p_family: string; p_today: string };

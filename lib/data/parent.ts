@@ -110,7 +110,8 @@ export const getRewardFunds = cache(async (familyId: string): Promise<RewardFund
   }
   return funds.map((f) => {
     const mine = byFund.get(f.id) ?? [];
-    return { ...f, pledges: mine, raised: mine.reduce((sum, p) => sum + p.amount, 0) };
+    const pledged = mine.reduce((sum, p) => sum + p.amount, 0);
+    return { ...f, pledges: mine, raised: Math.max(0, pledged + (f.bonus ?? 0)) };
   });
 });
 

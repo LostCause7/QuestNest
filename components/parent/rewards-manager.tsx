@@ -12,6 +12,7 @@ import {
   LibraryIcon,
   GiftIcon,
   CheckIcon,
+  GaugeIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,14 +23,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/parent/page-header";
 import { RewardDialog } from "@/components/parent/reward-dialog";
 import { NearbyRewardsButton } from "@/components/parent/nearby-rewards";
 import { RewardPurchases } from "@/components/parent/reward-purchases";
 import { ConfirmDialog } from "@/components/parent/confirm-dialog";
 import { useAction } from "@/hooks/use-action";
-import { deleteReward, setRewardActive, type RewardInput } from "@/lib/actions/rewards";
+import { deleteReward, setRewardActive, setRewardPotProgress, type RewardInput } from "@/lib/actions/rewards";
 import { REWARD_PACK } from "@/lib/templates";
 import { RewardIcon } from "@/components/shared/reward-icon";
 import { isCashReward } from "@/lib/suggested-points";
@@ -60,6 +63,8 @@ export function RewardsManager({
   const [preset, setPreset] = useState<Partial<RewardInput> | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [deleting, setDeleting] = useState<RewardWithKids | null>(null);
+  const [potReward, setPotReward] = useState<RewardWithKids | null>(null);
+  const [potRaised, setPotRaised] = useState("0");
 
   useEffect(() => {
     if (openedViaQuery) router.replace("/app/rewards");
@@ -123,6 +128,10 @@ export function RewardsManager({
                 setDialogOpen(true);
               }}
               onToggle={() => run(() => setRewardActive(r.id, false), { key: r.id })}
+              onAdjustPot={() => {
+                setPotReward(r);
+                setPotRaised(String(funds.find((f) => f.reward_id === r.id)?.raised ?? 0));
+              }}
               onDelete={() => setDeleting(r)}
             />
           ))}
@@ -148,6 +157,10 @@ export function RewardsManager({
                   setDialogOpen(true);
                 }}
                 onToggle={() => run(() => setRewardActive(r.id, true), { key: r.id })}
+                onAdjustPot={() => {
+                  setPotReward(r);
+                  setPotRaised(String(funds.find((f) => f.reward_id === r.id)?.raised ?? 0));
+                }}
                 onDelete={() => setDeleting(r)}
               />
             ))}
@@ -189,6 +202,65 @@ export function RewardsManager({
         </DialogContent>
       </Dialog>
 
+      <Dialog open={Boolean(potReward)} onOpenChange={(o) => !o && setPotReward(null)}>
+        <DialogContent className="sm:max-w-sm">
+          {potReward ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl">Pot progress</DialogTitle>
+                <DialogDescription>
+                  Set how full “{potReward.title}” looks. This does not take or give kids points.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="pot-raised">Filled amount</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="pot-raised"
+                    type="number"
+                    min={0}
+                    max={potReward.cost}
+                    value={potRaised}
+                    onChange={(e) => setPotRaised(e.target.value)}
+                  />
+                  <span className="shrink-0 text-sm text-muted-foreground">
+                    / {potReward.cost} {family.currency_emoji}
+                  </span>
+                </div>
+                {funds.find((f) => f.reward_id === potReward.id)?.pledges.length ? (
+                  <p className="text-xs text-muted-foreground">
+                    Kids have put{" "}
+                    {funds.find((f) => f.reward_id === potReward.id)?.pledges.reduce((s, p) => s + p.amount, 0) ?? 0}{" "}
+                    {family.currency_emoji} in.
+                    {Number(potRaised) >= potReward.cost
+                      ? " Filling the pot grants it to everyone who put toward it."
+                      : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">A head start kids can chip in on top of.</p>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setPotReward(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  disabled={pending}
+                  onClick={() =>
+                    potReward &&
+                    run(() => setRewardPotProgress(potReward.id, Number(potRaised) || 0), {
+                      onSuccess: () => setPotReward(null),
+                    })
+                  }
+                >
+                  Save progress
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(o) => !o && setDeleting(null)}
@@ -210,6 +282,7 @@ function RewardCard({
   busy,
   onEdit,
   onToggle,
+  onAdjustPot,
   onDelete,
 }: {
   reward: RewardWithKids;
@@ -220,6 +293,7 @@ function RewardCard({
   busy: boolean;
   onEdit: () => void;
   onToggle: () => void;
+  onAdjustPot: () => void;
   onDelete: () => void;
 }) {
   const soldOut = reward.stock !== null && reward.stock <= 0;
@@ -240,7 +314,7 @@ function RewardCard({
             {reward.source_key ? " · nearby" : ""}
           </div>
           {fund ? (
-            <div className="mt-2">
+            <button type="button" onClick={onAdjustPot} className="mt-2 w-full text-left">
               <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-sunrise-gradient"
@@ -249,9 +323,9 @@ function RewardCard({
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Shared pot {fund.raised}/{fund.target} {family.currency_emoji} ·{" "}
-                {fund.pledges.map((p) => kidName(p.child_id)).join(", ")}
+                {fund.pledges.map((p) => kidName(p.child_id)).join(", ") || "parent start"}
               </p>
-            </div>
+            </button>
           ) : null}
         </div>
         <DropdownMenu>
@@ -264,6 +338,11 @@ function RewardCard({
             <DropdownMenuItem onClick={onEdit}>
               <PencilIcon /> Edit
             </DropdownMenuItem>
+            {!isCashReward(reward.title, reward.description) ? (
+              <DropdownMenuItem onClick={onAdjustPot}>
+                <GaugeIcon /> Change progress
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem onClick={onToggle}>
               {hidden ? (
                 <>
