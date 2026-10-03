@@ -29,9 +29,12 @@ function asFamily(data: Family): Family {
 
 function nestLoadError(message: string) {
   return new Error(
-    `Couldn't load your nest (${message}). If you just ran SQL, run 0030_reload_api_and_my_family.sql in Supabase, then sign in again. Don't create a second nest.`
+    `Couldn't load your nest (${message}). If you just ran SQL, run 0031_tx_kind_text_cast.sql in Supabase, then sign in again. Don't create a second nest.`
   );
 }
+
+const FAMILY_CORE =
+  "id, name, owner_id, currency_name, currency_emoji, timezone, created_at";
 
 /** The family the signed-in user belongs to, or null if they truly have none. Query errors throw. */
 export const getFamily = cache(async (): Promise<Family | null> => {
@@ -46,6 +49,16 @@ export const getFamily = cache(async (): Promise<Family | null> => {
     .limit(1)
     .maybeSingle();
   if (queried.data) return asFamily(queried.data);
+
+  if (queried.error) {
+    const slim = await supabase
+      .from("families")
+      .select(FAMILY_CORE)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (slim.data) return asFamily(slim.data as Family);
+  }
 
   const rpc = await supabase.rpc("my_family");
   if (rpc.data) return asFamily(rpc.data);

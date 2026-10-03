@@ -36,7 +36,7 @@ export default async function OnboardingPage() {
         <main className="mx-auto max-w-md space-y-3 px-4 py-16 text-center">
           <h1 className="font-display text-2xl font-semibold">Your nest is still here</h1>
           <p className="text-sm text-muted-foreground">
-            We couldn&apos;t open it just now. Run 0030_reload_api_and_my_family.sql in Supabase, then sign in with the same email. Don&apos;t create a second nest.
+            We couldn&apos;t open it just now. Run 0031_tx_kind_text_cast.sql in Supabase, then sign in with the same email. Don&apos;t create a second nest.
           </p>
           <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">{loadError}</p>
         </main>
