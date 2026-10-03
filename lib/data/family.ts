@@ -44,7 +44,11 @@ export async function requireFamily(): Promise<Family> {
   await requireUser();
   const family = await getFamily();
   if (!family) redirect("/onboarding");
-  await settleMandatoryPenalties(family);
-  await clearKidNotices(family);
+  try {
+    await settleMandatoryPenalties(family);
+    await clearKidNotices(family);
+  } catch (error) {
+    console.error(error);
+  }
   return family;
 }

@@ -33,7 +33,9 @@ export function friendlyError(message: string) {
   if (/PIN must be/i.test(message)) return message.replace(/^.*?PIN/, "PIN");
   if (/not allowed/i.test(message)) return "You don't have permission to do that.";
   if (/row-level security/i.test(message)) return "You don't have permission to do that.";
-  if (/tx_kind|expression is of type text/i.test(message)) return "Couldn't apply that bonus or deduction. Try again.";
+  if (/tx_kind|expression is of type text/i.test(message)) {
+    return "Couldn't save those points. Ask a parent to run 0029_cast_ledger_kinds.sql in Supabase, then try again.";
+  }
   return message;
 }
 

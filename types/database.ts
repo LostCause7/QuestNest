@@ -516,6 +516,17 @@ export type Database = {
         Args: { p_completion: string; p_approve: boolean; p_points?: number | null };
         Returns: ChoreCompletion;
       };
+      record_points: {
+        Args: {
+          p_family: string;
+          p_child: string;
+          p_amount: number;
+          p_kind: string;
+          p_ref?: string | null;
+          p_note?: string | null;
+        };
+        Returns: PointTransaction;
+      };
       redeem_reward: {
         Args: { p_reward: string; p_child: string; p_cost?: number | null };
         Returns: RewardRedemption;

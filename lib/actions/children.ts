@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
 import { ALL_COLOR_KEYS, ALL_FACE_KEYS } from "@/lib/looks-keys";
 import { KID_MODE_COOKIE } from "@/lib/supabase/proxy";
+import { insertLedger } from "./ledger";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Child } from "@/types/database";
 
@@ -162,7 +163,7 @@ export async function adjustPoints(childId: string, amount: number, note?: strin
   let { error } = await supabase.rpc("adjust_points", payload);
   // Older adjust_points() inserts 'bonus'/'penalty' as text into tx_kind.
   if (error && /tx_kind|expression is of type text/i.test(error.message)) {
-    const fallback = await supabase.from("point_transactions").insert({
+    const fallback = await insertLedger(supabase, {
       family_id: family.id,
       child_id: childId,
       amount: parsed.data.amount,
@@ -321,7 +322,7 @@ async function hideWithRefund(
   original: { id: string; family_id: string; child_id: string; amount: number; kind: string; ref_id: string | null; note: string | null }
 ) {
   const { data: claims } = await supabase.auth.getClaims();
-  const { error } = await supabase.from("point_transactions").insert({
+  const { error } = await insertLedger(supabase, {
     family_id: original.family_id,
     child_id: original.child_id,
     amount: -original.amount,

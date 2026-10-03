@@ -18,7 +18,7 @@ begin
 
   if p_approve then
     insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-    values (row.family_id, row.child_id, row.points_awarded, 'chore', row.id, ch.title, (select auth.uid()));
+    values (row.family_id, row.child_id, row.points_awarded, 'chore'::public.tx_kind, row.id, ch.title, (select auth.uid()));
   end if;
   return row;
 end;
@@ -43,7 +43,7 @@ begin
   returning * into red;
 
   insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-  values (r.family_id, p_child, -r.cost, 'reward', red.id, r.title, (select auth.uid()));
+  values (r.family_id, p_child, -r.cost, 'reward'::public.tx_kind, red.id, r.title, (select auth.uid()));
 
   if r.stock is not null then update public.rewards set stock = stock - 1 where id = r.id; end if;
   return red;

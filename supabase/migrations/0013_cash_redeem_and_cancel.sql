@@ -50,7 +50,7 @@ begin
     r.family_id,
     p_child,
     -charge,
-    'reward',
+    'reward'::public.tx_kind,
     red.id,
     case when is_cash then r.title || ' ($' || (charge / 50)::text || ')' else r.title end,
     (select auth.uid())
@@ -102,7 +102,7 @@ begin
       red.family_id,
       red.child_id,
       red.cost_at_time,
-      'refund',
+      'refund'::public.tx_kind,
       red.id,
       case when p_action = 'cancel' then 'Changed mind: ' else 'Refund: ' end || coalesce(r.title, 'Reward'),
       (select auth.uid())

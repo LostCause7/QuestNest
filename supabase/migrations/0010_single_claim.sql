@@ -56,7 +56,7 @@ begin
        set status = 'approved'::public.completion_status, points_awarded = ch.points, reviewed_at = now()
      where id = row.id returning * into row;
     insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-    values (ch.family_id, p_child, ch.points, 'chore', row.id, ch.title, (select auth.uid()));
+    values (ch.family_id, p_child, ch.points, 'chore'::public.tx_kind, row.id, ch.title, (select auth.uid()));
   end if;
   return row;
 end;

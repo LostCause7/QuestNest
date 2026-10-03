@@ -1,9 +1,25 @@
 import { requireFamily } from "@/lib/data/family";
+import { isNextRedirect } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
 export default async function KidLayout({ children }: LayoutProps<"/kids">) {
-  await requireFamily();
+  try {
+    await requireFamily();
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    console.error(error);
+    const message = error instanceof Error ? error.message : "We couldn't open kid mode.";
+    return (
+      <div className="mx-auto max-w-md space-y-3 px-4 py-16 text-center">
+        <h1 className="font-display text-2xl font-semibold">Kid mode hit a snag</h1>
+        <p className="text-sm text-muted-foreground">
+          Try again. If this started after a kindness trophy, run 0029_cast_ledger_kinds.sql in Supabase.
+        </p>
+        <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">{message}</p>
+      </div>
+    );
+  }
   return (
     <div className="kid-mode relative min-h-screen overflow-x-visible bg-background text-foreground">
       {/* playful background */}

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { PlayIcon } from "lucide-react";
 import { ParentShellFallback } from "@/components/parent/manager-fallback";
 import { PrefsApplier } from "@/components/parent/nest-extras";
@@ -30,7 +29,16 @@ async function ParentLayoutGuarded(props: LayoutProps<"/app">) {
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     console.error(error);
-    redirect("/login?error=" + encodeURIComponent("We couldn't open Parent HQ. Please sign in again."));
+    const message = error instanceof Error ? error.message : "We couldn't open Parent HQ.";
+    return (
+      <div className="mx-auto max-w-md space-y-3 px-4 py-16 text-center">
+        <h1 className="font-display text-2xl font-semibold">Parent HQ hit a snag</h1>
+        <p className="text-sm text-muted-foreground">
+          Try again. If this started after a kindness trophy, run 0029_cast_ledger_kinds.sql in Supabase.
+        </p>
+        <p className="rounded-xl bg-muted px-3 py-2 text-left text-xs text-muted-foreground break-words">{message}</p>
+      </div>
+    );
   }
 }
 

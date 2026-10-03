@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireFamily } from "@/lib/data/family";
+import { insertLedger } from "./ledger";
 import { ok, fail, friendlyError, guardAction, type ActionResult } from "./result";
 import type { Chore } from "@/types/database";
 
@@ -255,6 +256,24 @@ async function reviewDone(
   const awarded = approve && !isExcuse ? (typeof points === "number" ? points : (chore?.points ?? 0)) : 0;
   const nextStatus = approve ? (isExcuse ? "excused" : "approved") : "rejected";
 
+  if (!isExcuse) {
+    const reviewed = await supabase.rpc("review_completion", {
+      p_completion: row.id,
+      p_approve: approve,
+      p_points: typeof points === "number" ? points : null,
+    });
+    if (!reviewed.error) {
+      if (!approve && parentNote) {
+        await supabase.from("chore_completions").update({ note: parentNote }).eq("id", row.id);
+      }
+      revalidate();
+      return ok(undefined, approve ? "Approved! Points awarded." : "Sent back.");
+    }
+    if (!/tx_kind|expression is of type text|could not find|schema cache|does not exist/i.test(reviewed.error.message)) {
+      return fail(friendlyError(reviewed.error.message));
+    }
+  }
+
   const { error: updErr } = await supabase
     .from("chore_completions")
     .update({
@@ -274,7 +293,7 @@ async function reviewDone(
   }
 
   if (approve && !isExcuse) {
-    const { error: txErr } = await supabase.from("point_transactions").insert({
+    const { error: txErr } = await insertLedger(supabase, {
       family_id: row.family_id,
       child_id: row.child_id,
       amount: awarded,

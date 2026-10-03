@@ -428,7 +428,7 @@ begin
        set status = 'approved', points_awarded = ch.points, reviewed_at = now()
      where id = row.id returning * into row;
     insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-    values (ch.family_id, p_child, ch.points, 'chore', row.id, ch.title, (select auth.uid()));
+    values (ch.family_id, p_child, ch.points, 'chore'::public.tx_kind, row.id, ch.title, (select auth.uid()));
   end if;
   return row;
 end;
@@ -452,7 +452,7 @@ begin
 
   if p_approve then
     insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-    values (row.family_id, row.child_id, row.points_awarded, 'chore', row.id, ch.title, (select auth.uid()));
+    values (row.family_id, row.child_id, row.points_awarded, 'chore'::public.tx_kind, row.id, ch.title, (select auth.uid()));
   end if;
   return row;
 end;
@@ -477,7 +477,7 @@ begin
   returning * into red;
 
   insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-  values (r.family_id, p_child, -r.cost, 'reward', red.id, r.title, (select auth.uid()));
+  values (r.family_id, p_child, -r.cost, 'reward'::public.tx_kind, red.id, r.title, (select auth.uid()));
 
   if r.stock is not null then update public.rewards set stock = stock - 1 where id = r.id; end if;
   return red;
@@ -500,7 +500,7 @@ begin
   elsif p_action = 'reject' and red.status = 'pending' then
     update public.reward_redemptions set status = 'rejected', resolved_at = now(), resolved_by = (select auth.uid()) where id = red.id returning * into red;
     insert into public.point_transactions (family_id, child_id, amount, kind, ref_id, note, created_by)
-    values (red.family_id, red.child_id, red.cost_at_time, 'refund', red.id, 'Refund: ' || r.title, (select auth.uid()));
+    values (red.family_id, red.child_id, red.cost_at_time, 'refund'::public.tx_kind, red.id, 'Refund: ' || r.title, (select auth.uid()));
     if r.stock is not null then update public.rewards set stock = stock + 1 where id = r.id; end if;
   else
     raise exception 'invalid action % for status %', p_action, red.status;

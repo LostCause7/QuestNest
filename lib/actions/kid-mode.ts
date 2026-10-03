@@ -9,6 +9,7 @@ import { requireFamily } from "@/lib/data/family";
 import { familyToday } from "@/lib/data/parent";
 import { ACTIVE_CHILD_COOKIE, ACTIVE_PARENT_COOKIE, KID_MODE_COOKIE } from "@/lib/supabase/proxy";
 import { safeNext } from "@/lib/origin";
+import { insertLedger } from "./ledger";
 import { ok, fail, friendlyError, type ActionResult } from "./result";
 import type { ChoreCompletion, ContributeResult, RewardRedemption } from "@/types/database";
 
@@ -114,7 +115,7 @@ export async function completeQuest(choreId: string): Promise<ActionResult<Chore
     if (error || !data) return fail(friendlyError(error?.message ?? "Could not resubmit that quest."));
 
     if (autoApprove && chore) {
-      const { error: txErr } = await supabase.from("point_transactions").insert({
+      const { error: txErr } = await insertLedger(supabase, {
         family_id: chore.family_id,
         child_id: childId,
         amount: chore.points,
