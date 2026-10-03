@@ -508,6 +508,10 @@ export type Database = {
       has_parent_pin: { Args: { p_family: string }; Returns: boolean };
       set_parent_profile_pin: { Args: { p_parent: string; p_pin: string }; Returns: undefined };
       verify_parent_profile_pin: { Args: { p_parent: string; p_pin: string }; Returns: boolean };
+      my_family: {
+        Args: Record<string, never>;
+        Returns: Family;
+      };
       complete_chore: {
         Args: { p_chore: string; p_child: string; p_date?: string };
         Returns: ChoreCompletion;

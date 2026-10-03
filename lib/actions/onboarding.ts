@@ -52,9 +52,16 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
   const userId = claims?.claims.sub;
   if (!userId) redirect("/login");
 
-  // Guard: already onboarded
-  const { data: existing } = await supabase.from("families").select("id").limit(1).maybeSingle();
-  if (existing) redirect("/app");
+  // Guard: already onboarded. A read error must not create a second nest.
+  const existing = await supabase.from("families").select("id").limit(1).maybeSingle();
+  if (existing.error) {
+    const rpc = await supabase.rpc("my_family");
+    if (rpc.data) redirect("/app");
+    return { error: "Couldn't check for your existing nest. Run 0030_reload_api_and_my_family.sql, then try again." };
+  }
+  if (existing.data) redirect("/app");
+  const already = await supabase.rpc("my_family");
+  if (already.data) redirect("/app");
 
   const familyId = crypto.randomUUID();
   const { error: famErr } = await supabase.from("families").insert({

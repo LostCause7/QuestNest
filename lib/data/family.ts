@@ -14,29 +14,44 @@ export const requireUser = cache(async (): Promise<CurrentUser> => {
   return { id: claims.sub, email: (claims.email as string | undefined) ?? null };
 });
 
-/** The family the signed-in user belongs to, or null. */
+const MISSING_RPC = /could not find|schema cache|does not exist/i;
+
+function asFamily(data: Family): Family {
+  return {
+    ...data,
+    location_city: data.location_city ?? null,
+    location_state: data.location_state ?? null,
+    location_lat: data.location_lat ?? null,
+    location_lng: data.location_lng ?? null,
+    location_radius_miles: data.location_radius_miles ?? 30,
+  };
+}
+
+function nestLoadError(message: string) {
+  return new Error(
+    `Couldn't load your nest (${message}). If you just ran SQL, run 0030_reload_api_and_my_family.sql in Supabase, then sign in again. Don't create a second nest.`
+  );
+}
+
+/** The family the signed-in user belongs to, or null if they truly have none. Query errors throw. */
 export const getFamily = cache(async (): Promise<Family | null> => {
-  if (!getSupabaseEnv()) return null;
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("families")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (!data) return null;
-    return {
-      ...data,
-      location_city: data.location_city ?? null,
-      location_state: data.location_state ?? null,
-      location_lat: data.location_lat ?? null,
-      location_lng: data.location_lng ?? null,
-      location_radius_miles: data.location_radius_miles ?? 30,
-    };
-  } catch {
-    return null;
+  if (!getSupabaseEnv()) {
+    throw new Error("ChoreHall could not reach the nest. Check that Supabase is connected.");
   }
+  const supabase = await createClient();
+  const queried = await supabase
+    .from("families")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (queried.data) return asFamily(queried.data);
+
+  const rpc = await supabase.rpc("my_family");
+  if (rpc.data) return asFamily(rpc.data);
+  if (queried.error) throw nestLoadError(queried.error.message);
+  if (rpc.error && !MISSING_RPC.test(rpc.error.message)) throw nestLoadError(rpc.error.message);
+  return null;
 });
 
 /** Family or redirect to onboarding. */

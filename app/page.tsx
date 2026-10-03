@@ -21,6 +21,7 @@ import { KidAvatar } from "@/components/shared/avatar-picker";
 import { SubscribeCta } from "@/components/marketing/subscribe-cta";
 import { getClaims } from "@/lib/supabase/server";
 import { getFamily } from "@/lib/data/family";
+import { isNextRedirect } from "@/lib/errors";
 import { nestPriceLabel } from "@/lib/stripe";
 
 const steps = [
@@ -77,8 +78,13 @@ const faqs = [
 export default async function HomePage() {
   const claims = await getClaims();
   if (claims) {
-    const family = await getFamily();
-    redirect(family ? "/kids" : "/onboarding");
+    try {
+      const family = await getFamily();
+      redirect(family ? "/kids" : "/onboarding");
+    } catch (error) {
+      if (isNextRedirect(error)) throw error;
+      redirect("/kids");
+    }
   }
   const priceLabel = await nestPriceLabel();
 

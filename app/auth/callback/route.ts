@@ -69,8 +69,13 @@ async function redirectAfterAuth(
 ) {
   let dest = next;
   if (dest !== "/reset-password") {
-    const { data: family } = await supabase.from("families").select("id").limit(1).maybeSingle();
-    if (!family) dest = "/onboarding";
+    const found = await supabase.from("families").select("id").limit(1).maybeSingle();
+    if (found.error) {
+      const rpc = await supabase.rpc("my_family");
+      if (!rpc.data) dest = "/kids";
+    } else if (!found.data) {
+      dest = "/onboarding";
+    }
   }
   return NextResponse.redirect(`${origin}${dest}`);
 }
